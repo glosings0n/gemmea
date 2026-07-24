@@ -4,6 +4,7 @@ import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:gemmea/core/theme/app_theme.dart';
+import 'package:gemmea/core/services/voice_service.dart';
 import 'package:gemmea/presentation/bloc/chat_cubit.dart';
 import 'package:gemmea/presentation/bloc/home_cubit.dart';
 
@@ -17,6 +18,8 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  bool _isListening = false;
+  String _activeSpeakingText = "";
 
   @override
   void initState() {
@@ -31,6 +34,35 @@ class _ChatPageState extends State<ChatPage> {
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
       );
+    }
+  }
+
+  void _toggleMic() async {
+    if (_isListening) {
+      await VoiceService.instance.stopListening();
+      setState(() => _isListening = false);
+    } else {
+      setState(() => _isListening = true);
+      await VoiceService.instance.startListening(
+        onResult: (recognizedText) {
+          setState(() {
+            _messageController.text = recognizedText;
+          });
+        },
+        onDone: () {
+          setState(() => _isListening = false);
+        },
+      );
+    }
+  }
+
+  void _speakMessage(String text) async {
+    if (_activeSpeakingText == text) {
+      await VoiceService.instance.stopSpeaking();
+      setState(() => _activeSpeakingText = "");
+    } else {
+      setState(() => _activeSpeakingText = text);
+      await VoiceService.instance.speak(text);
     }
   }
 
@@ -296,6 +328,46 @@ class _ChatPageState extends State<ChatPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryForestGreen.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.verified, size: 12, color: AppTheme.primaryForestGreen),
+                                SizedBox(width: 4),
+                                Text(
+                                  "Ancré FAO RAG",
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.primaryForestGreen,
+                                    fontFamily: 'Fredoka',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            constraints: const BoxConstraints(),
+                            padding: EdgeInsets.zero,
+                            icon: Icon(
+                              _activeSpeakingText == message.text ? Icons.volume_off : Icons.volume_up_rounded,
+                              size: 18,
+                              color: AppTheme.primaryForestGreen,
+                            ),
+                            onPressed: () => _speakMessage(message.text),
+                            tooltip: "Écouter le message",
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
                       MarkdownBody(
                         data: message.text,
                         styleSheet: MarkdownStyleSheet(
@@ -335,6 +407,20 @@ class _ChatPageState extends State<ChatPage> {
       child: SafeArea(
         child: Row(
           children: [
+            IconButton(
+              onPressed: _toggleMic,
+              style: IconButton.styleFrom(
+                backgroundColor: _isListening ? Colors.redAccent : AppTheme.primaryForestGreen.withValues(alpha: 0.1),
+                padding: const EdgeInsets.all(10.0),
+              ),
+              icon: Icon(
+                _isListening ? Icons.mic : Icons.mic_none,
+                color: _isListening ? Colors.white : AppTheme.primaryForestGreen,
+                size: 22.0,
+              ),
+              tooltip: _isListening ? "Écoute en cours..." : "Dictée vocale",
+            ),
+            const SizedBox(width: 8.0),
             Expanded(
               child: TextField(
                 controller: _messageController,

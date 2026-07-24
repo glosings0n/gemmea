@@ -321,7 +321,46 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                             },
                                           ),
                                   ),
-                                  const SizedBox(height: 16),
+                                  const SizedBox(height: 12),
+                                 Container(
+                                   padding: const EdgeInsets.all(12),
+                                   decoration: BoxDecoration(
+                                     color: Colors.amber.withValues(alpha: 0.1),
+                                     borderRadius: BorderRadius.circular(10),
+                                     border: Border.all(color: Colors.amber.shade600.withValues(alpha: 0.3)),
+                                   ),
+                                   child: Row(
+                                     children: [
+                                       const Text("💰 ", style: TextStyle(fontSize: 18)),
+                                       Expanded(
+                                         child: Column(
+                                           crossAxisAlignment: CrossAxisAlignment.start,
+                                           children: [
+                                             const Text(
+                                               "Estimation d'Impact Économique & Perte Evitée",
+                                               style: TextStyle(
+                                                 fontFamily: 'Fredoka',
+                                                 fontSize: 11,
+                                                 fontWeight: FontWeight.bold,
+                                                 color: AppTheme.textCharcoal,
+                                               ),
+                                             ),
+                                             const SizedBox(height: 2),
+                                             Text(
+                                               "Risque de perte non traité : ~40% à 70% du rendement par hectare.\nGain estimé après application du traitement FAO : +120\$ à +350\$/ha.",
+                                               style: TextStyle(
+                                                 fontFamily: 'Fredoka',
+                                                 fontSize: 11,
+                                                 color: Colors.brown.shade800,
+                                               ),
+                                             ),
+                                           ],
+                                         ),
+                                       ),
+                                     ],
+                                   ),
+                                 ),
+                                 const SizedBox(height: 12),
                                 ],
                                 const Text(
                                   "Actions correctives recommandées (IITA) :",

@@ -158,9 +158,24 @@ class ChatRepositoryImpl implements ChatRepository {
             maxTokens: 1024,
             preferredBackend: PreferredBackend.gpu,
           );
+          // Perform FAO RAG Query to fetch official grounded citations
+          final faoDocs = await dbHelper.searchFAOKnowledge(text);
+          final faoContext = faoDocs.map((d) => "- ${d['topic']}: ${d['content']} Remède: ${d['organic_remedy']} (Source: ${d['source_citation']})").join("\n");
+
+          final systemPrompt = '''
+Tu es Gemmea, un assistant agronome utile sous forme d'IA hors ligne destiné aux agriculteurs de l'Est de la République Démocratique du Congo (RDC) et de l'Afrique de l'Est.
+Salue toujours en disant 'Jambo 👋🏾' (avec l'émoji noir 👋🏾).
+
+RÈGLE DE ANCRAGE (RAG FAO) :
+Voici les extraits officiels de la FAO pertinents extraits de la base locale :
+$faoContext
+
+Utilise ces données FAO pour fournir des conseils directs, précis et écologiques. Reste très concis, clair, et cite la source FAO.
+''';
+
           _chat = await model.createChat(
             modelType: ModelType.gemmaIt,
-            systemInstruction: "Tu es Gemmea, un assistant agronome utile sous forme d'IA hors ligne destiné aux agriculteurs de l'Est de la République Démocratique du Congo (RDC) et de l'Afrique de l'Est. Salue toujours en disant 'Jambo 👋🏾' (avec l'émoji noir 👋🏾). Donne des conseils directs et pratiques sur les cultures locales (Banane, Haricot, Manioc, Patate douce, Maïs, Café) et la gestion locale des ravageurs. Reste très concis, clair, précis et orienté vers l'action.",
+            systemInstruction: systemPrompt,
           );
           loaded = true;
           dev.log("Modèle Gemma chargé avec succès sur le moteur LiteRT-LM GPU !", name: "GemmeaChat");
@@ -178,9 +193,23 @@ class ChatRepositoryImpl implements ChatRepository {
               maxTokens: 1024,
               preferredBackend: PreferredBackend.cpu,
             );
+             final faoDocs = await dbHelper.searchFAOKnowledge(text);
+             final faoContext = faoDocs.map((d) => "- ${d['topic']}: ${d['content']} Remède: ${d['organic_remedy']} (Source: ${d['source_citation']})").join("\n");
+
+             final systemPrompt = '''
+Tu es Gemmea, un assistant agronome utile sous forme d'IA hors ligne destiné aux agriculteurs de l'Est de la République Démocratique du Congo (RDC) et de l'Afrique de l'Est.
+Salue toujours en disant 'Jambo 👋🏾' (avec l'émoji noir 👋🏾).
+
+RÈGLE DE ANCRAGE (RAG FAO) :
+Voici les extraits officiels de la FAO pertinents extraits de la base locale :
+$faoContext
+
+Utilise ces données FAO pour fournir des conseils directs, précis et écologiques. Reste très concis, clair, et cite la source FAO.
+''';
+
              _chat = await model.createChat(
               modelType: ModelType.gemmaIt,
-              systemInstruction: "Tu es Gemmea, un assistant agronome utile sous forme d'IA hors ligne destiné aux agriculteurs de l'Est de la République Démocratique du Congo (RDC) et de l'Afrique de l'Est. Salue toujours en disant 'Jambo 👋🏾' (avec l'émoji noir 👋🏾). Donne des conseils directs et pratiques sur les cultures locales (Banane, Haricot, Manioc, Patate douce, Maïs, Café) et la gestion locale des ravageurs. Reste très concis, clair, précis et orienté vers l'action.",
+              systemInstruction: systemPrompt,
             );
             loaded = true;
             dev.log("Modèle Gemma chargé avec succès sur le moteur LiteRT-LM CPU !", name: "GemmeaChat");

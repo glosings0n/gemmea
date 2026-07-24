@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:gemmea/core/theme/app_theme.dart';
+import 'package:gemmea/core/services/pdf_report_service.dart';
 import 'package:gemmea/presentation/bloc/home_cubit.dart';
 import 'package:gemmea/presentation/pages/diagnostics_history_page.dart';
 
@@ -49,6 +50,30 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         actions: [
+          BlocBuilder<HomeCubit, HomeState>(
+            builder: (context, state) {
+              if (state is HomeLoaded) {
+                return IconButton(
+                  tooltip: 'Exporter le Rapport PDF',
+                  onPressed: () async {
+                    final diags = state.diagnosticsHistory.map((d) => d.toMap()).toList();
+                    final events = state.calendarEvents.map((c) => c.toMap()).toList();
+                    await PDFReportService.printOrShareReport(
+                      diagnostics: diags,
+                      calendarEvents: events,
+                      farmerLocation: 'Goma, Nord-Kivu, RDC',
+                    );
+                  },
+                  icon: const HugeIcon(
+                    icon: HugeIcons.strokeRoundedPdf01,
+                    color: AppTheme.primaryForestGreen,
+                    size: 24,
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
           BlocBuilder<HomeCubit, HomeState>(
             builder: (context, state) {
               bool hasNew = false;
