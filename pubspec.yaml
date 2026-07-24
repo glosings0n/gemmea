@@ -1,0 +1,51 @@
+name: gemmea
+description: "Gemmea: Assistant agronomique IA hors ligne pour les agriculteurs de l'Est de la RDC et de l'Afrique de l'Est."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_bloc: ^9.1.1
+  flutter_gemma: ^1.2.3
+  flutter_gemma_litertlm: ^1.1.0
+  flutter_markdown_plus: ^1.0.12
+  http: ^1.2.1
+  hugeicons: ^1.1.7
+  image_picker: ^1.1.2
+  path: ^1.9.1
+  path_provider: ^2.1.6
+  sqflite: ^2.4.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+  mocktail: ^1.0.5
+  bloc_test: ^10.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/logo.png
+    - assets/images/cassava_mosaic.png
+    - assets/images/maize_rust.png
+    - assets/images/healthy_leaf.png
+  fonts:
+    - family: Fredoka
+      fonts:
+        - asset: assets/fonts/Fredoka-Regular.ttf
+        - asset: assets/fonts/Fredoka-Bold.ttf
+          weight: 700
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/logo.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/logo.png"
+
