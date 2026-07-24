@@ -33,7 +33,7 @@ class PDFReportService {
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Column(
-                    cross: pw.CrossAxisAlignment.start,
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
                         'GEMMEA - RAPPORT DE PRODUCTIVITÉ AGRICOLE',
@@ -117,7 +117,7 @@ class PDFReportService {
             if (diagnostics.isEmpty)
               pw.Text('Aucun diagnostic enregistré à ce jour.', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700))
             else
-              pw.Table.fromTextArray(
+              pw.TableHelper.fromTextArray(
                 headers: ['Culture', 'Diagnostic / Pathologie', 'Confiance', 'Statut', 'Remède Recommandé (FAO)'],
                 data: diagnostics.map((d) {
                   final confidence = (d['confidence'] as double? ?? 0.0) * 100;
@@ -146,7 +146,7 @@ class PDFReportService {
             if (calendarEvents.isEmpty)
               pw.Text('Aucun événement d\'irrigation planifié.', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700))
             else
-              pw.Table.fromTextArray(
+              pw.TableHelper.fromTextArray(
                 headers: ['Date', 'Tâche / Intervention', 'Pluie Détectée', 'Instructions'],
                 data: calendarEvents.map((c) {
                   return [

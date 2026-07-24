@@ -59,7 +59,13 @@ class VoiceService {
 
     _isListening = true;
     await _speech.listen(
-      localeId: 'fr_FR',
+      listenOptions: stt.SpeechListenOptions(
+        listenFor: const Duration(seconds: 30),
+        pauseFor: const Duration(seconds: 3),
+        partialResults: true,
+        cancelOnError: true,
+        listenMode: stt.ListenMode.confirmation,
+      ),
       onResult: (val) {
         onResult(val.recognizedWords);
         if (val.finalResult) {
