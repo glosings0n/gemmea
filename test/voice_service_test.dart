@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gemmea/core/services/voice_service.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('VoiceService Tests', () {
     test('instance is a singleton', () {
       final v1 = VoiceService.instance;
