@@ -11,6 +11,20 @@ import 'package:path_provider/path_provider.dart';
 class ChatRepositoryImpl implements ChatRepository {
   final SQLiteHelper dbHelper = SQLiteHelper.instance;
   InferenceChat? _chat;
+  static bool _isEngineInitialized = false;
+
+  static Future<void> _ensureEngineInitialized() async {
+    if (!_isEngineInitialized) {
+      try {
+        await FlutterGemma.initialize(
+          inferenceEngines: const [LiteRtLmEngine()],
+        );
+        _isEngineInitialized = true;
+      } catch (e) {
+        dev.log("Engine initialization note: $e", name: "GemmeaEngine");
+      }
+    }
+  }
 
   @override
   Future<bool> checkModelInstalled() async {
@@ -33,10 +47,7 @@ class ChatRepositoryImpl implements ChatRepository {
 
   @override
   Future<void> initializeGemma(Function(double) onProgress) async {
-    // Initialize the Flutter Gemma plugin with LiteRT-LM engine
-    await FlutterGemma.initialize(
-      inferenceEngines: const [LiteRtLmEngine()],
-    );
+    await _ensureEngineInitialized();
     
     final directory = await getApplicationDocumentsDirectory();
     final modelFile = File('${directory.path}/gemma.litertlm');
