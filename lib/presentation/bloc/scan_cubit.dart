@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gemmea/data/datasources/sqlite_helper.dart';
@@ -23,6 +24,7 @@ class ScanCubit extends Cubit<ScanState> {
   Future<void> analyzeCrop(File image) async {
     emit(ScanProcessing());
     try {
+      dev.log("Analyzing crop image with local Gemma VLM...", name: 'SCAN_CUBIT');
       final diagnosticResult = await localSource.evaluateCropImage(
         image, 
         "Analysez attentivement cette image de feuille de culture. Identifiez toute maladie potentielle de la plante (par ex. Mosaïque du manioc, Rouille du maïs, Flétrissement du bananier, etc.) visible sur l'image. Fournissez un Diagnostic Possible et un Remède Bio/Biologique Localisé très concis et adapté aux petits exploitants agricoles."
@@ -58,6 +60,7 @@ class ScanCubit extends Cubit<ScanState> {
         disease = "Feuille Saine";
       }
 
+      dev.log("Saving diagnostic to SQLite: $cropName - $disease", name: 'SCAN_CUBIT');
       // Persist to local SQLite DB immediately upon offline inference success
       await SQLiteHelper.instance.insertDiagnostic({
         'crop_name': cropName,
@@ -70,7 +73,8 @@ class ScanCubit extends Cubit<ScanState> {
       });
 
       emit(ScanSuccess(diagnosticResult));
-    } catch (e) {
+    } catch (e, stack) {
+      dev.log("Error analyzing crop image", name: 'SCAN_CUBIT', error: e, stackTrace: stack);
       emit(ScanFailure("Échec de l'exécution du modèle de vision local : $e"));
     }
   }

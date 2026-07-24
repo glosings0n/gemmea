@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as dev;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:gemmea/domain/usecases/calendar_usecases.dart';
@@ -63,6 +64,7 @@ class ChatCubit extends Cubit<ChatState> {
   Future<void> loadChatHistory() async {
     emit(ChatLoading());
     try {
+      dev.log("Loading chat history from database...", name: 'CHAT_CUBIT');
       final messages = await getChatMessages();
       if (messages.isEmpty) {
         final welcome = Message.text(
@@ -73,7 +75,8 @@ class ChatCubit extends Cubit<ChatState> {
       } else {
         emit(ChatLoaded(messages: messages, isStreaming: false));
       }
-    } catch (e) {
+    } catch (e, stack) {
+      dev.log("Error loading chat history", name: 'CHAT_CUBIT', error: e, stackTrace: stack);
       emit(ChatError(e.toString()));
     }
   }
@@ -90,6 +93,7 @@ class ChatCubit extends Cubit<ChatState> {
     emit(ChatLoaded(messages: updatedMessages, isStreaming: true));
     
     try {
+      dev.log("Sending chat message: '$text'", name: 'CHAT_CUBIT');
       // 1. Save user message to database
       await saveChatMessage(userMessage);
 
@@ -103,12 +107,14 @@ class ChatCubit extends Cubit<ChatState> {
       if (lowercaseText.contains("rain") || lowercaseText.contains("wet") || lowercaseText.contains("raining") ||
           lowercaseText.contains("pluie") || lowercaseText.contains("pleut") || lowercaseText.contains("humide")) {
         // Trigger autonomous Function Call: update rain status to true, pausing watering
+        dev.log("Triggering Function Calling: Pause irrigation for rain", name: 'CHAT_CUBIT');
         await updateRainStatus(tomorrowStr, true);
         await updateRainStatus(todayStr, true);
         functionCallingNotice = "🌧️ Calendar adjusted: Irrigation paused for rainy schedule on $tomorrowStr.";
       } else if (lowercaseText.contains("dry") || lowercaseText.contains("hot") || lowercaseText.contains("irrigate") || lowercaseText.contains("water my field") ||
                  lowercaseText.contains("sec") || lowercaseText.contains("chaud") || lowercaseText.contains("arroser") || lowercaseText.contains("arrose")) {
         // Trigger autonomous Function Call: update rain status to false, activating watering
+        dev.log("Triggering Function Calling: Resume regular irrigation for dry weather", name: 'CHAT_CUBIT');
         await updateRainStatus(tomorrowStr, false);
         await updateRainStatus(todayStr, false);
         functionCallingNotice = "☀️ Calendar adjusted: Regular watering scheduled for dry weather.";
@@ -141,10 +147,12 @@ class ChatCubit extends Cubit<ChatState> {
             }
           }
         },
-        onError: (error) {
+        onError: (error, stack) {
+          dev.log("Gemma response stream error", name: 'CHAT_CUBIT', error: error, stackTrace: stack);
           _handleStreamError(error.toString());
         },
         onDone: () async {
+          dev.log("Gemma response stream completed", name: 'CHAT_CUBIT');
           // Stream completed, save full message to database
           final finalState = state;
           if (finalState is ChatLoaded) {
@@ -156,7 +164,8 @@ class ChatCubit extends Cubit<ChatState> {
         cancelOnError: true,
       );
 
-    } catch (e) {
+    } catch (e, stack) {
+      dev.log("Error in sendMessage", name: 'CHAT_CUBIT', error: e, stackTrace: stack);
       _handleStreamError(e.toString());
     }
   }
@@ -175,13 +184,15 @@ class ChatCubit extends Cubit<ChatState> {
   Future<void> clearConversation() async {
     emit(ChatLoading());
     try {
+      dev.log("Clearing chat conversation...", name: 'CHAT_CUBIT');
       await clearChat();
       final welcome = Message.text(
         text: "Jambo 👋🏾 ! Je suis Gemmea, votre assistant agronome 100% hors ligne. Posez-moi vos questions sur le manioc, l'espacement du maïs, les pesticides biologiques à base de neem ou l'état de la pluie pour mettre à jour votre calendrier d'irrigation !",
         isUser: false,
       );
       emit(ChatLoaded(messages: [welcome], isStreaming: false));
-    } catch (e) {
+    } catch (e, stack) {
+      dev.log("Error clearing conversation", name: 'CHAT_CUBIT', error: e, stackTrace: stack);
       emit(ChatError(e.toString()));
     }
   }

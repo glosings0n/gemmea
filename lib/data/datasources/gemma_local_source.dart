@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_gemma/flutter_gemma.dart';
@@ -10,17 +11,17 @@ class GemmaLocalSourceImpl implements GemmaLocalSource {
   @override
   Future<String> evaluateCropImage(File imageFile, String prompt) async {
     try {
-      // 1. Convert the local file into a byte array
+      dev.log("Reading image bytes for evaluation...", name: 'GEMMA_LOCAL_SOURCE');
       final Uint8List imageBytes = await imageFile.readAsBytes();
 
-      // 2. Fetch the active Gemma 4 E2B LiteRT instance with image support enabled
+      dev.log("Fetching active Gemma VLM model instance...", name: 'GEMMA_LOCAL_SOURCE');
       final model = await FlutterGemma.getActiveModel(
         maxTokens: 1024,
         supportImage: true,
       );
       final session = await model.createSession();
       
-      // 3. Pass BOTH the image bytes and text natively to the model in a single offline VLM pass
+      dev.log("Sending query chunk with image to Gemma session...", name: 'GEMMA_LOCAL_SOURCE');
       await session.addQueryChunk(
         Message.withImage(
           text: "You are an expert agronomist. Look closely at this image of the crop leaf. "
@@ -31,8 +32,10 @@ class GemmaLocalSourceImpl implements GemmaLocalSource {
       );
       
       final String response = await session.getResponse();
+      dev.log("Gemma VLM evaluation completed successfully", name: 'GEMMA_LOCAL_SOURCE');
       return response;
-    } catch (e) {
+    } catch (e, stack) {
+      dev.log("On-device VLM image evaluation error", name: 'GEMMA_LOCAL_SOURCE', error: e, stackTrace: stack);
       return "On-device processing error: ${e.toString()}";
     }
   }

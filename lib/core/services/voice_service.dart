@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
@@ -16,91 +17,131 @@ class VoiceService {
   VoiceService._init();
 
   Future<bool> initVoice() async {
-    if (!_isSpeechInitialized) {
-      _isSpeechInitialized = await _speech.initialize(
-        onError: (val) => _isListening = false,
-        onStatus: (val) {
-          if (val == 'done' || val == 'notListening') {
+    try {
+      if (!_isSpeechInitialized) {
+        dev.log("Initializing SpeechToText engine...", name: 'VOICE_SERVICE');
+        _isSpeechInitialized = await _speech.initialize(
+          onError: (val) {
+            dev.log("STT error event: ${val.errorMsg}", name: 'VOICE_SERVICE');
             _isListening = false;
-          }
-        },
-      );
+          },
+          onStatus: (val) {
+            dev.log("STT status: $val", name: 'VOICE_SERVICE');
+            if (val == 'done' || val == 'notListening') {
+              _isListening = false;
+            }
+          },
+        );
+      }
+
+      // Configure TTS defaults
+      dev.log("Configuring FlutterTts settings...", name: 'VOICE_SERVICE');
+      await _flutterTts.setLanguage("fr-FR");
+      await _flutterTts.setPitch(1.0);
+      await _flutterTts.setSpeechRate(0.85); // Gentle rate for farmers
+
+      _flutterTts.setStartHandler(() {
+        dev.log("TTS playback started", name: 'VOICE_SERVICE');
+        _isSpeaking = true;
+      });
+
+      _flutterTts.setCompletionHandler(() {
+        dev.log("TTS playback completed", name: 'VOICE_SERVICE');
+        _isSpeaking = false;
+      });
+
+      _flutterTts.setErrorHandler((msg) {
+        dev.log("TTS playback error: $msg", name: 'VOICE_SERVICE');
+        _isSpeaking = false;
+      });
+
+      return _isSpeechInitialized;
+    } catch (e, stack) {
+      dev.log("Error initializing VoiceService", name: 'VOICE_SERVICE', error: e, stackTrace: stack);
+      return false;
     }
-
-    // Configure TTS defaults
-    await _flutterTts.setLanguage("fr-FR");
-    await _flutterTts.setPitch(1.0);
-    await _flutterTts.setSpeechRate(0.85); // Gentle rate for farmers
-
-    _flutterTts.setStartHandler(() {
-      _isSpeaking = true;
-    });
-
-    _flutterTts.setCompletionHandler(() {
-      _isSpeaking = false;
-    });
-
-    _flutterTts.setErrorHandler((msg) {
-      _isSpeaking = false;
-    });
-
-    return _isSpeechInitialized;
   }
 
   Future<void> startListening({
     required Function(String text) onResult,
     required Function() onDone,
   }) async {
-    final available = await initVoice();
-    if (!available) {
-      onDone();
-      return;
-    }
+    try {
+      final available = await initVoice();
+      if (!available) {
+        dev.log("Voice STT unavailable on device", name: 'VOICE_SERVICE');
+        onDone();
+        return;
+      }
 
-    _isListening = true;
-    await _speech.listen(
-      listenOptions: stt.SpeechListenOptions(
-        listenFor: const Duration(seconds: 30),
-        pauseFor: const Duration(seconds: 3),
-        partialResults: true,
-        cancelOnError: true,
-        listenMode: stt.ListenMode.confirmation,
-      ),
-      onResult: (val) {
-        onResult(val.recognizedWords);
-        if (val.finalResult) {
-          _isListening = false;
-          onDone();
-        }
-      },
-    );
+      _isListening = true;
+      dev.log("Starting STT listening session...", name: 'VOICE_SERVICE');
+      await _speech.listen(
+        listenOptions: stt.SpeechListenOptions(
+          listenFor: const Duration(seconds: 30),
+          pauseFor: const Duration(seconds: 3),
+          partialResults: true,
+          cancelOnError: true,
+          listenMode: stt.ListenMode.confirmation,
+        ),
+        onResult: (val) {
+          onResult(val.recognizedWords);
+          if (val.finalResult) {
+            _isListening = false;
+            onDone();
+          }
+        },
+      );
+    } catch (e, stack) {
+      dev.log("Error during startListening", name: 'VOICE_SERVICE', error: e, stackTrace: stack);
+      _isListening = false;
+      onDone();
+    }
   }
 
   Future<void> stopListening() async {
-    if (_isListening) {
-      await _speech.stop();
+    try {
+      if (_isListening) {
+        dev.log("Stopping STT listening session...", name: 'VOICE_SERVICE');
+        await _speech.stop();
+        _isListening = false;
+      }
+    } catch (e, stack) {
+      dev.log("Error during stopListening", name: 'VOICE_SERVICE', error: e, stackTrace: stack);
       _isListening = false;
     }
   }
 
   Future<void> speak(String text) async {
-    if (text.isEmpty) return;
-    await initVoice();
+    try {
+      if (text.isEmpty) return;
+      await initVoice();
 
-    // Clean markdown characters before reading out
-    final cleanText = text
-        .replaceAll(RegExp(r'[\*#_`~]'), '')
-        .replaceAll(RegExp(r'\[.*?\]\(.*?\)'), '');
+      // Clean markdown characters before reading out
+      final cleanText = text
+          .replaceAll(RegExp(r'[\*#_`~]'), '')
+          .replaceAll(RegExp(r'\[.*?\]\(.*?\)'), '');
 
-    if (_isSpeaking) {
-      await stopSpeaking();
+      if (_isSpeaking) {
+        await stopSpeaking();
+      }
+
+      dev.log("Speaking text via TTS (${cleanText.length} chars)...", name: 'VOICE_SERVICE');
+      await _flutterTts.speak(cleanText);
+    } catch (e, stack) {
+      dev.log("Error during speak", name: 'VOICE_SERVICE', error: e, stackTrace: stack);
+      _isSpeaking = false;
     }
-
-    await _flutterTts.speak(cleanText);
   }
 
   Future<void> stopSpeaking() async {
-    await _flutterTts.stop();
-    _isSpeaking = false;
+    try {
+      dev.log("Stopping TTS playback...", name: 'VOICE_SERVICE');
+      await _flutterTts.stop();
+      _isSpeaking = false;
+    } catch (e, stack) {
+      dev.log("Error during stopSpeaking", name: 'VOICE_SERVICE', error: e, stackTrace: stack);
+      _isSpeaking = false;
+    }
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import '../../domain/entities/fao_guideline.dart';
 import '../../domain/repositories/fao_rag_repository.dart';
 import '../datasources/sqlite_helper.dart';
@@ -10,52 +11,69 @@ class FAORagRepositoryImpl implements FAORagRepository {
 
   @override
   Future<List<FAOGuideline>> searchGuidelines(String query) async {
-    final rawResults = await sqliteHelper.searchFAOKnowledge(query);
-    return rawResults.map((map) => FAOGuideline.fromMap(map)).toList();
+    try {
+      dev.log("Searching FAO guidelines RAG query: $query", name: 'FAO_RAG_REPO');
+      final rawResults = await sqliteHelper.searchFAOKnowledge(query);
+      return rawResults.map((map) => FAOGuideline.fromMap(map)).toList();
+    } catch (e, stack) {
+      dev.log("Error searching FAO guidelines", name: 'FAO_RAG_REPO', error: e, stackTrace: stack);
+      return [];
+    }
   }
 
   @override
   Future<List<FAOGuideline>> getGuidelinesByCrop(String cropName) async {
-    final rawResults = await sqliteHelper.getFAOByCrop(cropName);
-    return rawResults.map((map) => FAOGuideline.fromMap(map)).toList();
+    try {
+      dev.log("Fetching FAO guidelines by crop: $cropName", name: 'FAO_RAG_REPO');
+      final rawResults = await sqliteHelper.getFAOByCrop(cropName);
+      return rawResults.map((map) => FAOGuideline.fromMap(map)).toList();
+    } catch (e, stack) {
+      dev.log("Error getting FAO guidelines by crop", name: 'FAO_RAG_REPO', error: e, stackTrace: stack);
+      return [];
+    }
   }
 
   @override
   String buildGroundedSystemPrompt(List<FAOGuideline> guidelines) {
-    if (guidelines.isEmpty) {
-      return '''
+    try {
+      if (guidelines.isEmpty) {
+        return '''
 [RÔLE SYSTÈME : GEMMEA ASSISTANT AGRONOMIQUE HORS LIGNE]
 Vous êtes Gemmea, l'assistant agronomique IA 100% hors ligne dédié aux agriculteurs d'Afrique de l'Est et de RDC.
 Fournissez des conseils agronomiques précis, bienveillants et clairs.
 ''';
-    }
+      }
 
-    final contextBuffer = StringBuffer();
-    contextBuffer.writeln('''
+      final contextBuffer = StringBuffer();
+      contextBuffer.writeln('''
 [RÔLE SYSTÈME : GEMMEA ASSISTANT AGRONOMIQUE HORS LIGNE]
 Vous êtes Gemmea, l'assistant agronomique IA 100% hors ligne dédié aux agriculteurs d'Afrique de l'Est et de RDC.
-RÈGLE ABSOLUE : Vos réponses doivent s'appuyer strictement sur les GUIDES OFFICIELS FAO ci-dessous pour éviter toute hallucination.
+RÈGLE ABSOLUE : Vos réponses doivent s'appuyer strictly sur les GUIDES OFFICIELS FAO ci-dessous pour éviter toute hallucination.
 
 [DOCUMENTS OFFICIELS FAO RETROUVÉS VIA RAG HORS LIGNE]''');
 
-    for (int i = 0; i < guidelines.length; i++) {
-      final g = guidelines[i];
-      contextBuffer.writeln('''
+      for (int i = 0; i < guidelines.length; i++) {
+        final g = guidelines[i];
+        contextBuffer.writeln('''
 Extrait ${i + 1} - ${g.topic} (${g.cropName}):
 - Source Officielle: ${g.sourceCitation}
 - Symptômes & Description: ${g.content}
 - Remède Biologique Recommandé: ${g.organicRemedy}
 - Risque de Perte Estimé: ${g.estimatedLossPct.toStringAsFixed(0)}% du rendement
 ''');
-    }
+      }
 
-    contextBuffer.writeln('''
+      contextBuffer.writeln('''
 [INSTRUCTIONS DE RAISONMENT (CHAIN-OF-THOUGHT & CITATION)]
 1. Analysez le problème de l'agriculteur étape par étape.
 2. Citez explicitement la source FAO utilisée (ex: "Selon le Guide FAO (2024)...").
 3. Proposez des étapes concrètes, écologiques et immédiatement applicables sans réseau.
 ''');
 
-    return contextBuffer.toString();
+      return contextBuffer.toString();
+    } catch (e, stack) {
+      dev.log("Error building grounded system prompt", name: 'FAO_RAG_REPO', error: e, stackTrace: stack);
+      return "Vous êtes Gemmea, l'assistant agronomique IA 100% hors ligne.";
+    }
   }
 }

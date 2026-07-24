@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gemmea/domain/entities/calendar_event.dart';
 import 'package:gemmea/domain/entities/diagnostic_result.dart';
@@ -48,14 +49,18 @@ class HomeCubit extends Cubit<HomeState> {
 
   Future<void> markAllAsRead() async {
     try {
+      dev.log("Marking all diagnostics as read on dashboard...", name: 'HOME_CUBIT');
       await markDiagnosticsAsRead();
       await loadDashboard();
-    } catch (_) {}
+    } catch (e, stack) {
+      dev.log("Error marking diagnostics read", name: 'HOME_CUBIT', error: e, stackTrace: stack);
+    }
   }
 
   Future<void> loadDashboard() async {
     emit(HomeLoading());
     try {
+      dev.log("Loading dashboard data...", name: 'HOME_CUBIT');
       final diagnostics = await getDiagnostics();
       final calendar = await getCalendarEvents();
       
@@ -92,36 +97,41 @@ class HomeCubit extends Cubit<HomeState> {
         waterScheduleStatus: waterStatus,
         soilReminders: reminders,
       ));
-    } catch (e) {
+    } catch (e, stack) {
+      dev.log("Error loading dashboard", name: 'HOME_CUBIT', error: e, stackTrace: stack);
       emit(HomeError(e.toString()));
     }
   }
 
   Future<void> scanCrop(List<int> imageBytes) async {
-    // Keep current loaded state on the dashboard intact and rethrow the exception
-    // so that the UI layer can display a beautiful, descriptive instructions modal.
     try {
+      dev.log("Running scanCrop from HomeCubit...", name: 'HOME_CUBIT');
       await runCropScan(imageBytes);
       await loadDashboard(); // Reload data with new diagnostic history
-    } catch (e) {
+    } catch (e, stack) {
+      dev.log("scanCrop error passed to UI layer", name: 'HOME_CUBIT', error: e, stackTrace: stack);
       rethrow;
     }
   }
 
   Future<void> toggleRain(String date, bool isRainy) async {
     try {
+      dev.log("Toggling rain for date $date: $isRainy", name: 'HOME_CUBIT');
       await updateRainStatus(date, isRainy);
       await loadDashboard(); // Reload data to show updated watering timetable
-    } catch (e) {
+    } catch (e, stack) {
+      dev.log("Error toggling rain", name: 'HOME_CUBIT', error: e, stackTrace: stack);
       emit(HomeError(e.toString()));
     }
   }
 
   Future<void> deleteDiagnostic(int id) async {
     try {
+      dev.log("Deleting diagnostic ID: $id", name: 'HOME_CUBIT');
       await deleteDiagnosticUsecase(id);
       await loadDashboard(); // Reload data to show updated list
-    } catch (e) {
+    } catch (e, stack) {
+      dev.log("Error deleting diagnostic", name: 'HOME_CUBIT', error: e, stackTrace: stack);
       emit(HomeError(e.toString()));
     }
   }

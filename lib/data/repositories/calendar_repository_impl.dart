@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'package:gemmea/data/datasources/sqlite_helper.dart';
 import 'package:gemmea/domain/entities/calendar_event.dart';
 import 'package:gemmea/domain/repositories/calendar_repository.dart';
@@ -7,24 +8,45 @@ class CalendarRepositoryImpl implements CalendarRepository {
 
   @override
   Future<List<CalendarEvent>> getCalendarEvents() async {
-    final list = await dbHelper.getCalendarEvents();
-    return list.map((m) => CalendarEvent.fromMap(m)).toList();
+    try {
+      dev.log("Fetching calendar events...", name: 'CALENDAR_REPO_IMPL');
+      final list = await dbHelper.getCalendarEvents();
+      return list.map((m) => CalendarEvent.fromMap(m)).toList();
+    } catch (e, stack) {
+      dev.log("Error getting calendar events", name: 'CALENDAR_REPO_IMPL', error: e, stackTrace: stack);
+      return [];
+    }
   }
 
   @override
   Future<void> addCalendarEvent(CalendarEvent event) async {
-    await dbHelper.insertCalendarEvent(event.toMap());
+    try {
+      dev.log("Adding calendar event: ${event.title}", name: 'CALENDAR_REPO_IMPL');
+      await dbHelper.insertCalendarEvent(event.toMap());
+    } catch (e, stack) {
+      dev.log("Error adding calendar event", name: 'CALENDAR_REPO_IMPL', error: e, stackTrace: stack);
+    }
   }
 
   @override
   Future<void> updateCalendarEvent(CalendarEvent event) async {
-    if (event.id != null) {
-      await dbHelper.updateCalendarEvent(event.id!, event.toMap());
+    try {
+      if (event.id != null) {
+        dev.log("Updating calendar event ID: ${event.id}", name: 'CALENDAR_REPO_IMPL');
+        await dbHelper.updateCalendarEvent(event.id!, event.toMap());
+      }
+    } catch (e, stack) {
+      dev.log("Error updating calendar event", name: 'CALENDAR_REPO_IMPL', error: e, stackTrace: stack);
     }
   }
 
   @override
   Future<void> updateRainStatus(String date, bool isRainy) async {
-    await dbHelper.updateRainStatus(date, isRainy ? 1 : 0);
+    try {
+      dev.log("Updating rain status for date $date: $isRainy", name: 'CALENDAR_REPO_IMPL');
+      await dbHelper.updateRainStatus(date, isRainy ? 1 : 0);
+    } catch (e, stack) {
+      dev.log("Error updating rain status", name: 'CALENDAR_REPO_IMPL', error: e, stackTrace: stack);
+    }
   }
 }
