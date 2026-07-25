@@ -43,17 +43,23 @@ class _ChatPageState extends State<ChatPage> {
   void _toggleMic() async {
     if (_isListening) {
       await VoiceService.instance.stopListening();
-      setState(() => _isListening = false);
+      if (mounted) {
+        setState(() => _isListening = false);
+      }
     } else {
       setState(() => _isListening = true);
       await VoiceService.instance.startListening(
         onResult: (recognizedText) {
-          setState(() {
-            _messageController.text = recognizedText;
-          });
+          if (_isListening && mounted) {
+            setState(() {
+              _messageController.text = recognizedText;
+            });
+          }
         },
         onDone: () {
-          setState(() => _isListening = false);
+          if (mounted) {
+            setState(() => _isListening = false);
+          }
         },
       );
     }
@@ -76,6 +82,10 @@ class _ChatPageState extends State<ChatPage> {
   void _submitMessage() {
     final text = _messageController.text;
     if (text.trim().isNotEmpty) {
+      if (_isListening) {
+        setState(() => _isListening = false);
+        VoiceService.instance.cancelListening();
+      }
       context.read<ChatCubit>().sendMessage(text);
       _messageController.clear();
       Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);

@@ -138,6 +138,17 @@ class VoiceService {
     }
   }
 
+  Future<void> cancelListening() async {
+    try {
+      dev.log("Cancelling STT listening session...", name: 'VOICE_SERVICE');
+      _isListening = false;
+      await _speech.cancel();
+    } catch (e, stack) {
+      dev.log("Error during cancelListening", name: 'VOICE_SERVICE', error: e, stackTrace: stack);
+      _isListening = false;
+    }
+  }
+
   Future<void> speak(String text) async {
     try {
       if (text.isEmpty) return;
