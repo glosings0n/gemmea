@@ -4,9 +4,9 @@
 ---
 
 ### Project Summary
-**Gemmea** ("Mmea" = *plant/crop* in Swahili + *Gemma*) is a 100% offline, on-device mobile decision-support application built with **Flutter**, **Google Gemma 4 (`gemma-4-E2B-it.litertlm`)**, and an offline **SQLite FTS5 RAG engine**. 
+**Gemmea** ("Mmea" = *plant/crop* in Swahili + *Gemma*) is an offline, on-device mobile decision-support application built with **Flutter**, **Google Gemma 4 (`gemma-4-E2B-it.litertlm`)**, and an offline **SQLite FTS5 RAG engine**. 
 
-Designed specifically for smallholder farmers and agricultural cooperatives in internet-blind regions of Eastern DRC (Bukavu, Sud-Kivu) and East Africa, Gemmea diagnoses crop leaf diseases via offline multimodal VLM vision, delivers organic remedies grounded in official FAO/IITA guidelines, and manages farm irrigation calendars without transmitting a single byte to the cloud.
+Designed specifically for smallholder farmers and agricultural cooperatives in internet-blind regions of Eastern DRC (Bukavu, South Kivu) and East Africa, Gemmea diagnoses crop leaf diseases via offline multimodal vision, delivers organic remedies grounded in official FAO/IITA guidelines, and manages farm irrigation calendars without transmitting a single byte to the cloud.
 
 ---
 
@@ -25,23 +25,23 @@ Gemmea eliminates the connectivity barrier by running Google Gemma 4 directly on
 #### 1. On-Device Gemma 4 Multimodal VLM Integration
 * **Runtime**: Integrated using `flutter_gemma` leveraging **Google LiteRT-LM**.
 * **Memory & Execution Safety**: Features a thread-safe `GemmaEngineManager` with an execution lock (`_isEngineActive`) ensuring stability on budget Android hardware.
-* **Scan VLM Evaluation (`maxTokens: 4096`)**: Performs 7-section structured agronomic diagnostic. Includes an **urgent short-circuit evaluator** that immediately stops generation when non-leaf images (faces, shoes, objects) are scanned.
+* **Scan VLM Evaluation (`maxTokens: 4096`)**: Performs 7-section structured agronomic diagnostics. Includes an **urgent short-circuit evaluator** that immediately stops generation when non-leaf images (faces, shoes, objects) are scanned.
 * **Conversational Chat (`maxTokens: 2048`)**: Maintains a 5-message rolling history window with regional system prompts tailored to East African agro-climatic zones.
 
 #### 2. Local SQLite FTS5 RAG Pipeline
 To prevent AI hallucinations, Gemmea embeds an offline SQLite Full-Text Search database containing official FAO and IITA biological guides:
 * Dynamically retrieves weighted keyword matches based on crop and user query.
 * Injects grounded factual constraints and exact organic remedy dosages into Gemma's system prompt prior to inference.
-* Embedded East African / Great Lakes Agricultural Calendar (Saisons A & B planting dates, spacing, companion planting).
+* Embedded East African / Great Lakes Agricultural Calendar (Seasons A & B planting dates, spacing, companion planting).
 
 ---
 
-### Current Limitations & Challenges
+### Current Limitations & Technical Challenges
 
 While Gemmea is fully functional offline, the following limitations have been identified and documented:
 
 1. **Visual Dataset & Zero-Shot Classification Limits**:
-   * Gemma 4 VLM is an open-weights general multimodal model. Because it has not yet been specifically fine-tuned on local tropical leaf cultivars (e.g., local DRC cassava or sweet potato varieties), it may occasionally identify certain indigenous leaves as *"Plante inconnue"* or generic crops.
+   * Gemma 4 VLM is an open-weights general multimodal model. Because it has not yet been specifically fine-tuned on local tropical leaf cultivars (e.g., local DRC cassava or sweet potato varieties), it may occasionally identify certain indigenous leaves as *"Unknown plant"* or generic crops.
 2. **On-Device Quantization & Context Scale**:
    * To maintain real-time performance on budget mobile devices (4–8 GB RAM), we utilize quantized `gemma-4-E2B-it.litertlm`. Mobile memory constraints prevent deploying larger context windows or larger model variants (e.g. 9B), which can occasionally lead to concise or slightly truncated responses for highly complex multi-variable queries.
 3. **Multilingual UI & Prompt Pipeline**:
@@ -63,7 +63,7 @@ While Gemmea is fully functional offline, the following limitations have been id
 ### Developer & Event Details
 * **Developer:** Georges Byona
 * **Role:** Software Engineer
-* **Location:** Bukavu, Sud-Kivu, Democratic Republic of the Congo
+* **Location:** Bukavu, South Kivu, Democratic Republic of the Congo
 * **Event:** *Build with Gemma 2026 Challenge* (GDG on Campus UCB)
 * **Bio / Linktree:** [https://linktr.ee/glosings0n](https://linktr.ee/glosings0n)
 * **GitHub Repository:** [https://github.com/glosings0n/gemmea](https://github.com/glosings0n/gemmea)
