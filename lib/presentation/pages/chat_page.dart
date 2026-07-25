@@ -166,13 +166,28 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Assistant Gemmea",
-          style: TextStyle(
-            fontFamily: 'Fredoka',
-            fontWeight: FontWeight.bold,
-            color: AppColors.primaryForestGreen,
-          ),
+        title: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              padding: const EdgeInsets.all(4),
+              child: Image.asset('assets/images/logo.png'),
+            ),
+            const SizedBox(width: AppSize.p8),
+            const Text(
+              "Gemmea",
+              style: TextStyle(
+                fontFamily: 'Fredoka',
+                fontWeight: FontWeight.bold,
+                color: AppColors.primaryForestGreen,
+              ),
+            ),
+          ],
         ),
         actions: [
           IconButton(

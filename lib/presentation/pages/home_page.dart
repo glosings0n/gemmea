@@ -34,148 +34,128 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              padding: const EdgeInsets.all(4),
-              child: Image.asset('assets/images/logo.png'),
-            ),
-            const SizedBox(width: AppSize.p8),
-            const Text(
-              "Gemmea",
-              style: TextStyle(
-                fontFamily: 'Fredoka',
-                fontWeight: FontWeight.bold,
-                color: AppColors.primaryForestGreen,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          BlocBuilder<HomeCubit, HomeState>(
-            builder: (context, state) {
-              if (state is HomeLoaded) {
-                return IconButton(
-                  tooltip: 'Exporter le Rapport PDF',
-                  onPressed: () async {
-                    final diags = state.diagnosticsHistory.map((d) => d.toMap()).toList();
-                    final events = state.calendarEvents.map((c) => c.toMap()).toList();
-                    await PDFReportService.printOrShareReport(
-                      diagnostics: diags,
-                      calendarEvents: events,
-                      farmerLocation: 'Bukavu, Sud-Kivu, RDC',
-                    );
-                  },
-                  icon: const HugeIcon(
-                    icon: AppIcons.pdf,
-                    color: AppColors.primaryForestGreen,
-                    size: AppSize.iconMd,
-                  ),
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-          BlocBuilder<HomeCubit, HomeState>(
-            builder: (context, state) {
-              bool hasNew = false;
-              if (state is HomeLoaded) {
-                hasNew = state.diagnosticsHistory.any((d) => d.status == 'new');
-              }
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const DiagnosticsHistoryPage(),
-                        ),
-                      );
-                    },
-                    icon: const HugeIcon(
-                      icon: AppIcons.license,
-                      color: AppColors.primaryForestGreen,
-                      size: AppSize.iconMd,
-                    ),
-                  ),
-                  if (hasNew)
-                    Positioned(
-                      right: 10,
-                      top: 10,
-                      child: const _AnimatedDotBadge(),
-                    ),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
-      body: BlocBuilder<HomeCubit, HomeState>(
-        builder: (context, state) {
-          if (state is HomeLoading) {
-            return const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryForestGreen),
-              ),
-            );
-          } else if (state is HomeError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSize.p24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const HugeIcon(icon: AppIcons.alert, color: AppColors.errorRed, size: AppSize.iconXl),
-                    const SizedBox(height: AppSize.p16),
-                    Text("Error: ${state.error}", textAlign: TextAlign.center),
-                    const SizedBox(height: AppSize.p16),
-                    ElevatedButton(
-                      onPressed: () => context.read<HomeCubit>().loadDashboard(),
-                      child: const Text("Retry"),
-                    ),
-                  ],
+      body: SafeArea(
+        child: BlocBuilder<HomeCubit, HomeState>(
+          builder: (context, state) {
+            if (state is HomeLoading) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryForestGreen),
                 ),
-              ),
-            );
-          } else if (state is HomeLoaded) {
-            return RefreshIndicator(
-              color: AppColors.primaryForestGreen,
-              onRefresh: () => context.read<HomeCubit>().loadDashboard(),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppSize.p16),
-                physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Welcome greeting
-                    const Text(
-                      "Jambo ! 👋",
-                      style: TextStyle(
-                        fontFamily: 'Fredoka',
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textCharcoal,
+              );
+            } else if (state is HomeError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSize.p24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const HugeIcon(icon: AppIcons.alert, color: AppColors.errorRed, size: AppSize.iconXl),
+                      const SizedBox(height: AppSize.p16),
+                      Text("Error: ${state.error}", textAlign: TextAlign.center),
+                      const SizedBox(height: AppSize.p16),
+                      ElevatedButton(
+                        onPressed: () => context.read<HomeCubit>().loadDashboard(),
+                        child: const Text("Retry"),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      "Votre ferme est entièrement protégée hors ligne.",
-                      style: TextStyle(
-                        fontFamily: 'Fredoka',
-                        fontSize: 14,
-                        color: AppColors.textGrey,
+                    ],
+                  ),
+                ),
+              );
+            } else if (state is HomeLoaded) {
+              final hasNew = state.diagnosticsHistory.any((d) => d.status == 'new');
+
+              return RefreshIndicator(
+                color: AppColors.primaryForestGreen,
+                onRefresh: () => context.read<HomeCubit>().loadDashboard(),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppSize.p16),
+                  physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header Row: Jambo ! 👋🏿 on left, Action buttons on right
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Jambo ! 👋🏿",
+                                  style: TextStyle(
+                                    fontFamily: 'Fredoka',
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textCharcoal,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                const Text(
+                                  "Votre ferme est entièrement protégée hors ligne.",
+                                  style: TextStyle(
+                                    fontFamily: 'Fredoka',
+                                    fontSize: 12.5,
+                                    color: AppColors.textGrey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                tooltip: 'Exporter le Rapport PDF',
+                                onPressed: () async {
+                                  final diags = state.diagnosticsHistory.map((d) => d.toMap()).toList();
+                                  final events = state.calendarEvents.map((c) => c.toMap()).toList();
+                                  await PDFReportService.printOrShareReport(
+                                    diagnostics: diags,
+                                    calendarEvents: events,
+                                    farmerLocation: 'Bukavu, Sud-Kivu, RDC',
+                                  );
+                                },
+                                icon: const HugeIcon(
+                                  icon: AppIcons.pdf,
+                                  color: AppColors.primaryForestGreen,
+                                  size: AppSize.iconMd,
+                                ),
+                              ),
+                              Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  IconButton(
+                                    tooltip: 'Historique des diagnostics',
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const DiagnosticsHistoryPage(),
+                                        ),
+                                      );
+                                    },
+                                    icon: const HugeIcon(
+                                      icon: AppIcons.license,
+                                      color: AppColors.primaryForestGreen,
+                                      size: AppSize.iconMd,
+                                    ),
+                                  ),
+                                  if (hasNew)
+                                    Positioned(
+                                      right: 8,
+                                      top: 8,
+                                      child: const _AnimatedDotBadge(),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: AppSize.p24),
+                      const SizedBox(height: AppSize.p24),
 
                     // Minimalist Grid layout summarizing metrics
                     GridView.count(
@@ -341,7 +321,8 @@ class _HomePageState extends State<HomePage> {
           return Container();
         },
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildMetricCard({
