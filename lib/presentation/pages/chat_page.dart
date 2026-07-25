@@ -424,23 +424,26 @@ class _ChatPageState extends State<ChatPage> {
             Expanded(
               child: TextField(
                 controller: _messageController,
+                minLines: 1,
+                maxLines: 5,
+                keyboardType: TextInputType.multiline,
                 textCapitalization: TextLinesSpacing.hasUnderlyingSpacing ? TextCapitalization.sentences : TextCapitalization.none,
                 decoration: InputDecoration(
                   hintText: "Posez des questions sur le manioc, le neem, etc...",
                   hintStyle: const TextStyle(color: AppTheme.textGrey, fontSize: 14),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24.0),
+                    borderRadius: BorderRadius.circular(20.0),
                     borderSide: BorderSide(color: AppTheme.primaryForestGreen.withValues(alpha: 0.12)),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24.0),
+                    borderRadius: BorderRadius.circular(20.0),
                     borderSide: BorderSide(color: AppTheme.primaryForestGreen.withValues(alpha: 0.12)),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24.0),
+                    borderRadius: BorderRadius.circular(20.0),
                     borderSide: const BorderSide(color: AppTheme.primaryForestGreen),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                 ),
                 onSubmitted: (_) => _submitMessage(),
               ),
