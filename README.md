@@ -150,11 +150,6 @@ Bien que **Gemmea** soit pleinement fonctionnelle en mode 100% hors ligne, certa
 
 ---
 
-### Writeup Officiel Kaggle
-Un document de synthèse détaillé préparé pour le concours est disponible dans le fichier [`KAGGLE_WRITEUP.md`](KAGGLE_WRITEUP.md).
-
----
-
 ### À propos de l'Auteur
 
 * **Développeur :** Georges Byona  
@@ -162,4 +157,4 @@ Un document de synthèse détaillé préparé pour le concours est disponible da
 * **Localisation :** Bukavu, Sud-Kivu, République Démocratique du Congo  
 * **Événement :** Concours *Build with Gemma 2026* (GDG on Campus UCB)  
 * **Bio :** [https://linktr.ee/glosings0n](https://linktr.ee/glosings0n)  
-* **Dépôt GitHub :** [https://github.com/glosings0n/gemmea](https://github.com/glosings0n/gemmea)
+* **Vidéo Demo :** [https://github.com/glosings0n/gemmea](https://youtu.be/dPMXgOpZFEc)
