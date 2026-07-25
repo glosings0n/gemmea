@@ -6,10 +6,14 @@ import '../../data/datasources/gemma_local_source.dart';
 
 abstract class ScanState {}
 class ScanInitial extends ScanState {}
-class ScanProcessing extends ScanState {}
+class ScanProcessing extends ScanState {
+  final File image;
+  ScanProcessing(this.image);
+}
 class ScanSuccess extends ScanState {
   final String diagnosis;
-  ScanSuccess(this.diagnosis);
+  final File image;
+  ScanSuccess(this.diagnosis, this.image);
 }
 class ScanFailure extends ScanState {
   final String error;
@@ -42,30 +46,21 @@ class ScanFailure extends ScanState {
 
 class ScanCubit extends Cubit<ScanState> {
   final GemmaLocalSource localSource;
-  bool _isCancelled = false;
 
   ScanCubit(this.localSource) : super(ScanInitial());
 
-  void cancelScan() {
-    dev.log("Scan process explicitly cancelled by user", name: 'SCAN_CUBIT');
-    _isCancelled = true;
+  void reset() {
     emit(ScanInitial());
   }
 
   Future<void> analyzeCrop(File image) async {
-    _isCancelled = false;
-    emit(ScanProcessing());
+    emit(ScanProcessing(image));
     try {
-      dev.log("Analyzing crop image with local Gemma VLM...", name: 'SCAN_CUBIT');
+      dev.log("Analyzing crop image with local Gemma VLM in background...", name: 'SCAN_CUBIT');
       final diagnosticResult = await localSource.evaluateCropImage(
         image, 
         "Analysez attentivement cette image de feuille de culture. Identifiez toute maladie potentielle de la plante (par ex. Mosaïque du manioc, Rouille du maïs, Flétrissement du bananier, etc.) visible sur l'image. Fournissez un Diagnostic Possible et un Remède Bio/Biologique Localisé très concis et adapté aux petits exploitants agricoles."
       );
-
-      if (_isCancelled) {
-        dev.log("Scan was cancelled; ignoring evaluation result", name: 'SCAN_CUBIT');
-        return;
-      }
 
       final textLower = diagnosticResult.toLowerCase();
 
@@ -106,11 +101,6 @@ class ScanCubit extends Cubit<ScanState> {
         disease = "Feuille Saine";
       }
 
-      if (_isCancelled) {
-        dev.log("Scan was cancelled; skipping database insert", name: 'SCAN_CUBIT');
-        return;
-      }
-
       dev.log("Saving successful diagnostic to SQLite: $cropName - $disease", name: 'SCAN_CUBIT');
       // Persist to local SQLite DB ONLY on verified success
       await SQLiteHelper.instance.insertDiagnostic({
@@ -123,11 +113,8 @@ class ScanCubit extends Cubit<ScanState> {
         'status': 'new',
       });
 
-      if (!_isCancelled) {
-        emit(ScanSuccess(diagnosticResult));
-      }
+      emit(ScanSuccess(diagnosticResult, image));
     } catch (e, stack) {
-      if (_isCancelled) return;
       dev.log("Error analyzing crop image (No DB insert made)", name: 'SCAN_CUBIT', error: e, stackTrace: stack);
       final cleanMsg = e.toString().replaceAll("Exception: ", "");
       emit(ScanFailure(cleanMsg));

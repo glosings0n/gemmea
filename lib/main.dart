@@ -74,6 +74,9 @@ class GemmeaApp extends StatelessWidget {
             updateRainStatus: UpdateRainStatus(calendarRepo),
           ),
         ),
+        BlocProvider<ScanCubit>(
+          create: (context) => ScanCubit(GemmaLocalSourceImpl()),
+        ),
       ],
       child: MaterialApp(
         title: 'Gemmea',
