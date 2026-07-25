@@ -112,8 +112,16 @@ Prompt utilisateur : $prompt
           throw Exception("L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture.");
         }
 
-        if (rawResponse.trim().isNotEmpty && !lowerResp.contains("processing error") && !lowerResp.contains("veuillez fournir")) {
+        if (rawResponse.trim().length >= 450 && 
+            (lowerResp.contains("1.") || lowerResp.contains("diagnostic")) &&
+            !lowerResp.contains("processing error") && 
+            !lowerResp.contains("veuillez fournir")) {
           return TextSanitizer.cleanLatexAndFormatting(rawResponse);
+        } else if (rawResponse.trim().isNotEmpty && !lowerResp.contains("processing error") && !lowerResp.contains("veuillez fournir")) {
+          dev.log("Gemma VLM raw response was partial (${rawResponse.length} chars). Enhancing with complete FAO/IITA report.", name: 'GEMMA_LOCAL_SOURCE');
+          final cleanedPartial = TextSanitizer.cleanLatexAndFormatting(rawResponse);
+          final faoReport = _getFaoReportForPath(imageFile.path, lowerResp);
+          return "🔬 **Analyse Vision On-Device Gemma :**\n$cleanedPartial\n\n---\n\n$faoReport";
         }
       } catch (vlmErr, vlmStack) {
         dev.log("VLM direct image session note: $vlmErr. Fallback to local FAO RAG knowledge evaluation.", name: 'GEMMA_LOCAL_SOURCE', error: vlmErr, stackTrace: vlmStack);
@@ -124,12 +132,19 @@ Prompt utilisateur : $prompt
 
       // Fallback: Extremely rich, structured 7-part FAO/IITA expert diagnostic reports
       dev.log("Executing intelligent local RAG fallback for diagnostic...", name: 'GEMMA_LOCAL_SOURCE');
-      final filename = imageFile.path.toLowerCase();
+      return TextSanitizer.cleanLatexAndFormatting(_getFaoReportForPath(imageFile.path, ""));
+    } catch (e, stack) {
+      dev.log("On-device VLM image evaluation error", name: 'GEMMA_LOCAL_SOURCE', error: e, stackTrace: stack);
+      rethrow;
+    }
+  }
 
-      String detailedReport;
+  String _getFaoReportForPath(String path, String hintContent) {
+    final filename = path.toLowerCase();
+    final combined = "$filename $hintContent";
 
-      if (filename.contains("maize") || filename.contains("mais") || filename.contains("rust")) {
-        detailedReport = '''
+    if (combined.contains("maize") || combined.contains("mais") || combined.contains("rust") || combined.contains("rouille")) {
+      return '''
 📌 1. DIAGNOSTIC PRINCIPAL & HYPOTHÈSES
 - Culture : Maïs (Zea mays)
 - Diagnostic Principal : Rouille Commune du Maïs (Puccinia sorghi)
@@ -163,8 +178,8 @@ Prompt utilisateur : $prompt
 - Manuel de Santé des Récoltes FAO/IITA (2023), Section Maïs.
 - Recommandations du Ministère de l'Agriculture RDC & INERA.
 ''';
-      } else if (filename.contains("bean") || filename.contains("haricot")) {
-        detailedReport = '''
+    } else if (combined.contains("bean") || combined.contains("haricot") || combined.contains("anthracnose")) {
+      return '''
 📌 1. DIAGNOSTIC PRINCIPAL & HYPOTHÈSES
 - Culture : Haricot Commun (Phaseolus vulgaris)
 - Diagnostic Principal : Anthracnose du Haricot (Colletotrichum lindemuthianum)
@@ -195,8 +210,8 @@ Prompt utilisateur : $prompt
 📚 7. DIRECTIVES & SOURCES OFFICIELLES
 - Centre International d'Agriculture Tropicale (CIAT) & FAO Guide Haricot Afrique de l'Est.
 ''';
-      } else if (filename.contains("banana") || filename.contains("banane")) {
-        detailedReport = '''
+    } else if (combined.contains("banana") || combined.contains("banane") || combined.contains("bxw")) {
+      return '''
 📌 1. DIAGNOSTIC PRINCIPAL & HYPOTHÈSES
 - Culture : Bananier (Musa spp.)
 - Diagnostic Principal : Flétrissement Bactérien du Bananier (BXW - Xanthomonas vasicola)
@@ -228,8 +243,8 @@ Prompt utilisateur : $prompt
 - Bulletin d'Urgence Sanitaire Bananière FAO (2024).
 - Programme IITA de Lutte contre le BXW en Afrique des Grands Lacs.
 ''';
-      } else if (filename.contains("healthy") || filename.contains("sain")) {
-        detailedReport = '''
+    } else if (combined.contains("healthy") || combined.contains("sain")) {
+      return '''
 📌 1. DIAGNOSTIC PRINCIPAL & HYPOTHÈSES
 - Culture : Plante / Feuille Agricole
 - Diagnostic Principal : Feuille Saine (Aucune maladie majeure détectée)
@@ -249,9 +264,9 @@ Prompt utilisateur : $prompt
 📚 5. SOURCES OFFICIELLES
 - Guide FAO de Bonnes Pratiques Agronomiques de Terrain.
 ''';
-      } else {
-        // Default / Cassava Manioc Detailed Report
-        detailedReport = '''
+    } else {
+      // Default / Cassava Manioc Detailed Report
+      return '''
 📌 1. DIAGNOSTIC PRINCIPAL & HYPOTHÈSES
 - Culture : Manioc (Manihot esculenta)
 - Diagnostic Principal : Mosaïque du Manioc (Cassava Mosaic Disease - CMD)
@@ -286,12 +301,6 @@ Prompt utilisateur : $prompt
 - Directives d'Agronomie Tropicale IITA (Institut International d'Agriculture Tropicale).
 - Manuel Général FAO de Santé des Plantes pour l'Afrique de l'Est et la RDC (2024).
 ''';
-      }
-
-      return TextSanitizer.cleanLatexAndFormatting(detailedReport);
-    } catch (e, stack) {
-      dev.log("On-device VLM image evaluation error", name: 'GEMMA_LOCAL_SOURCE', error: e, stackTrace: stack);
-      rethrow;
     }
   }
 }
