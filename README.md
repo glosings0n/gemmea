@@ -1,165 +1,165 @@
-# Gemmea — 100% Offline Agronomic & Farm Management Assistant with Google Gemma 4
+# Gemmea — Assistant agronomique & gestion agricole 100% hors ligne avec Google Gemma 4
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.27+-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Google Gemma 4](https://img.shields.io/badge/Google_Gemma_4-LiteRT--LM-4285F4?logo=google&logoColor=white)](https://ai.google.dev/gemma)
 [![SQLite RAG](https://img.shields.io/badge/SQLite-FTS5_RAG-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/fts5.html)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**Gemmea** is an offline mobile application built to provide actionable agronomic guidance directly to farmers without requiring an internet connection. The name combines **"Mmea"** (*plant* or *crop* in Swahili, widely spoken across DRC and East Africa) with **Gemma** (Google's open AI model family).
+**Gemmea** est une application mobile d'aide à la décision agronomique conçue pour fonctionner **100% hors ligne, sans aucune connexion internet**. Son nom réunit **"Mmea"** (*plante* ou *culture* en swahili, langue parlée en RDC et en Afrique de l'Est) et **Gemma** (la famille de modèles d'intelligence artificielle ouverts de Google).
 
-The app pairs local multimodal vision and text generation from **Google Gemma 4** (`gemma-4-E2B-it.litertlm`) running directly on mobile hardware with an offline **SQLite FTS5 Retrieval-Augmented Generation (RAG)** engine stocked with official agronomic guidelines from the **FAO** and **IITA**.
-
----
-
-## Origin & Real-World Impact
-
-Living and working as a software developer in Bukavu, Eastern Democratic Republic of the Congo (South Kivu), I see a daily reality: throughout our region and surrounding rural farming communities, cellular internet is either non-existent, unreliable, or too expensive for smallholder farmers and local agricultural cooperatives.
-
-At the same time, these farmers face critical threats to their daily harvests:
-* **Cassava Mosaic Disease** (*Cassava Mosaic Virus*) & **Brown Streak Disease**
-* **Maize Common Rust** (*Puccinia sorghi*) & **Fall Armyworm**
-* **Banana Xanthomonas Wilt** (*BXW*)
-
-**Gemmea** was built to solve this exact problem: bringing modern generative AI capabilities directly onto an agricultural producer's phone, **with zero reliance on cellular networks or cloud infrastructure.**
+L'application associe la vision multimodale et la génération de texte de **Google Gemma 4** (`gemma-4-E2B-it.litertlm`) exécuté localement sur le téléphone avec une architecture **RAG (Retrieval-Augmented Generation) ancrée sur une base de données SQLite FTS5** contenant les guides agronomiques officiels de la **FAO** et de l'**IITA**.
 
 ---
 
-## Technical Architecture: Gemma 4 + SQLite RAG + Flutter
+## Origine & Impact Terrain
+
+Vivant et travaillant comme développeur à Bukavu, dans l'Est de la République Démocratique du Congo (Sud-Kivu), je constate une réalité quotidienne : dans toute notre région et les communautés agricoles environnantes, l'accès à internet est souvent inexistant, instable ou trop coûteux pour les petits producteurs et les coopératives locales.
+
+Pourtant, ces agriculteurs font face à des menaces phytosanitaires majeures sur leurs récoltes :
+* **Mosaïque du Manioc** (*Cassava Mosaic Virus*) & **Strie Brune**
+* **Rouille du Maïs** (*Puccinia sorghi*) & **Chenille Légionnaire d'Automne**
+* **Flétrissement Bactérien du Bananier** (*BXW*)
+
+**Gemmea** a été développée pour répondre à ce défi : apporter la puissance de l'IA générative directement dans le téléphone de l'agriculteur au champ, **avec zéro dépendance au réseau mobile ou cloud.**
+
+---
+
+## Architecture Technique : Gemma 4 + SQLite RAG + Flutter
 
 ```
-[ 📱 User / Farmer in the Field ]
+[ 📱 Utilisateur / Agriculteur au champ ]
         │
-        ├── 1. Leaf Photo OR Chat Question
+        ├── 1. Photo de Feuille OU Question Chat
         ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 🔎 1. LOCAL RAG ENGINE (SQLite FTS5)                       │
-│ - Weighted full-text search across FAO / IITA guides        │
-│ - Official snippets: symptoms, bio-remedies & calendar      │
+│ 🔎 1. MOTEUR RAG LOCAL (SQLite FTS5)                       │
+│ - Recherche plein texte pondérée dans les guides FAO / IITA │
+│ - Extraits officiels : symptômes, remèdes bio & calendrier  │
 └──────────────────────────────┬──────────────────────────────┘
                                │
-                               ▼ 2. Fact Injection Context
+                               ▼ 2. Injection du Contexte Factuel
 ┌─────────────────────────────────────────────────────────────┐
-│ 🧠 2. LOCAL GEMMA 4 ENGINE (LiteRT-LM / CPU Thread)         │
-│ - GemmaEngineManager (thread safety & session locking)      │
-│ - Multimodal VLM (Leaf Image Analysis - 4096 tokens)        │
-│ - Conversational Chat Assistant (Sequential - 2048 tokens) │
+│ 🧠 2. MOTEUR GEMMA 4 LOCAL (LiteRT-LM / CPU Thread)          │
+│ - GemmaEngineManager (verrouillage mémoire & sessions)     │
+│ - Multimodal VLM (Analyse d'image - 4096 tokens)             │
+│ - Assistant Chat Conversational (Séquentiel - 2048 tokens)  │
 └──────────────────────────────┬──────────────────────────────┘
                                │
-                               ▼ 3. Grounded & Direct Response
+                               ▼ 3. Réponse Ancrée & Directe
 ┌─────────────────────────────────────────────────────────────┐
-│ 📊 3. FLUTTER UI & REPORTING                                │
-│ - Structured visual diagnostic & Organic Remedies           │
-│ - Text-to-Speech (TTS) & PDF Farm Health Reports            │
+│ 📊 3. INTERFACE FLUTTER & RAPPORTS                          │
+│ - Diagnostic visuel structuré & Recettes Biologiques        │
+│ - Synthèse Vocale (TTS) & Rapports de santé PDF             │
 └──────────────────────────────┬──────────────────────────────┘
 ```
 
-### 1. Local RAG Engine (SQLite FTS5)
-To prevent model hallucinations and ensure scientifically sound advice:
-* **FTS5 Knowledge Base**: Official FAO and IITA fact sheets indexed locally using weighted full-text search ([`sqlite_helper.dart`](lib/data/datasources/sqlite_helper.dart)).
-* **Dynamic Grounding**: For technical questions or scans, relevant factual excerpts are retrieved and injected into Gemma's system prompt as strict factual constraints ([`chat_repository_impl.dart`](lib/data/repositories/chat_repository_impl.dart)).
-* **Embedded Regional Calendar**: Native knowledge of East African and Great Lakes planting seasons (Seasons A & B, planting dates, crop spacing).
+### 1. Le Moteur RAG Local (SQLite FTS5)
+Afin d'éviter tout risque d'hallucination et de fournir des conseils scientifiquement éprouvés :
+* **Base de connaissances FTS5** : Fiches officielles FAO et IITA indexées localement avec recherche plein texte pondérée ([`sqlite_helper.dart`](lib/data/datasources/sqlite_helper.dart)).
+* **Ancrage dynamique** : Pour chaque question technique ou scan, les passages factuels pertinents sont extraits et injectés dans le prompt système de Gemma sous forme de contraintes factuelles strictes ([`chat_repository_impl.dart`](lib/data/repositories/chat_repository_impl.dart)).
+* **Calendrier Régional Intégré** : Connaissance native des saisons agricoles de l'Afrique de l'Est et des Grands Lacs (Saisons A & B, dates de semis, écartements).
 
-### 2. On-Device Gemma 4 Execution
-* **Native Binding Package**: Powered by `flutter_gemma`, binding Google's **LiteRT-LM** mobile runtime.
-* **Engine Resource Manager (`GemmaEngineManager`)**: Implements a thread-safe memory manager ([`gemma_engine_manager.dart`](lib/core/services/gemma_engine_manager.dart)) with an execution lock (`_isEngineActive`) to maintain RAM stability on budget Android phones.
-* **Multimodal VLM Analysis (Leaf Scanning)**:
-  * Processes captured images through [`gemma_local_source.dart`](lib/data/datasources/gemma_local_source.dart) configured to **`maxTokens: 4096`**.
-  * **Urgent Fast Short-Circuit**: If a scanned image is not a plant leaf (e.g. faces, objects), Gemma immediately stops generation to return a short *"Leaf not detected"* alert.
-  * Organizes diagnostic outputs into 7 official agronomic sections.
-* **Conversational Assistant**:
-  * Rolling 5-message history window for contextual dialogue.
-  * Token stream capped at **`maxTokens: 2048`** for quick responses.
-  * Direct response rules without generic disclaimers.
-
----
-
-## Code Structure & Key Files
-
-For those evaluating the implementation quality, here are the primary components in the repository:
-
-* **Gemma 4 Engine & Concurrency Lock**: [`lib/core/services/gemma_engine_manager.dart`](lib/core/services/gemma_engine_manager.dart)  
-  Central manager for the LiteRT-LM instance and inference session isolation.
-* **Database & SQLite RAG Engine**: [`lib/data/datasources/sqlite_helper.dart`](lib/data/datasources/sqlite_helper.dart)  
-  FTS5 indexing of FAO/IITA guides and contextual search queries.
-* **Gemma VLM Multimodal Source**: [`lib/data/datasources/gemma_local_source.dart`](lib/data/datasources/gemma_local_source.dart)  
-  On-device visual inference, leaf validation, and prompt engineering.
-* **Chat Repository & RAG Pipeline**: [`lib/data/repositories/chat_repository_impl.dart`](lib/data/repositories/chat_repository_impl.dart)  
-  RAG assembly, regional conversation rules, and streaming response management.
-* **PDF Report Service**: [`lib/core/services/pdf_report_service.dart`](lib/core/services/pdf_report_service.dart)  
-  Offline export of farm diagnostic summary reports.
-* **Business Logic (BLoC/Cubit)**: [`lib/presentation/bloc/`](lib/presentation/bloc/)  
-  Clean state management separation (`ScanCubit`, `ChatCubit`, `HomeCubit`).
+### 2. Exécution de Gemma 4 sur l'Appareil
+* **Package Native Binding** : Utilisation de `flutter_gemma` qui embarque le runtime **LiteRT-LM** (Google LiteRT pour LLM sur mobile).
+* **Gestionnaire de Ressources Membre (`GemmaEngineManager`)** : Implémentation d'un gestionnaire de mémoire thread-safe ([`gemma_engine_manager.dart`](lib/core/services/gemma_engine_manager.dart)) avec verrou d'exécution (`_isEngineActive`) pour garantir la stabilité et éviter le surdimensionnement RAM sur smartphone.
+* **Analyse Multimodale VLM (Scan de Feuille)** :
+  * Traitement de l'image capturée via [`gemma_local_source.dart`](lib/data/datasources/gemma_local_source.dart) configuré à **`maxTokens: 4096`**.
+  * **Court-circuit immédiat** : Si l'image n'est pas un végétal (visage, objet, etc.), Gemma stoppe l'analyse immédiatement pour renvoyer une alerte *"Feuille non détectée"* en un temps record.
+  * Structure de réponse en 7 sections agronomiques officielles.
+* **Assistant Chat** :
+  * Fenêtre glissante conservant l'historique des **5 derniers messages**.
+  * Régulation du débit à **`maxTokens: 2048`** pour des réponses réactives.
+  * Directives strictes sans clauses génériques de non-responsabilité.
 
 ---
 
-## Running the Project Locally
+## Structure du Code & Fichiers Clés
 
-### Prerequisites
-1. **Flutter SDK** (v3.27.0 or higher) installed and configured.
-2. **Android SDK** (Android 10 / API 29+ recommended; physical phone with at least 4 GB RAM recommended).
-3. **Model Weights**: The Gemma 4 model asset (`gemma-4-E2B-it.litertlm`) is placed in the `assets/` directory or fetched on first initialization via LiteRT.
+Pour évaluer la qualité d'ingénierie du projet, voici les composants majeurs du dépôt :
 
-### Build Steps
+* **Moteur et Verrou d'Exécution Gemma 4** : [`lib/core/services/gemma_engine_manager.dart`](lib/core/services/gemma_engine_manager.dart)  
+  Gestionnaire central de l'instance LiteRT-LM et isolation des sessions d'inférence.
+* **Base de Données & Moteur RAG SQLite** : [`lib/data/datasources/sqlite_helper.dart`](lib/data/datasources/sqlite_helper.dart)  
+  Indexation FTS5 des guides agronomiques FAO/IITA et requêtes de recherche contextuelle.
+* **Source Multimodale Gemma VLM** : [`lib/data/datasources/gemma_local_source.dart`](lib/data/datasources/gemma_local_source.dart)  
+  Inférence visuelle locale, validation des végétaux et prompt engineering multimodal.
+* **Dépôt du Chat & Infiltration RAG** : [`lib/data/repositories/chat_repository_impl.dart`](lib/data/repositories/chat_repository_impl.dart)  
+  Assemblage du RAG, règles conversationnelles régionales et gestion du flux de streaming.
+* **Service de Génération de Rapports PDF** : [`lib/core/services/pdf_report_service.dart`](lib/core/services/pdf_report_service.dart)  
+  Exportation hors ligne des bilans sanitaires de la ferme.
+* **Logique Métier BLoC/Cubit** : [`lib/presentation/bloc/`](lib/presentation/bloc/)  
+  Découplage propre de l'état de l'application (`ScanCubit`, `ChatCubit`, `HomeCubit`).
+
+---
+
+## Comment exécuter le projet localement
+
+### Prérequis
+1. **Flutter SDK** (v3.27.0 ou supérieure) installé et configuré.
+2. **Android SDK** (Android 10 / API 29+ recommandé, téléphone physique recommandé avec au moins 4 Go de RAM).
+3. **Poids du modèle** : Le fichier du modèle Gemma 4 (`gemma-4-E2B-it.litertlm`) est placé dans le dossier `assets/` de l'application ou téléchargé au premier lancement via LiteRT.
+
+### Étapes d'Exécution
 
 ```bash
-# 1. Clone the repository
+# 1. Cloner le dépôt GitHub
 git clone https://github.com/glosings0n/gemmea.git
 cd gemmea
 
-# 2. Install Flutter dependencies
+# 2. Installer les dépendances Flutter
 flutter pub get
 
-# 3. Run unit tests to verify project integrity
+# 3. Exécuter la suite de tests unitaires pour vérifier l'intégrité du projet
 flutter test
 
-# 4. Run the app in release mode on a connected Android phone
+# 4. Lancer l'application en mode release sur un appareil Android connecté en USB
 flutter run --release
 ```
 
 ---
 
-## Current Limitations & Technical Challenges
+## Limitations Actuelles & Défis Techniques
 
-While **Gemmea** is fully operational offline, we transparently document the following current limitations:
+Bien que **Gemmea** soit pleinement fonctionnelle en mode 100% hors ligne, certaines limitations liées aux contraintes actuelles ont été identifiées :
 
-1. **Visual Dataset & Zero-Shot Classification**:  
-   Gemma 4 VLM is an open-weights general multimodal model. Because it has not yet been fine-tuned on local tropical leaf cultivars (such as indigenous cassava or sweet potato varieties), it can occasionally label certain leaves as *"Unknown plant"* or generic crops. Domain-specific fine-tuning is planned.
-2. **Context Scale & Mobile Quantization**:  
-   To ensure smooth execution on budget Android hardware (4–8 GB RAM), we use the quantized `gemma-4-E2B-it.litertlm` format. On-device RAM constraints prevent using larger context windows or larger model variants (such as Gemma 9B), which can sometimes yield concise responses for complex queries.
-3. **Multilingual UI Support (Swahili, Lingala, English)**:  
-   Due to time constraints during the hackathon build, complete native UI localization for multiple regional languages (**Kiswahili**, **Lingala**, **English**) was not finished (the current UI is French-primary with integrated Swahili terminology).
-4. **CPU Inference Speed**:  
-   On entry-level smartphones lacking dedicated NPU hardware, CPU fallback visual inference takes approximately 5 to 10 seconds.
-
----
-
-## Future Roadmap
-
-* **Fine-Tuning Gemma 4 VLM on Tropical Crops**: Training Gemma VLM on an annotated dataset of East African crop diseases (Cassava, Maize, Banana, Beans) via QLoRA.
-* **Complete Multilingual Support**: Adding native Kiswahili, Lingala, and English UI toggles and prompt pipelines.
-* **Offline Cooperative Sync (Mesh / Bluetooth)**: Sharing health diagnostic reports between farmers and cooperative leaders via Bluetooth or Wi-Fi Direct without cellular data.
-* **Bluetooth IoT Sensor Integration**: Connecting low-cost Bluetooth soil moisture and pH sensors to trigger automated RAG irrigation schedules.
+1. **Jeu de données visuel & Plante inconnue** :  
+   Gemma 4 VLM est un modèle multimodal généraliste qui n'a pas encore fait l'objet d'un **fine-tuning** ciblé sur les variétés de feuilles tropicales spécifiques à notre région (ex: cultivars locaux de manioc ou patate douce). Il peut donc arriver que Gemma qualifie certaines feuilles de *"Plante inconnue"* ou de culture générique. Un affinage (*fine-tuning*) sur un dataset spécialisé est prévu.
+2. **Taille du contexte & Quantification sur mobile** :  
+   Pour garantir une exécution fluide sur des smartphones Android abordables (4 à 8 Go de RAM), nous utilisons la version quantifiée `gemma-4-E2B-it.litertlm`. En raison de la mémoire limitée sur mobile, il n'a pas encore été possible d'utiliser un modèle à plus large fenêtre de contexte (ex: Gemma 9B), ce qui peut parfois conduire à des réponses synthétiques ou légèrement tronquées pour les requêtes complexes.
+3. **Localisation multilingue (Swahili, Lingala, Anglais)** :  
+   Par manque de temps durant le hackathon, le support natif complet de plusieurs langues (**Kiswahili**, **Lingala**, **Anglais**) au niveau de l'interface et des prompts n'a pas pu être totalement achevé (l'application fonctionne actuellement en Français principal avec termes swahili intégrés).
+4. **Variabilité du temps de calcul CPU** :  
+   Sur les appareils d'entrée de gamme dépourvus d'accélérateur NPU, l'analyse visuelle par le CPU prend environ 5 à 10 secondes.
 
 ---
 
-## Privacy & Data Sovereignty
+## Perspectives & Feuille de Route (Roadmap)
 
-* **0% Network Requests**: No user data, photos, or chat messages ever leave the device.
-* **Complete Privacy**: 100% on-device processing (*On-Device AI*).
-* **Field Ready**: Performs reliably in remote farming areas without cellular coverage.
-
----
-
-### Official Kaggle Writeup
-A detailed summary document prepared for competition evaluation is available in [`KAGGLE_WRITEUP.md`](KAGGLE_WRITEUP.md).
+* **Fine-Tuning de Gemma 4 VLM sur les cultures tropicales** : Affinage du modèle VLM sur une base de données annotée de maladies des plantes d'Afrique de l'Est (Manioc, Maïs, Bananier, Haricot) via QLoRA.
+* **Support Multilingue Intégral** : Prise en charge native du Kiswahili, du Lingala et de l'Anglais pour une adoption facile par tous les agriculteurs.
+* **Partage Hors Ligne entre Coopératives (Mesh/Bluetooth)** : Synchronisation des rapports sanitaires entre agriculteurs et responsables de coopératives via Bluetooth ou Wi-Fi Direct sans internet.
+* **Intégration de Capteurs IoT Bluetooth** : Connexion avec des capteurs d'humidité du sol et de pH pour déclencher des alertes d'irrigation autonomes via RAG.
 
 ---
 
-### About the Author
+## Confidentialité & Souveraineté des Données
 
-* **Developer:** Georges Byona  
-* **Role:** Software Engineer  
-* **Location:** Bukavu, South Kivu, Democratic Republic of the Congo  
-* **Event:** *Build with Gemma 2026 Challenge* (GDG on Campus UCB)  
-* **Bio:** [https://linktr.ee/glosings0n](https://linktr.ee/glosings0n)  
-* **GitHub Repository:** [https://github.com/glosings0n/gemmea](https://github.com/glosings0n/gemmea)
+* **0% de requêtes réseau** : Aucune donnée utilisateur, aucune photo, aucun message de chat ne quitte le téléphone.
+* **Respect total de la vie privée** : Traitement 100% sur l'appareil (*On-Device AI*).
+* **Opérationnel en zone blanche** : Fonctionne parfaitement au milieu d'un champ sans couverture réseau.
+
+---
+
+### Writeup Officiel Kaggle
+Un document de synthèse détaillé préparé pour le concours est disponible dans le fichier [`KAGGLE_WRITEUP.md`](KAGGLE_WRITEUP.md).
+
+---
+
+### À propos de l'Auteur
+
+* **Développeur :** Georges Byona  
+* **Rôle :** Software Engineer  
+* **Localisation :** Bukavu, Sud-Kivu, République Démocratique du Congo  
+* **Événement :** Concours *Build with Gemma 2026* (GDG on Campus UCB)  
+* **Bio :** [https://linktr.ee/glosings0n](https://linktr.ee/glosings0n)  
+* **Dépôt GitHub :** [https://github.com/glosings0n/gemmea](https://github.com/glosings0n/gemmea)

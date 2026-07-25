@@ -1,69 +1,69 @@
-# Gemmea — 100% On-Device Agronomic AI Assistant for East Africa
-## Kaggle Writeup — Build with Gemma 2026 Challenge
+# Gemmea — Assistant agronomique IA 100% hors ligne pour l'Afrique de l'Est
+## Synthèse Kaggle — Concours Build with Gemma 2026
 
 ---
 
-### Project Summary
-**Gemmea** ("Mmea" = *plant/crop* in Swahili + *Gemma*) is an offline, on-device mobile decision-support application built with **Flutter**, **Google Gemma 4 (`gemma-4-E2B-it.litertlm`)**, and an offline **SQLite FTS5 RAG engine**. 
+### Résumé du Projet
+**Gemmea** ("Mmea" = *plante/culture* en swahili + *Gemma*) est une application mobile d'aide à la décision agronomique fonctionnant **100% hors ligne**, construite avec **Flutter**, **Google Gemma 4 (`gemma-4-E2B-it.litertlm`)** et un moteur **RAG SQLite FTS5**.
 
-Designed specifically for smallholder farmers and agricultural cooperatives in internet-blind regions of Eastern DRC (Bukavu, South Kivu) and East Africa, Gemmea diagnoses crop leaf diseases via offline multimodal vision, delivers organic remedies grounded in official FAO/IITA guidelines, and manages farm irrigation calendars without transmitting a single byte to the cloud.
-
----
-
-### Problem Statement & Impact
-In Eastern DRC and rural East Africa, cellular internet is either non-existent or financially prohibitive for local farmers. Yet, these farmers face devastating threats to staple crops:
-* **Cassava Mosaic Disease (CMD)** & **Cassava Brown Streak Disease (CBSD)**
-* **Maize Common Rust** & **Fall Armyworm**
-* **Banana Xanthomonas Wilt (BXW)**
-
-Gemmea eliminates the connectivity barrier by running Google Gemma 4 directly on Android devices, democratizing AI access for rural agriculture.
+Conçue spécifiquement pour les petits producteurs et coopératives agricoles des zones sans couverture réseau de l'Est de la RDC (Bukavu, Sud-Kivu) et d'Afrique de l'Est, Gemmea diagnostique les maladies des feuilles via une vision multimodale hors ligne, propose des remèdes biologiques ancrés dans les guides officiels FAO/IITA et gère le calendrier d'irrigation sans transmettre la moindre donnée vers le cloud.
 
 ---
 
-### Technical Architecture & Key Innovations
+### Problématique & Impact Terrain
+Dans l'Est de la RDC et les zones rurales d'Afrique de l'Est, l'internet mobile est soit inexistant, soit trop onéreux pour les agriculteurs. Pourtant, leurs cultures vivrières sont menacées par des maladies dévastatrices :
+* **Mosaïque du Manioc** & **Strie Brune du Manioc**
+* **Rouille du Maïs** & **Chenille Légionnaire d'Automne**
+* **Flétrissement Bactérien du Bananier (BXW)**
 
-#### 1. On-Device Gemma 4 Multimodal VLM Integration
-* **Runtime**: Integrated using `flutter_gemma` leveraging **Google LiteRT-LM**.
-* **Memory & Execution Safety**: Features a thread-safe `GemmaEngineManager` with an execution lock (`_isEngineActive`) ensuring stability on budget Android hardware.
-* **Scan VLM Evaluation (`maxTokens: 4096`)**: Performs 7-section structured agronomic diagnostics. Includes an **urgent short-circuit evaluator** that immediately stops generation when non-leaf images (faces, shoes, objects) are scanned.
-* **Conversational Chat (`maxTokens: 2048`)**: Maintains a 5-message rolling history window with regional system prompts tailored to East African agro-climatic zones.
-
-#### 2. Local SQLite FTS5 RAG Pipeline
-To prevent AI hallucinations, Gemmea embeds an offline SQLite Full-Text Search database containing official FAO and IITA biological guides:
-* Dynamically retrieves weighted keyword matches based on crop and user query.
-* Injects grounded factual constraints and exact organic remedy dosages into Gemma's system prompt prior to inference.
-* Embedded East African / Great Lakes Agricultural Calendar (Seasons A & B planting dates, spacing, companion planting).
+Gemmea élimine la barrière de la connectivité en exécutant Google Gemma 4 directement sur téléphone Android, rendant l'IA accessible au cœur du champ.
 
 ---
 
-### Current Limitations & Technical Challenges
+### Architecture Technique & Innovations Clés
 
-While Gemmea is fully functional offline, the following limitations have been identified and documented:
+#### 1. Intégration Multimodale VLM Gemma 4 sur Mobile
+* **Runtime** : Intégration via `flutter_gemma` s'appuyant sur **Google LiteRT-LM**.
+* **Sécurité Mémoire & Thread** : Utilisation de `GemmaEngineManager` avec un verrou d'exécution (`_isEngineActive`) pour garantir la stabilité sur les smartphones abordables.
+* **Évaluation VLM (`maxTokens: 4096`)** : Génère un diagnostic agronomique structuré en 7 sections. Intègre un **court-circuit rapide** qui stoppe immédiatement la génération si une photo non végétale (visage, objet) est soumise.
+* **Assistant Chat (`maxTokens: 2048`)** : Maintient une fenêtre glissante de 5 messages avec un prompt système ancré dans le contexte agricole d'Afrique de l'Est.
 
-1. **Visual Dataset & Zero-Shot Classification Limits**:
-   * Gemma 4 VLM is an open-weights general multimodal model. Because it has not yet been specifically fine-tuned on local tropical leaf cultivars (e.g., local DRC cassava or sweet potato varieties), it may occasionally identify certain indigenous leaves as *"Unknown plant"* or generic crops.
-2. **On-Device Quantization & Context Scale**:
-   * To maintain real-time performance on budget mobile devices (4–8 GB RAM), we utilize quantized `gemma-4-E2B-it.litertlm`. Mobile memory constraints prevent deploying larger context windows or larger model variants (e.g. 9B), which can occasionally lead to concise or slightly truncated responses for highly complex multi-variable queries.
-3. **Multilingual UI & Prompt Pipeline**:
-   * Due to strict hackathon time constraints, full UI localization into local languages (**Kiswahili**, **Lingala**, **English**) was not completed for this submission (currently French-primary with embedded Swahili terminology). Native Kiswahili and Lingala prompt pipelines remain a top priority.
-4. **Hardware Acceleration Variability**:
-   * On low-end Android smartphones lacking dedicated NPU hardware, CPU fallback execution can take ~5–10 seconds for VLM image evaluation.
-
----
-
-### Future Roadmap & Next Steps
-
-1. **Fine-Tuning Gemma 4 VLM on Tropical Agriculture**: Fine-tuning Gemma VLM on a curated dataset of East African crop diseases (PlantVillage + IITA local field images) using LoRA / QLoRA.
-2. **Full Multilingual Localization (Kiswahili & Lingala)**: Implementing native Swahili and Lingala UI and model prompts for seamless adoption in rural communities.
-3. **Peer-to-Peer Cooperative Sync**: Offline Bluetooth Mesh / Wi-Fi Direct sync allowing farmers to share diagnostic reports with local cooperative leaders without internet.
-4. **Bluetooth IoT Sensor Integration**: Connecting low-cost Bluetooth soil moisture and pH sensors to trigger autonomous RAG irrigation advice in Gemmea.
+#### 2. Moteur RAG Local SQLite FTS5
+Pour prévenir les hallucinations, Gemmea embarque une base de données plein texte (FTS5) contenant les guides biologiques de la FAO et de l'IITA :
+* Extraction dynamique des passages factuels selon la culture et la question posée.
+* Injection des remèdes bio et des dosages exacts dans le prompt système avant l'inférence.
+* Calendrier agricole régional intégré (Saisons A & B, dates de semis, écartements).
 
 ---
 
-### Developer & Event Details
-* **Developer:** Georges Byona
-* **Role:** Software Engineer
-* **Location:** Bukavu, South Kivu, Democratic Republic of the Congo
-* **Event:** *Build with Gemma 2026 Challenge* (GDG on Campus UCB)
-* **Bio / Linktree:** [https://linktr.ee/glosings0n](https://linktr.ee/glosings0n)
-* **GitHub Repository:** [https://github.com/glosings0n/gemmea](https://github.com/glosings0n/gemmea)
+### Limitations Actuelles & Défis Techniques
+
+Bien que Gemmea soit totalement opérationnelle hors ligne, nous documentons en toute transparence les limitations suivantes :
+
+1. **Dataset Visuel & Classification** :
+   Gemma 4 VLM est un modèle généraliste non affiné sur les variétés de feuilles tropicales spécifiques à notre région (ex: cultivars locaux de manioc ou patate douce). Il peut donc parfois classifier certaines feuilles en *"Plante inconnue"* ou culture générique. Un fine-tuning spécialisé est prévu.
+2. **Quantification Mobile & Taille du Contexte** :
+   Pour garantir la fluidité sur des smartphones de 4 à 8 Go de RAM, nous utilisons la version quantifiée `gemma-4-E2B-it.litertlm`. La mémoire limitée empêche d'utiliser de plus larges fenêtres de contexte ou des modèles plus grands (ex: Gemma 9B).
+3. **Localisation Multilingue (Swahili, Lingala, Anglais)** :
+   Par manque de temps durant le hackathon, le support natif complet de plusieurs langues (**Kiswahili**, **Lingala**, **Anglais**) n'a pas pu être totalement achevé (interface en Français avec terminologie swahili).
+4. **Temps de Calcul CPU** :
+   Sur les téléphones d'entrée de gamme sans NPU, l'analyse visuelle par le CPU prend environ 5 à 10 secondes.
+
+---
+
+### Perspectives & Feuille de Route
+
+1. **Fine-Tuning de Gemma 4 VLM sur les cultures tropicales** : Affinage du modèle VLM sur une base de données annotée de maladies des plantes d'Afrique de l'Est via QLoRA.
+2. **Support Multilingue Intégral (Kiswahili & Lingala)** : Prise en charge native des langues locales pour l'interface et le modèle.
+3. **Partage Hors Ligne entre Coopératives (Mesh/Bluetooth)** : Synchronisation des rapports sanitaires entre agriculteurs et responsables de coopératives via Bluetooth ou Wi-Fi Direct.
+4. **Intégration de Capteurs IoT Bluetooth** : Connexion avec des capteurs d'humidité du sol et de pH pour déclencher des alertes d'irrigation autonomes via RAG.
+
+---
+
+### À propos de l'Auteur & Détails
+* **Développeur :** Georges Byona
+* **Rôle :** Software Engineer
+* **Localisation :** Bukavu, Sud-Kivu, République Démocratique du Congo
+* **Événement :** Concours *Build with Gemma 2026* (GDG on Campus UCB)
+* **Bio / Linktree :** [https://linktr.ee/glosings0n](https://linktr.ee/glosings0n)
+* **Dépôt GitHub :** [https://github.com/glosings0n/gemmea](https://github.com/glosings0n/gemmea)
