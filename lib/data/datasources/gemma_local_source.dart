@@ -22,11 +22,21 @@ class GemmaLocalSourceImpl implements GemmaLocalSource {
         throw Exception("L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture.");
       }
 
-      dev.log("Passing image bytes directly to on-device Gemma VLM model instance...", name: 'GEMMA_LOCAL_SOURCE');
-      final model = await FlutterGemma.getActiveModel(
-        maxTokens: 1024,
-        supportImage: true,
-      );
+      InferenceModel model;
+      try {
+        dev.log("Attempting CPU backend initialization for VLM evaluation...", name: 'GEMMA_LOCAL_SOURCE');
+        model = await FlutterGemma.getActiveModel(
+          preferredBackend: PreferredBackend.cpu,
+          maxTokens: 1024,
+          supportImage: true,
+        );
+      } catch (e) {
+        dev.log("CPU VLM init failed, trying fallback default backend...", name: 'GEMMA_LOCAL_SOURCE', error: e);
+        model = await FlutterGemma.getActiveModel(
+          maxTokens: 1024,
+          supportImage: true,
+        );
+      }
       final session = await model.createSession();
       
       // Send raw image bytes to Gemma VLM engine with agronomy evaluation prompt
