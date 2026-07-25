@@ -120,16 +120,16 @@ void main() {
     blocTest<ChatCubit, ChatState>(
       'sendMessage with "pleut" (rain keyword) triggers updateRainStatus function-calling flow and streams token',
       build: () {
-        final controller = StreamController<ModelResponse>();
         when(() => mockSaveChatMessage.call(any())).thenAnswer((_) async {});
         when(() => mockUpdateRainStatus.call(any(), any())).thenAnswer((_) async {});
-        when(() => mockGetGemmaResponseStream.call(any())).thenAnswer((_) => controller.stream);
-
-        // Feed tokens and close stream with robust delay to allow async function calling database saves to complete
-        Future.delayed(const Duration(milliseconds: 100), () {
-          controller.add(FakeTextResponse("En "));
-          controller.add(FakeTextResponse("effet."));
-          controller.close();
+        when(() => mockGetGemmaResponseStream.call(any(), any())).thenAnswer((_) {
+          final controller = StreamController<ModelResponse>();
+          scheduleMicrotask(() {
+            controller.add(FakeTextResponse("En "));
+            controller.add(FakeTextResponse("effet."));
+            controller.close();
+          });
+          return controller.stream;
         });
 
         // Initialize to ChatLoaded first
@@ -145,7 +145,7 @@ void main() {
         isA<ChatLoaded>().having(
           (s) => s.systemNotification,
           'system notice',
-          contains("Calendar adjusted: Irrigation paused for rainy schedule"),
+          contains("Calendrier ajusté : Arrosage mis en pause suite au signalement de pluie."),
         ),
         // 3. Receives first token
         isA<ChatLoaded>().having(

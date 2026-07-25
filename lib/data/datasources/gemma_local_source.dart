@@ -34,49 +34,51 @@ class GemmaLocalSourceImpl implements GemmaLocalSource {
 
   @override
   Future<String> evaluateCropImage(File imageFile, String prompt) async {
-    try {
-      await GemmaEngineManager.ensureInitialized();
-      if (!await imageFile.exists()) {
-        throw Exception("L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture.");
-      }
-
-      dev.log("Reading image bytes for evaluation: ${imageFile.path}", name: 'GEMMA_LOCAL_SOURCE');
-      Uint8List imageBytes = await imageFile.readAsBytes();
-
-      if (imageBytes.isEmpty) {
-        throw Exception("L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture.");
-      }
-
-      // Preprocess image bytes in background isolate to avoid UI thread lag and memory spikes
+    return GemmaEngineManager.runWithLock(() async {
+      GemmaEngineManager.resetChatSession();
       try {
-        imageBytes = await compute(_resizeImageForVlm, imageBytes);
-        dev.log("Preprocessed and resized image in background isolate (${imageBytes.length} bytes)", name: 'GEMMA_LOCAL_SOURCE');
-      } catch (e) {
-        dev.log("Image preprocessing note: $e", name: 'GEMMA_LOCAL_SOURCE');
-      }
-
-      // Try VLM evaluation with maxTokens: 4096 so that 2304 image patches fit into context window
-      try {
-        InferenceModel model;
-        try {
-          dev.log("Attempting CPU backend initialization with maxTokens: 4096 for VLM evaluation...", name: 'GEMMA_LOCAL_SOURCE');
-          model = await FlutterGemma.getActiveModel(
-            preferredBackend: PreferredBackend.cpu,
-            maxTokens: 4096,
-            supportImage: true,
-          );
-        } catch (e) {
-          dev.log("CPU VLM init with 4096 failed, trying default backend with 4096...", name: 'GEMMA_LOCAL_SOURCE', error: e);
-          model = await FlutterGemma.getActiveModel(
-            maxTokens: 4096,
-            supportImage: true,
-          );
+        await GemmaEngineManager.ensureInitialized();
+        if (!await imageFile.exists()) {
+          throw Exception("L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture.");
         }
-        final session = await model.createSession();
-        
-        final structuredPrompt = '''
+
+        dev.log("Reading image bytes for evaluation: ${imageFile.path}", name: 'GEMMA_LOCAL_SOURCE');
+        Uint8List imageBytes = await imageFile.readAsBytes();
+
+        if (imageBytes.isEmpty) {
+          throw Exception("L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture.");
+        }
+
+        // Preprocess image bytes in background isolate to avoid UI thread lag and memory spikes
+        try {
+          imageBytes = await compute(_resizeImageForVlm, imageBytes);
+          dev.log("Preprocessed and resized image in background isolate (${imageBytes.length} bytes)", name: 'GEMMA_LOCAL_SOURCE');
+        } catch (e) {
+          dev.log("Image preprocessing note: $e", name: 'GEMMA_LOCAL_SOURCE');
+        }
+
+        // Try VLM evaluation with maxTokens: 4096 so that 2304 image patches fit into context window
+        try {
+          InferenceModel model;
+          try {
+            dev.log("Attempting CPU backend initialization with maxTokens: 4096 for VLM evaluation...", name: 'GEMMA_LOCAL_SOURCE');
+            model = await FlutterGemma.getActiveModel(
+              preferredBackend: PreferredBackend.cpu,
+              maxTokens: 4096,
+              supportImage: true,
+            );
+          } catch (e) {
+            dev.log("CPU VLM init with 4096 failed, trying default backend with 4096...", name: 'GEMMA_LOCAL_SOURCE', error: e);
+            model = await FlutterGemma.getActiveModel(
+              maxTokens: 4096,
+              supportImage: true,
+            );
+          }
+          final session = await model.createSession();
+          
+          final structuredPrompt = '''
 Vous êtes Gemmea, expert agronomique FAO/IITA spécialisé dans les cultures d'Afrique de l'Est (Manioc, Maïs, Haricot, Banane, etc.).
-Regardez attentivement cette image. S'il ne s'agit PAS d'une feuille de culture ou pas d'une plante, répondez strictement 'NOT_A_LEAF'.
+Regardez attentivement cette image. S'il ne s'agit PAS d'une feuille de culture ou pas d'une plante, répondez strictly 'NOT_A_LEAF'.
 
 Si c'est une feuille de plante, fournissez une analyse TRÈS DÉTAILLÉE, STRUCTURÉE ET COMPLÈTE organisée selon les 7 rubriques suivantes (SANS AUCUN ÉMOJI) :
 1. DIAGNOSTIC PRINCIPAL & HYPOTHÈSES (Culture, maladie suspectée, niveau de confiance, diagnostics différentiels).
@@ -91,52 +93,55 @@ IMPORTANT : Ne JAMAIS utiliser d'émojis ni de syntaxe LaTeX. Rédiger un texte 
 Prompt utilisateur : $prompt
 ''';
 
-        await session.addQueryChunk(
-          Message.withImage(
-            text: structuredPrompt,
-            imageBytes: imageBytes,
-            isUser: true,
-          ),
-        );
-        
-        final String rawResponse = await session.getResponse();
-        dev.log("Gemma VLM evaluation response: $rawResponse", name: 'GEMMA_LOCAL_SOURCE');
+          await session.addQueryChunk(
+            Message.withImage(
+              text: structuredPrompt,
+              imageBytes: imageBytes,
+              isUser: true,
+            ),
+          );
+          
+          final String rawResponse = await session.getResponse();
+          dev.log("Gemma VLM evaluation response: $rawResponse", name: 'GEMMA_LOCAL_SOURCE');
 
-        final lowerResp = rawResponse.toLowerCase();
+          final lowerResp = rawResponse.toLowerCase();
 
-        if (rawResponse.contains("NOT_A_LEAF") || 
-            lowerResp.contains("not a leaf") || 
-            lowerResp.contains("pas une feuille") ||
-            lowerResp.contains("pas une plante") ||
-            lowerResp.contains("ce n'est pas une feuille")) {
-          throw Exception("L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture.");
+          if (rawResponse.contains("NOT_A_LEAF") || 
+              lowerResp.contains("not a leaf") || 
+              lowerResp.contains("pas une feuille") ||
+              lowerResp.contains("pas une plante") ||
+              lowerResp.contains("ce n'est pas une feuille")) {
+            throw Exception("L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture.");
+          }
+
+          if (rawResponse.trim().length >= 450 && 
+              (lowerResp.contains("1.") || lowerResp.contains("diagnostic")) &&
+              !lowerResp.contains("processing error") && 
+              !lowerResp.contains("veuillez fournir")) {
+            return TextSanitizer.cleanLatexAndFormatting(rawResponse);
+          } else if (rawResponse.trim().isNotEmpty && !lowerResp.contains("processing error") && !lowerResp.contains("veuillez fournir")) {
+            dev.log("Gemma VLM raw response was partial (${rawResponse.length} chars). Enhancing with complete FAO/IITA report.", name: 'GEMMA_LOCAL_SOURCE');
+            final cleanedPartial = TextSanitizer.cleanLatexAndFormatting(rawResponse);
+            final faoReport = _getFaoReportForPath(imageFile.path, lowerResp);
+            return "**Analyse Vision On-Device Gemma :**\n$cleanedPartial\n\n---\n\n$faoReport";
+          }
+        } catch (vlmErr, vlmStack) {
+          dev.log("VLM direct image session note: $vlmErr. Fallback to local FAO RAG knowledge evaluation.", name: 'GEMMA_LOCAL_SOURCE', error: vlmErr, stackTrace: vlmStack);
+          if (vlmErr.toString().contains("ne semble pas être une feuille")) {
+            rethrow;
+          }
         }
 
-        if (rawResponse.trim().length >= 450 && 
-            (lowerResp.contains("1.") || lowerResp.contains("diagnostic")) &&
-            !lowerResp.contains("processing error") && 
-            !lowerResp.contains("veuillez fournir")) {
-          return TextSanitizer.cleanLatexAndFormatting(rawResponse);
-        } else if (rawResponse.trim().isNotEmpty && !lowerResp.contains("processing error") && !lowerResp.contains("veuillez fournir")) {
-          dev.log("Gemma VLM raw response was partial (${rawResponse.length} chars). Enhancing with complete FAO/IITA report.", name: 'GEMMA_LOCAL_SOURCE');
-          final cleanedPartial = TextSanitizer.cleanLatexAndFormatting(rawResponse);
-          final faoReport = _getFaoReportForPath(imageFile.path, lowerResp);
-          return "**Analyse Vision On-Device Gemma :**\n$cleanedPartial\n\n---\n\n$faoReport";
-        }
-      } catch (vlmErr, vlmStack) {
-        dev.log("VLM direct image session note: $vlmErr. Fallback to local FAO RAG knowledge evaluation.", name: 'GEMMA_LOCAL_SOURCE', error: vlmErr, stackTrace: vlmStack);
-        if (vlmErr.toString().contains("ne semble pas être une feuille")) {
-          rethrow;
-        }
+        // Fallback: Extremely rich, structured 7-part FAO/IITA expert diagnostic reports
+        dev.log("Executing intelligent local RAG fallback for diagnostic...", name: 'GEMMA_LOCAL_SOURCE');
+        return TextSanitizer.cleanLatexAndFormatting(_getFaoReportForPath(imageFile.path, ""));
+      } catch (e, stack) {
+        dev.log("On-device VLM image evaluation error", name: 'GEMMA_LOCAL_SOURCE', error: e, stackTrace: stack);
+        rethrow;
+      } finally {
+        GemmaEngineManager.resetChatSession();
       }
-
-      // Fallback: Extremely rich, structured 7-part FAO/IITA expert diagnostic reports
-      dev.log("Executing intelligent local RAG fallback for diagnostic...", name: 'GEMMA_LOCAL_SOURCE');
-      return TextSanitizer.cleanLatexAndFormatting(_getFaoReportForPath(imageFile.path, ""));
-    } catch (e, stack) {
-      dev.log("On-device VLM image evaluation error", name: 'GEMMA_LOCAL_SOURCE', error: e, stackTrace: stack);
-      rethrow;
-    }
+    });
   }
 
   String _getFaoReportForPath(String path, String hintContent) {

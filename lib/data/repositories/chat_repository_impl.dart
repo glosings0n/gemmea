@@ -13,6 +13,13 @@ class ChatRepositoryImpl implements ChatRepository {
   final SQLiteHelper dbHelper = SQLiteHelper.instance;
   InferenceChat? _chat;
 
+  ChatRepositoryImpl() {
+    GemmaEngineManager.setResetChatCallback(() {
+      dev.log("ChatRepositoryImpl: Resetting cached _chat session", name: 'CHAT_REPO_IMPL');
+      _chat = null;
+    });
+  }
+
   @override
   Future<bool> checkModelInstalled() async {
     try {
@@ -41,92 +48,94 @@ class ChatRepositoryImpl implements ChatRepository {
 
   @override
   Future<void> initializeGemma(Function(double) onProgress) async {
-    try {
-      await GemmaEngineManager.ensureInitialized();
-      
-      final directory = await getApplicationDocumentsDirectory();
-      final modelFile = File('${directory.path}/gemma.litertlm');
-      final tempModelFile = File('${directory.path}/gemma.litertlm.tmp');
-      
-      if (!await modelFile.exists()) {
-        // Clean up any stale/incomplete temp files from previous aborted attempts
-        if (await tempModelFile.exists()) {
-          await tempModelFile.delete();
-        }
-
-        // Check internet connectivity first using lightweight DNS lookup
-        try {
-          final result = await InternetAddress.lookup('google.com').timeout(const Duration(seconds: 4));
-          if (result.isEmpty || result.first.rawAddress.isEmpty) {
-            throw const SocketException('No internet connection available');
-          }
-        } catch (e, stack) {
-          dev.log("No internet connection for first-time download", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
-          throw const SocketException('Internet connection is required for the first-time model download. Please connect to the internet and try again.');
-        }
-
-        final url = 'https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/resolve/main/gemma-4-E2B-it.litertlm';
-        final client = http.Client();
+    return GemmaEngineManager.runWithLock(() async {
+      try {
+        await GemmaEngineManager.ensureInitialized();
         
-        try {
-          dev.log("Starting model download stream from HuggingFace...", name: 'CHAT_REPO_IMPL');
-          final request = http.Request('GET', Uri.parse(url));
-          final response = await client.send(request);
-          
-          if (response.statusCode != 200) {
-            throw HttpException('Failed to download model file (Status: ${response.statusCode})');
-          }
-          
-          final contentLength = response.contentLength ?? 0;
-          int downloadedBytes = 0;
-          
-          // Write to temporary file first
-          final IOSink sink = tempModelFile.openWrite();
-          
-          await response.stream.forEach((chunk) {
-            downloadedBytes += chunk.length;
-            sink.add(chunk);
-            
-            if (contentLength > 0) {
-              onProgress(downloadedBytes / contentLength);
-            }
-          });
-          
-          await sink.close();
-
-          // ONLY RENAME TO FINAL BINARY UPON 100% COMPLETE DOWNLOAD
-          if (await tempModelFile.exists()) {
-            await tempModelFile.rename(modelFile.path);
-            dev.log("Model file successfully downloaded and placed in Documents", name: 'CHAT_REPO_IMPL');
-          }
-        } catch (e, stack) {
-          dev.log("Download failed or interrupted", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
+        final directory = await getApplicationDocumentsDirectory();
+        final modelFile = File('${directory.path}/gemma.litertlm');
+        final tempModelFile = File('${directory.path}/gemma.litertlm.tmp');
+        
+        if (!await modelFile.exists()) {
+          // Clean up any stale/incomplete temp files from previous aborted attempts
           if (await tempModelFile.exists()) {
             await tempModelFile.delete();
           }
-          rethrow;
-        } finally {
-          client.close();
-        }
-      }
 
-      // Register this local file as the active model in FlutterGemma
-      try {
-        dev.log("Installing Gemma model in FlutterGemma plugin...", name: 'CHAT_REPO_IMPL');
-        await FlutterGemma.installModel(
-          modelType: ModelType.gemmaIt,
-          fileType: ModelFileType.litertlm,
-        )
-        .fromFile(modelFile.path)
-        .install();
-        dev.log("Gemma model installation completed successfully", name: 'CHAT_REPO_IMPL');
+          // Check internet connectivity first using lightweight DNS lookup
+          try {
+            final result = await InternetAddress.lookup('google.com').timeout(const Duration(seconds: 4));
+            if (result.isEmpty || result.first.rawAddress.isEmpty) {
+              throw const SocketException('No internet connection available');
+            }
+          } catch (e, stack) {
+            dev.log("No internet connection for first-time download", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
+            throw const SocketException('Internet connection is required for the first-time model download. Please connect to the internet and try again.');
+          }
+
+          final url = 'https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/resolve/main/gemma-4-E2B-it.litertlm';
+          final client = http.Client();
+          
+          try {
+            dev.log("Starting model download stream from HuggingFace...", name: 'CHAT_REPO_IMPL');
+            final request = http.Request('GET', Uri.parse(url));
+            final response = await client.send(request);
+            
+            if (response.statusCode != 200) {
+              throw HttpException('Failed to download model file (Status: ${response.statusCode})');
+            }
+            
+            final contentLength = response.contentLength ?? 0;
+            int downloadedBytes = 0;
+            
+            // Write to temporary file first
+            final IOSink sink = tempModelFile.openWrite();
+            
+            await response.stream.forEach((chunk) {
+              downloadedBytes += chunk.length;
+              sink.add(chunk);
+              
+              if (contentLength > 0) {
+                onProgress(downloadedBytes / contentLength);
+              }
+            });
+            
+            await sink.close();
+
+            // ONLY RENAME TO FINAL BINARY UPON 100% COMPLETE DOWNLOAD
+            if (await tempModelFile.exists()) {
+              await tempModelFile.rename(modelFile.path);
+              dev.log("Model file successfully downloaded and placed in Documents", name: 'CHAT_REPO_IMPL');
+            }
+          } catch (e, stack) {
+            dev.log("Download failed or interrupted", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
+            if (await tempModelFile.exists()) {
+              await tempModelFile.delete();
+            }
+            rethrow;
+          } finally {
+            client.close();
+          }
+        }
+
+        // Register this local file as the active model in FlutterGemma
+        try {
+          dev.log("Installing Gemma model in FlutterGemma plugin...", name: 'CHAT_REPO_IMPL');
+          await FlutterGemma.installModel(
+            modelType: ModelType.gemmaIt,
+            fileType: ModelFileType.litertlm,
+          )
+          .fromFile(modelFile.path)
+          .install();
+          dev.log("Gemma model installation completed successfully", name: 'CHAT_REPO_IMPL');
+        } catch (e, stack) {
+          dev.log("Model install registration note: $e", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
+        }
       } catch (e, stack) {
-        dev.log("Model install registration note: $e", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
+        dev.log("Error in initializeGemma", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
+        rethrow;
       }
-    } catch (e, stack) {
-      dev.log("Error in initializeGemma", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
-      rethrow;
-    }
+    });
   }
 
   @override
@@ -171,75 +180,33 @@ class ChatRepositoryImpl implements ChatRepository {
 
   @override
   Stream<ModelResponse> getGemmaResponseStream(String text, [List<Message>? history]) async* {
-    await GemmaEngineManager.ensureInitialized();
+    yield* GemmaEngineManager.runStreamWithLock(() async* {
+      await GemmaEngineManager.ensureInitialized();
 
-    if (_chat == null) {
-      final directory = await getApplicationDocumentsDirectory();
-      final modelFile = File('${directory.path}/gemma.litertlm');
-      
-      if (await modelFile.exists()) {
-        bool loaded = false;
-        try {
-          dev.log("Attempting CPU backend initialization for Gemma...", name: 'CHAT_REPO_IMPL');
+      if (_chat == null) {
+        final directory = await getApplicationDocumentsDirectory();
+        final modelFile = File('${directory.path}/gemma.litertlm');
+        
+        if (await modelFile.exists()) {
+          bool loaded = false;
           try {
-            await FlutterGemma.installModel(
-              modelType: ModelType.gemmaIt,
-              fileType: ModelFileType.litertlm,
-            )
-            .fromFile(modelFile.path)
-            .install();
-          } catch (e) {
-            dev.log("Model install registration note: $e", name: 'CHAT_REPO_IMPL');
-          }
-
-          final model = await FlutterGemma.getActiveModel(
-            maxTokens: 1024,
-            preferredBackend: PreferredBackend.cpu,
-          );
-
-          final faoDocs = await dbHelper.searchFAOKnowledge(text);
-          final faoContext = faoDocs.map((d) => "- ${d['topic']}: ${d['content']} Remède: ${d['organic_remedy']} (Source: ${d['source_citation']})").join("\n");
-
-          String historyFormatted = "";
-          if (history != null && history.length > 1) {
-            final recentHistory = _getRecentHistoryWindow(history);
-            if (recentHistory.isNotEmpty) {
-              final formattedHistoryItems = recentHistory.map((m) => "${m.isUser ? 'Utilisateur' : 'Gemmea'}: ${m.text}").join("\n");
-              historyFormatted = "\n\nHISTORIQUE RÉCENT DE LA CONVERSATION :\n$formattedHistoryItems";
+            dev.log("Attempting CPU backend initialization for Gemma...", name: 'CHAT_REPO_IMPL');
+            try {
+              await FlutterGemma.installModel(
+                modelType: ModelType.gemmaIt,
+                fileType: ModelFileType.litertlm,
+              )
+              .fromFile(modelFile.path)
+              .install();
+            } catch (e) {
+              dev.log("Model install registration note: $e", name: 'CHAT_REPO_IMPL');
             }
-          }
 
-          final systemPrompt = '''
-Tu es Gemmea, un assistant agronome utile sous forme d'IA hors ligne destiné aux agriculteurs de l'Est de la République Démocratique du Congo (RDC) et de l'Afrique de l'Est.
-NE salue PAS à chaque message. Ne dis jamais 'Jambo' ou 'Bonjour' lors des réponses de suivi dans la conversation. Réponds directement et précisément aux questions de l'utilisateur.
-N'utilise AUCUN émoji dans tes réponses. Rédige un texte purement professionnel sans émojis ni icônes.
-
-RÈGLE D'ANCRAGE (RAG FAO) :
-Voici les extraits officiels de la FAO pertinents extraits de la base locale :
-$faoContext
-$historyFormatted
-
-Utilise ces données FAO et cet historique pour fournir des conseils directs, précis et écologiques. Reste très concis, clair, et cite la source FAO.
-''';
-
-          _chat = await model.createChat(
-            modelType: ModelType.gemmaIt,
-            systemInstruction: systemPrompt,
-          );
-
-          loaded = true;
-          dev.log("Modèle Gemma chargé avec succès sur le moteur LiteRT-LM CPU !", name: 'CHAT_REPO_IMPL');
-        } catch (cpuError, stack) {
-          dev.log("Échec du chargement du moteur CPU", name: 'CHAT_REPO_IMPL', error: cpuError, stackTrace: stack);
-        }
-
-        if (!loaded) {
-          try {
-            dev.log("Attempting GPU fallback backend for Gemma...", name: 'CHAT_REPO_IMPL');
             final model = await FlutterGemma.getActiveModel(
               maxTokens: 1024,
-              preferredBackend: PreferredBackend.gpu,
+              preferredBackend: PreferredBackend.cpu,
             );
+
             final faoDocs = await dbHelper.searchFAOKnowledge(text);
             final faoContext = faoDocs.map((d) => "- ${d['topic']}: ${d['content']} Remède: ${d['organic_remedy']} (Source: ${d['source_citation']})").join("\n");
 
@@ -271,40 +238,84 @@ Utilise ces données FAO et cet historique pour fournir des conseils directs, pr
             );
 
             loaded = true;
-            dev.log("Modèle Gemma chargé avec succès sur le moteur LiteRT-LM GPU !", name: 'CHAT_REPO_IMPL');
-          } catch (gpuError, stack) {
-            dev.log("Échec du chargement du moteur GPU", name: 'CHAT_REPO_IMPL', error: gpuError, stackTrace: stack);
-            yield* _mockResponseStream(text, history);
-            return;
+            dev.log("Modèle Gemma chargé avec succès sur le moteur LiteRT-LM CPU !", name: 'CHAT_REPO_IMPL');
+          } catch (cpuError, stack) {
+            dev.log("Échec du chargement du moteur CPU", name: 'CHAT_REPO_IMPL', error: cpuError, stackTrace: stack);
+          }
+
+          if (!loaded) {
+            try {
+              dev.log("Attempting GPU fallback backend for Gemma...", name: 'CHAT_REPO_IMPL');
+              final model = await FlutterGemma.getActiveModel(
+                maxTokens: 1024,
+                preferredBackend: PreferredBackend.gpu,
+              );
+              final faoDocs = await dbHelper.searchFAOKnowledge(text);
+              final faoContext = faoDocs.map((d) => "- ${d['topic']}: ${d['content']} Remède: ${d['organic_remedy']} (Source: ${d['source_citation']})").join("\n");
+
+              String historyFormatted = "";
+              if (history != null && history.length > 1) {
+                final recentHistory = _getRecentHistoryWindow(history);
+                if (recentHistory.isNotEmpty) {
+                  final formattedHistoryItems = recentHistory.map((m) => "${m.isUser ? 'Utilisateur' : 'Gemmea'}: ${m.text}").join("\n");
+                  historyFormatted = "\n\nHISTORIQUE RÉCENT DE LA CONVERSATION :\n$formattedHistoryItems";
+                }
+              }
+
+              final systemPrompt = '''
+Tu es Gemmea, un assistant agronome utile sous forme d'IA hors ligne destiné aux agriculteurs de l'Est de la République Démocratique du Congo (RDC) et de l'Afrique de l'Est.
+NE salue PAS à chaque message. Ne dis jamais 'Jambo' ou 'Bonjour' lors des réponses de suivi dans la conversation. Réponds directement et précisément aux questions de l'utilisateur.
+N'utilise AUCUN émoji dans tes réponses. Rédige un texte purement professionnel sans émojis ni icônes.
+
+RÈGLE D'ANCRAGE (RAG FAO) :
+Voici les extraits officiels de la FAO pertinents extraits de la base locale :
+$faoContext
+$historyFormatted
+
+Utilise ces données FAO et cet historique pour fournir des conseils directs, précis et écologiques. Reste très concis, clair, et cite la source FAO.
+''';
+
+              _chat = await model.createChat(
+                modelType: ModelType.gemmaIt,
+                systemInstruction: systemPrompt,
+              );
+
+              loaded = true;
+              dev.log("Modèle Gemma chargé avec succès sur le moteur LiteRT-LM GPU !", name: 'CHAT_REPO_IMPL');
+            } catch (gpuError, stack) {
+              dev.log("Échec du chargement du moteur GPU", name: 'CHAT_REPO_IMPL', error: gpuError, stackTrace: stack);
+              yield* _mockResponseStream(text, history);
+              return;
+            }
+          }
+        } else {
+          dev.log("Model file not found locally, defaulting to local fallback stream", name: 'CHAT_REPO_IMPL');
+          yield* _mockResponseStream(text, history);
+          return;
+        }
+      }
+
+      try {
+        dev.log("Sending query chunk to Gemma session...", name: 'CHAT_REPO_IMPL');
+        final userMessage = Message.text(text: text, isUser: true);
+        await _chat!.addQuery(userMessage);
+        
+        await for (final chunk in _chat!.generateChatResponseAsync()) {
+          if (chunk is TextResponse) {
+            yield TextResponse(TextSanitizer.cleanLatexAndFormatting(chunk.token));
+          } else {
+            yield chunk;
           }
         }
-      } else {
-        dev.log("Model file not found locally, defaulting to local fallback stream", name: 'CHAT_REPO_IMPL');
-        yield* _mockResponseStream(text, history);
-        return;
-      }
-    }
-
-    try {
-      dev.log("Sending query chunk to Gemma session...", name: 'CHAT_REPO_IMPL');
-      final userMessage = Message.text(text: text, isUser: true);
-      await _chat!.addQuery(userMessage);
-      
-      await for (final chunk in _chat!.generateChatResponseAsync()) {
-        if (chunk is TextResponse) {
-          yield TextResponse(TextSanitizer.cleanLatexAndFormatting(chunk.token));
-        } else {
-          yield chunk;
+      } catch (e, stack) {
+        dev.log("Error generating chat response stream", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
+        _chat = null;
+        if (e.toString().contains("channel-error") || e.toString().contains("PlatformException")) {
+          throw Exception("Impossible d'établir la connexion avec le moteur du modèle local.\n\nVeuillez relancer l'application.");
         }
+        yield* _mockResponseStream(text, history);
       }
-    } catch (e, stack) {
-      dev.log("Error generating chat response stream", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
-      _chat = null;
-      if (e.toString().contains("channel-error") || e.toString().contains("PlatformException")) {
-        throw Exception("Impossible d'établir la connexion avec le moteur du modèle local.\n\nVeuillez relancer l'application.");
-      }
-      yield* _mockResponseStream(text, history);
-    }
+    });
   }
 
   List<Message> _getRecentHistoryWindow(List<Message>? history) {

@@ -64,15 +64,16 @@ void main() {
     blocTest<ChatCubit, ChatState>(
       'sendMessage with dry/hot keywords activates autonomous irrigation Function Call and updates calendar',
       build: () {
-        final controller = StreamController<ModelResponse>();
         when(() => mockSaveChatMessage.call(any())).thenAnswer((_) async {});
         when(() => mockUpdateRainStatus.call(any(), any())).thenAnswer((_) async {});
-        when(() => mockGetGemmaResponseStream.call(any())).thenAnswer((_) => controller.stream);
-
-        Future.delayed(const Duration(milliseconds: 50), () {
-          controller.add(FakeTextResponse("Pour "));
-          controller.add(FakeTextResponse("le maïs, apportez 4L d'eau par mètre carré."));
-          controller.close();
+        when(() => mockGetGemmaResponseStream.call(any(), any())).thenAnswer((_) {
+          final controller = StreamController<ModelResponse>();
+          scheduleMicrotask(() {
+            controller.add(FakeTextResponse("Pour "));
+            controller.add(FakeTextResponse("le maïs, apportez 4L d'eau par mètre carré."));
+            controller.close();
+          });
+          return controller.stream;
         });
 
         chatCubit.emit(ChatLoaded(messages: [], isStreaming: false));
@@ -85,7 +86,7 @@ void main() {
         isA<ChatLoaded>().having(
           (s) => s.systemNotification,
           'function call notification',
-          contains("Calendar adjusted: Regular watering scheduled for dry weather"),
+          contains("Calendrier ajusté : Arrosage régulier programmé pour temps sec."),
         ),
         isA<ChatLoaded>().having(
           (s) => s.messages.last.text,
