@@ -1,6 +1,8 @@
 import 'dart:developer' as dev;
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -399,13 +401,59 @@ class PDFReportService {
     );
   }
 
-  static Future<void> printOrShareReport({
+  static Future<String> downloadReportToDocuments({
     required List<Map<String, dynamic>> diagnostics,
     required List<Map<String, dynamic>> calendarEvents,
     String farmerLocation = 'Bukavu, Sud-Kivu, RDC',
   }) async {
     try {
-      dev.log("Printing/sharing PDF report...", name: 'PDF_REPORT_SERVICE');
+      dev.log("Generating PDF for download...", name: 'PDF_REPORT_SERVICE');
+      final pdfBytes = await generateFarmDiagnosticReport(
+        diagnostics: diagnostics,
+        calendarEvents: calendarEvents,
+        farmerLocation: farmerLocation,
+      );
+
+      Directory? targetDir;
+      if (Platform.isAndroid) {
+        final docDir = Directory('/storage/emulated/0/Documents');
+        if (await docDir.exists()) {
+          targetDir = docDir;
+        } else {
+          final dlDir = Directory('/storage/emulated/0/Download');
+          if (await dlDir.exists()) {
+            targetDir = dlDir;
+          }
+        }
+      }
+
+      if (targetDir == null) {
+        try {
+          targetDir = await getDownloadsDirectory();
+        } catch (_) {}
+      }
+
+      targetDir ??= await getApplicationDocumentsDirectory();
+
+      final filename = 'Rapport_Agronomique_Gemmea_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final file = File('${targetDir.path}/$filename');
+      await file.writeAsBytes(pdfBytes);
+
+      dev.log("PDF downloaded successfully to ${file.path}", name: 'PDF_REPORT_SERVICE');
+      return file.path;
+    } catch (e, stack) {
+      dev.log("Error downloading PDF report", name: 'PDF_REPORT_SERVICE', error: e, stackTrace: stack);
+      rethrow;
+    }
+  }
+
+  static Future<void> shareReport({
+    required List<Map<String, dynamic>> diagnostics,
+    required List<Map<String, dynamic>> calendarEvents,
+    String farmerLocation = 'Bukavu, Sud-Kivu, RDC',
+  }) async {
+    try {
+      dev.log("Sharing PDF report...", name: 'PDF_REPORT_SERVICE');
       final pdfBytes = await generateFarmDiagnosticReport(
         diagnostics: diagnostics,
         calendarEvents: calendarEvents,
@@ -418,6 +466,19 @@ class PDFReportService {
       );
     } catch (e, stack) {
       dev.log("Error sharing PDF report", name: 'PDF_REPORT_SERVICE', error: e, stackTrace: stack);
+      rethrow;
     }
+  }
+
+  static Future<void> printOrShareReport({
+    required List<Map<String, dynamic>> diagnostics,
+    required List<Map<String, dynamic>> calendarEvents,
+    String farmerLocation = 'Bukavu, Sud-Kivu, RDC',
+  }) async {
+    await shareReport(
+      diagnostics: diagnostics,
+      calendarEvents: calendarEvents,
+      farmerLocation: farmerLocation,
+    );
   }
 }

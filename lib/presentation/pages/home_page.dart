@@ -117,23 +117,19 @@ class _HomePageState extends State<HomePage> {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                                                    children: [
                             IconButton(
                               tooltip: 'Exporter le Rapport PDF',
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
-                              onPressed: () async {
+                              onPressed: () {
                                 final diags = state.diagnosticsHistory
                                     .map((d) => d.toMap())
                                     .toList();
                                 final events = state.calendarEvents
                                     .map((c) => c.toMap())
                                     .toList();
-                                await PDFReportService.printOrShareReport(
-                                  diagnostics: diags,
-                                  calendarEvents: events,
-                                  farmerLocation: 'Bukavu, Sud-Kivu, RDC',
-                                );
+                                _showPdfOptionsBottomSheet(context, diags, events);
                               },
                               icon: const HugeIcon(
                                 icon: AppIcons.pdf,
@@ -449,6 +445,250 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showPdfOptionsBottomSheet(
+      BuildContext context, List<Map<String, dynamic>> diags, List<Map<String, dynamic>> events) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (bottomSheetContext) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "Rapport de Productivité (PDF)",
+                style: TextStyle(
+                  fontFamily: 'Fredoka',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textCharcoal,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                "Choisissez une option pour exporter votre rapport agronomique.",
+                style: TextStyle(
+                  fontFamily: 'Fredoka',
+                  fontSize: 13,
+                  color: AppColors.textGrey,
+                ),
+              ),
+              const SizedBox(height: 20),
+              
+              // Option 1: Download
+              InkWell(
+                onTap: () async {
+                  Navigator.pop(bottomSheetContext);
+                  try {
+                    final path = await PDFReportService.downloadReportToDocuments(
+                      diagnostics: diags,
+                      calendarEvents: events,
+                      farmerLocation: 'Bukavu, Sud-Kivu, RDC',
+                    );
+                    if (context.mounted) {
+                      final filename = path.split('/').last;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              const HugeIcon(
+                                icon: AppIcons.check,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  "PDF enregistré dans les Documents :\n$filename",
+                                  style: const TextStyle(fontFamily: 'Fredoka', fontSize: 13),
+                                ),
+                              ),
+                            ],
+                          ),
+                          backgroundColor: AppColors.primaryForestGreen,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          duration: const Duration(seconds: 4),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Erreur lors du téléchargement: $e"),
+                          backgroundColor: Colors.redAccent,
+                        ),
+                      );
+                    }
+                  }
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryForestGreen.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.primaryForestGreen.withValues(alpha: 0.15),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryForestGreen.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const HugeIcon(
+                          icon: AppIcons.download,
+                          color: AppColors.primaryForestGreen,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              "Télécharger le PDF",
+                              style: TextStyle(
+                                fontFamily: 'Fredoka',
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textCharcoal,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              "Enregistrer dans le dossier Documents du téléphone",
+                              style: TextStyle(
+                                fontFamily: 'Fredoka',
+                                fontSize: 12,
+                                color: AppColors.textGrey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const HugeIcon(
+                        icon: AppIcons.arrowRight,
+                        color: AppColors.textGrey,
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Option 2: Share
+              InkWell(
+                onTap: () async {
+                  Navigator.pop(bottomSheetContext);
+                  try {
+                    await PDFReportService.shareReport(
+                      diagnostics: diags,
+                      calendarEvents: events,
+                      farmerLocation: 'Bukavu, Sud-Kivu, RDC',
+                    );
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Erreur lors du partage: $e"),
+                          backgroundColor: Colors.redAccent,
+                        ),
+                      );
+                    }
+                  }
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryForestGreen.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.primaryForestGreen.withValues(alpha: 0.15),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryForestGreen.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const HugeIcon(
+                          icon: AppIcons.share,
+                          color: AppColors.primaryForestGreen,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              "Partager le PDF",
+                              style: TextStyle(
+                                fontFamily: 'Fredoka',
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textCharcoal,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              "Envoyer via WhatsApp, Email, Drive ou Bluetooth",
+                              style: TextStyle(
+                                fontFamily: 'Fredoka',
+                                fontSize: 12,
+                                color: AppColors.textGrey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const HugeIcon(
+                        icon: AppIcons.arrowRight,
+                        color: AppColors.textGrey,
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
     );
   }
 }

@@ -25,6 +25,8 @@ class AppIcons {
   static const search = HugeIcons.strokeRoundedSearch01;
   static const info = HugeIcons.strokeRoundedInformationCircle;
   static const pdf = HugeIcons.strokeRoundedPdf01;
+  static const download = HugeIcons.strokeRoundedDownload01;
+  static const share = HugeIcons.strokeRoundedShare01;
   static const license = HugeIcons.strokeRoundedLicense;
   static const wifiOff = HugeIcons.strokeRoundedWifiDisconnected01;
 }
