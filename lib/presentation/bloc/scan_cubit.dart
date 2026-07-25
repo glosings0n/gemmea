@@ -13,7 +13,31 @@ class ScanSuccess extends ScanState {
 }
 class ScanFailure extends ScanState {
   final String error;
-  ScanFailure(this.error);
+  final String title;
+  final String userMessage;
+  final bool isNotALeaf;
+
+  ScanFailure(
+    this.error, {
+    String? title,
+    String? userMessage,
+    bool? isNotALeaf,
+  })  : title = title ??
+            ((error.contains("ne semble pas être une feuille") ||
+                    error.contains("NOT_A_LEAF") ||
+                    error.contains("clairement une feuille"))
+                ? "Feuille non détectée"
+                : "Une erreur est survenue"),
+        userMessage = userMessage ??
+            ((error.contains("ne semble pas être une feuille") ||
+                    error.contains("NOT_A_LEAF") ||
+                    error.contains("clairement une feuille"))
+                ? "L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture."
+                : "L'analyse IA n'a pas pu se terminer sur votre appareil.\n\nVous pouvez réessayer en prenant une photo bien éclairée, ou fermer puis rouvrir l'application.\n\nSi le problème persiste, votre téléphone dispose peut-être de ressources mémoire trop limitées pour l'analyse IA locale."),
+        isNotALeaf = isNotALeaf ??
+            (error.contains("ne semble pas être une feuille") ||
+                error.contains("NOT_A_LEAF") ||
+                error.contains("clairement une feuille"));
 }
 
 class ScanCubit extends Cubit<ScanState> {

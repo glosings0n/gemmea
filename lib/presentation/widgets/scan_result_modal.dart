@@ -96,39 +96,86 @@ class ScanResultModal extends StatelessWidget {
                         );
                       }
                       if (state is ScanFailure) {
+                        final isNotLeaf = state.isNotALeaf;
+                        final cardBg = isNotLeaf
+                            ? const Color(0xFFF8F9FA)
+                            : const Color(0xFFFFF5F5);
+                        final cardBorder = isNotLeaf
+                            ? const Color(0xFFE0E0E0)
+                            : const Color(0xFFFFCDD2);
+                        final iconColor = isNotLeaf
+                            ? AppTheme.primaryForestGreen
+                            : const Color(0xFFD32F2F);
+                        final titleColor = isNotLeaf
+                            ? AppTheme.primaryForestGreen
+                            : const Color(0xFFC62828);
+                        final iconData = isNotLeaf
+                            ? Icons.center_focus_strong_rounded
+                            : Icons.error_outline_rounded;
+
                         return Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(18),
                           decoration: BoxDecoration(
-                            color: Colors.amber.shade50,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.amber.shade300),
+                            color: cardBg,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: cardBorder, width: 1.2),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.warning_amber_rounded, color: Colors.amber.shade800, size: 24),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    "Veuillez fournir une image",
-                                    style: TextStyle(
-                                      fontFamily: 'Fredoka',
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                      color: AppTheme.textCharcoal,
+                                  Icon(iconData, color: iconColor, size: 24),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      state.title,
+                                      style: TextStyle(
+                                        fontFamily: 'Fredoka',
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: titleColor,
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 12),
                               Text(
-                                state.error,
-                                style: TextStyle(
+                                state.userMessage,
+                                style: const TextStyle(
                                   fontFamily: 'Fredoka',
-                                  fontSize: 13,
-                                  color: Colors.grey.shade800,
-                                  height: 1.3,
+                                  fontSize: 13.5,
+                                  color: AppTheme.textCharcoal,
+                                  height: 1.4,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: () => Navigator.pop(context),
+                                  icon: Icon(
+                                    isNotLeaf ? Icons.camera_alt_outlined : Icons.refresh_rounded,
+                                    size: 18,
+                                    color: titleColor,
+                                  ),
+                                  label: Text(
+                                    isNotLeaf ? "Reprendre la photo" : "Fermer & Réessayer",
+                                    style: TextStyle(
+                                      fontFamily: 'Fredoka',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13.5,
+                                      color: titleColor,
+                                    ),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(color: cardBorder),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                  ),
                                 ),
                               ),
                             ],
