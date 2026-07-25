@@ -24,6 +24,11 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
+    VoiceService.instance.onTtsComplete = () {
+      if (mounted) {
+        setState(() => _activeSpeakingText = "");
+      }
+    };
     context.read<ChatCubit>().loadChatHistory();
   }
 
@@ -59,9 +64,13 @@ class _ChatPageState extends State<ChatPage> {
   void _speakMessage(String text) async {
     if (_activeSpeakingText == text) {
       await VoiceService.instance.stopSpeaking();
-      setState(() => _activeSpeakingText = "");
+      if (mounted) {
+        setState(() => _activeSpeakingText = "");
+      }
     } else {
-      setState(() => _activeSpeakingText = text);
+      if (mounted) {
+        setState(() => _activeSpeakingText = text);
+      }
       await VoiceService.instance.speak(text);
     }
   }
@@ -354,17 +363,62 @@ class _ChatPageState extends State<ChatPage> {
                               ],
                             ),
                           ),
-                          IconButton(
-                            constraints: const BoxConstraints(),
-                            padding: EdgeInsets.zero,
-                            icon: Icon(
-                              _activeSpeakingText == message.text ? Icons.volume_off : Icons.volume_up_rounded,
-                              size: 18,
-                              color: AppTheme.primaryForestGreen,
-                            ),
-                            onPressed: () => _speakMessage(message.text),
-                            tooltip: "Écouter le message",
-                          ),
+                          _activeSpeakingText == message.text
+                              ? GestureDetector(
+                                  onTap: () => _speakMessage(message.text),
+                                  behavior: HitTestBehavior.opaque,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.redAccent.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(color: Colors.redAccent, width: 1.2),
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.stop_rounded, size: 14, color: Colors.redAccent),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          "STOP",
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.redAccent,
+                                            fontFamily: 'Fredoka',
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              : GestureDetector(
+                                  onTap: () => _speakMessage(message.text),
+                                  behavior: HitTestBehavior.opaque,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primaryForestGreen.withValues(alpha: 0.10),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.play_arrow_rounded, size: 16, color: AppTheme.primaryForestGreen),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          "Écouter",
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppTheme.primaryForestGreen,
+                                            fontFamily: 'Fredoka',
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                         ],
                       ),
                       const SizedBox(height: 6),

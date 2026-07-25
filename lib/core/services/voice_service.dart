@@ -13,6 +13,7 @@ class VoiceService {
 
   bool get isListening => _isListening;
   bool get isSpeaking => _isSpeaking;
+  Function()? onTtsComplete;
 
   VoiceService._init();
 
@@ -48,11 +49,19 @@ class VoiceService {
       _flutterTts.setCompletionHandler(() {
         dev.log("TTS playback completed", name: 'VOICE_SERVICE');
         _isSpeaking = false;
+        onTtsComplete?.call();
+      });
+
+      _flutterTts.setCancelHandler(() {
+        dev.log("TTS playback cancelled", name: 'VOICE_SERVICE');
+        _isSpeaking = false;
+        onTtsComplete?.call();
       });
 
       _flutterTts.setErrorHandler((msg) {
         dev.log("TTS playback error: $msg", name: 'VOICE_SERVICE');
         _isSpeaking = false;
+        onTtsComplete?.call();
       });
 
       return _isSpeechInitialized;
