@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:gemmea/core/theme/app_theme.dart';
 import '../bloc/scan_cubit.dart';
 
 class ScanResultModal extends StatelessWidget {
@@ -24,7 +25,7 @@ class ScanResultModal extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Moteur de Vision Gemmea", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF0D5C3A))),
+              const Text("Analyse de Culture Gemmea", style: TextStyle(fontFamily: 'Fredoka', fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.primaryForestGreen)),
               IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
             ],
           ),
@@ -48,9 +49,12 @@ class ScanResultModal extends StatelessWidget {
                             padding: EdgeInsets.symmetric(vertical: 24.0),
                             child: Column(
                               children: [
-                                CircularProgressIndicator(color: Color(0xFF0D5C3A)),
+                                CircularProgressIndicator(color: AppTheme.primaryForestGreen),
                                 SizedBox(height: 12),
-                                Text("Gemma analyse la matrice de la feuille hors ligne...", style: TextStyle(color: Colors.grey, fontSize: 13)),
+                                Text(
+                                  "Gemma analyse l'image de la feuille hors ligne...",
+                                  style: TextStyle(fontFamily: 'Fredoka', color: Colors.grey, fontSize: 13),
+                                ),
                               ],
                             ),
                           ),
@@ -60,7 +64,10 @@ class ScanResultModal extends StatelessWidget {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text("Diagnostic et Remède Local :", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                            const Text(
+                              "Diagnostic et Remède Local :",
+                              style: TextStyle(fontFamily: 'Fredoka', fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.primaryForestGreen),
+                            ),
                             const SizedBox(height: 8),
                             Container(
                               padding: const EdgeInsets.all(12),
@@ -89,7 +96,54 @@ class ScanResultModal extends StatelessWidget {
                         );
                       }
                       if (state is ScanFailure) {
-                        return Text(state.error, style: const TextStyle(color: Colors.redAccent));
+                        return Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.amber.shade300),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.warning_amber_rounded, color: Colors.amber.shade800, size: 24),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    "Veuillez fournir une image",
+                                    style: TextStyle(
+                                      fontFamily: 'Fredoka',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                      color: AppTheme.textCharcoal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                state.error,
+                                style: TextStyle(
+                                  fontFamily: 'Fredoka',
+                                  fontSize: 13,
+                                  color: Colors.grey.shade800,
+                                  height: 1.3,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              const Text(
+                                "Note : Aucun scan n'a été enregistré dans votre historique.",
+                                style: TextStyle(
+                                  fontFamily: 'Fredoka',
+                                  fontSize: 11,
+                                  color: AppTheme.textGrey,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
                       }
                       return const SizedBox.shrink();
                     },

@@ -195,6 +195,11 @@ class SQLiteHelper {
   Future<List<Map<String, dynamic>>> getDiagnostics() async {
     try {
       final db = await database;
+      // Purge any invalid or failed diagnostic entries from history automatically
+      await db.delete(
+        'diagnostics',
+        where: "disease LIKE '%error%' OR disease = 'Symptômes Analysés' OR remedy LIKE '%processing error%' OR remedy LIKE '%Veuillez fournir%' OR remedy LIKE '%On-device%'",
+      );
       return await db.query('diagnostics', orderBy: 'timestamp DESC');
     } catch (e, stack) {
       dev.log("Error fetching diagnostics", name: 'SQLITE_HELPER', error: e, stackTrace: stack);

@@ -11,8 +11,16 @@ class GemmaLocalSourceImpl implements GemmaLocalSource {
   @override
   Future<String> evaluateCropImage(File imageFile, String prompt) async {
     try {
+      if (!await imageFile.exists()) {
+        throw Exception("Veuillez fournir une image de feuille valide.");
+      }
+
       dev.log("Reading image bytes for evaluation...", name: 'GEMMA_LOCAL_SOURCE');
       final Uint8List imageBytes = await imageFile.readAsBytes();
+
+      if (imageBytes.isEmpty) {
+        throw Exception("Veuillez fournir une image de feuille valide.");
+      }
 
       dev.log("Fetching active Gemma VLM model instance...", name: 'GEMMA_LOCAL_SOURCE');
       final model = await FlutterGemma.getActiveModel(
@@ -32,11 +40,21 @@ class GemmaLocalSourceImpl implements GemmaLocalSource {
       );
       
       final String response = await session.getResponse();
-      dev.log("Gemma VLM evaluation completed successfully", name: 'GEMMA_LOCAL_SOURCE');
+      dev.log("Gemma VLM evaluation response received", name: 'GEMMA_LOCAL_SOURCE');
+
+      final lowerRes = response.toLowerCase();
+      if (response.trim().isEmpty || 
+          lowerRes.contains("veuillez fournir une image") ||
+          lowerRes.contains("please provide an image") ||
+          lowerRes.contains("processing error") ||
+          lowerRes.contains("error")) {
+        throw Exception("Veuillez fournir une image claire d'une feuille de culture.");
+      }
+
       return response;
     } catch (e, stack) {
       dev.log("On-device VLM image evaluation error", name: 'GEMMA_LOCAL_SOURCE', error: e, stackTrace: stack);
-      return "On-device processing error: ${e.toString()}";
+      rethrow;
     }
   }
 }
