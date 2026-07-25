@@ -1,17 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gemmea/core/theme/app_theme.dart';
-import 'package:gemmea/data/repositories/calendar_repository_impl.dart';
-import 'package:gemmea/data/repositories/chat_repository_impl.dart';
-import 'package:gemmea/data/repositories/diagnostic_repository_impl.dart';
-import 'package:gemmea/domain/usecases/calendar_usecases.dart';
-import 'package:gemmea/domain/usecases/chat_usecases.dart';
-import 'package:gemmea/domain/usecases/diagnostic_usecases.dart';
-import 'package:gemmea/presentation/bloc/chat_cubit.dart';
-import 'package:gemmea/presentation/bloc/home_cubit.dart';
-import 'package:gemmea/presentation/bloc/initialization_cubit.dart';
-import 'package:gemmea/presentation/pages/initialization_screen.dart';
+import 'package:gemmea/core/core.dart';
+import 'package:gemmea/data/data.dart';
+import 'package:gemmea/domain/domain.dart';
+import 'package:gemmea/presentation/presentation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

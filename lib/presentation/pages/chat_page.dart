@@ -3,10 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:gemmea/core/theme/app_theme.dart';
-import 'package:gemmea/core/services/voice_service.dart';
-import 'package:gemmea/presentation/bloc/chat_cubit.dart';
-import 'package:gemmea/presentation/bloc/home_cubit.dart';
+import 'package:gemmea/core/core.dart';
+import 'package:gemmea/presentation/bloc/bloc.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -90,13 +88,13 @@ class _ChatPageState extends State<ChatPage> {
       builder: (context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppSize.r20),
           ),
-          backgroundColor: AppTheme.cardCleanWhite,
+          backgroundColor: AppColors.cardCleanWhite,
           title: const Row(
             children: [
               HugeIcon(
-                icon: HugeIcons.strokeRoundedAlertCircle,
+                icon: AppIcons.alert,
                 color: Colors.redAccent,
                 size: 28,
               ),
@@ -107,7 +105,7 @@ class _ChatPageState extends State<ChatPage> {
                   fontFamily: 'Fredoka',
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
-                  color: AppTheme.textCharcoal,
+                  color: AppColors.textCharcoal,
                 ),
               ),
             ],
@@ -117,11 +115,11 @@ class _ChatPageState extends State<ChatPage> {
             style: TextStyle(
               fontFamily: 'Fredoka',
               fontSize: 14,
-              color: AppTheme.textGrey,
+              color: AppColors.textGrey,
               height: 1.4,
             ),
           ),
-          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          actionsPadding: const EdgeInsets.symmetric(horizontal: AppSize.p16, vertical: AppSize.p12),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -130,7 +128,7 @@ class _ChatPageState extends State<ChatPage> {
                 style: TextStyle(
                   fontFamily: 'Fredoka',
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.textGrey,
+                  color: AppColors.textGrey,
                 ),
               ),
             ),
@@ -140,9 +138,9 @@ class _ChatPageState extends State<ChatPage> {
                 backgroundColor: Colors.redAccent,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppSize.r12),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: AppSize.p16, vertical: AppSize.p8),
               ),
               child: const Text(
                 "Supprimer",
@@ -173,13 +171,13 @@ class _ChatPageState extends State<ChatPage> {
           style: TextStyle(
             fontFamily: 'Fredoka',
             fontWeight: FontWeight.bold,
-            color: AppTheme.primaryForestGreen,
+            color: AppColors.primaryForestGreen,
           ),
         ),
         actions: [
           IconButton(
             onPressed: _showClearConfirmationDialog,
-            icon: const HugeIcon(icon: HugeIcons.strokeRoundedDelete02, color: AppTheme.primaryForestGreen, size: 24),
+            icon: const HugeIcon(icon: AppIcons.delete, color: AppColors.primaryForestGreen, size: AppSize.iconMd),
             tooltip: "Effacer les discussions",
           ),
         ],
@@ -199,20 +197,20 @@ class _ChatPageState extends State<ChatPage> {
           if (state is ChatLoading) {
             return const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryForestGreen),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryForestGreen),
               ),
             );
           } else if (state is ChatError) {
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(AppSize.p24),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, color: Colors.red, size: 48),
-                    const SizedBox(height: 16),
+                    const HugeIcon(icon: AppIcons.alert, color: AppColors.errorRed, size: AppSize.iconXl),
+                    const SizedBox(height: AppSize.p16),
                     Text("Error: ${state.error}", textAlign: TextAlign.center),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSize.p16),
                     ElevatedButton(
                       onPressed: () => context.read<ChatCubit>().loadChatHistory(),
                       child: const Text("Retry"),
@@ -228,13 +226,13 @@ class _ChatPageState extends State<ChatPage> {
                 if (state.systemNotification != null)
                   Container(
                     width: double.infinity,
-                    color: AppTheme.primaryForestGreen.withValues(alpha: 0.08),
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                    color: AppColors.primaryForestGreen.withValues(alpha: 0.08),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSize.p16, vertical: 10.0),
                     child: Row(
                       children: [
                         const HugeIcon(
-                          icon: HugeIcons.strokeRoundedHome01,
-                          color: AppTheme.primaryForestGreen,
+                          icon: AppIcons.home,
+                          color: AppColors.primaryForestGreen,
                           size: 20.0,
                         ),
                         const SizedBox(width: 10),
@@ -244,7 +242,7 @@ class _ChatPageState extends State<ChatPage> {
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: AppTheme.primaryForestGreen,
+                              color: AppColors.primaryForestGreen,
                             ),
                           ),
                         ),
@@ -259,7 +257,7 @@ class _ChatPageState extends State<ChatPage> {
                     behavior: HitTestBehavior.translucent,
                     child: ListView.builder(
                       controller: _scrollController,
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(AppSize.p16),
                       itemCount: state.messages.length,
                       itemBuilder: (context, index) {
                         final message = state.messages[index];
@@ -287,18 +285,18 @@ class _ChatPageState extends State<ChatPage> {
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12.0),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        margin: const EdgeInsets.only(bottom: AppSize.p12),
+        padding: const EdgeInsets.symmetric(horizontal: AppSize.p16, vertical: AppSize.p12),
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.78,
         ),
         decoration: BoxDecoration(
-          color: isUser ? AppTheme.primaryForestGreen : AppTheme.cardCleanWhite,
+          color: isUser ? AppColors.primaryForestGreen : AppColors.cardCleanWhite,
           borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16.0),
-            topRight: const Radius.circular(16.0),
-            bottomLeft: Radius.circular(isUser ? 16.0 : 4.0),
-            bottomRight: Radius.circular(isUser ? 4.0 : 16.0),
+            topLeft: const Radius.circular(AppSize.r16),
+            topRight: const Radius.circular(AppSize.r16),
+            bottomLeft: Radius.circular(isUser ? AppSize.r16 : 4.0),
+            bottomRight: Radius.circular(isUser ? 4.0 : AppSize.r16),
           ),
           boxShadow: [
             if (!isUser)
@@ -335,7 +333,7 @@ class _ChatPageState extends State<ChatPage> {
             : (message.text.isEmpty
                 ? const Padding(
                     padding: EdgeInsets.symmetric(vertical: 4.0),
-                    child: ThreeDotBounce(color: AppTheme.primaryForestGreen),
+                    child: ThreeDotBounce(color: AppColors.primaryForestGreen),
                   )
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -345,22 +343,22 @@ class _ChatPageState extends State<ChatPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: AppSize.p8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryForestGreen.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(12),
+                              color: AppColors.primaryForestGreen.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(AppSize.r12),
                             ),
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.verified, size: 12, color: AppTheme.primaryForestGreen),
+                                HugeIcon(icon: AppIcons.check, size: 12.0, color: AppColors.primaryForestGreen),
                                 SizedBox(width: 4),
                                 Text(
                                   "Ancré FAO RAG",
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
-                                    color: AppTheme.primaryForestGreen,
+                                    color: AppColors.primaryForestGreen,
                                     fontFamily: 'Fredoka',
                                   ),
                                 ),
@@ -372,7 +370,7 @@ class _ChatPageState extends State<ChatPage> {
                                   onTap: () => _speakMessage(message.text),
                                   behavior: HitTestBehavior.opaque,
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(horizontal: AppSize.p8, vertical: 4),
                                     decoration: BoxDecoration(
                                       color: Colors.redAccent.withValues(alpha: 0.12),
                                       borderRadius: BorderRadius.circular(20),
@@ -381,7 +379,7 @@ class _ChatPageState extends State<ChatPage> {
                                     child: const Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.stop_rounded, size: 14, color: Colors.redAccent),
+                                        HugeIcon(icon: AppIcons.stop, size: 14.0, color: Colors.redAccent),
                                         SizedBox(width: 4),
                                         Text(
                                           "STOP",
@@ -400,22 +398,22 @@ class _ChatPageState extends State<ChatPage> {
                                   onTap: () => _speakMessage(message.text),
                                   behavior: HitTestBehavior.opaque,
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(horizontal: AppSize.p8, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: AppTheme.primaryForestGreen.withValues(alpha: 0.10),
+                                      color: AppColors.primaryForestGreen.withValues(alpha: 0.10),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: const Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.play_arrow_rounded, size: 16, color: AppTheme.primaryForestGreen),
+                                        HugeIcon(icon: AppIcons.play, size: 16.0, color: AppColors.primaryForestGreen),
                                         SizedBox(width: 4),
                                         Text(
                                           "Écouter",
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.bold,
-                                            color: AppTheme.primaryForestGreen,
+                                            color: AppColors.primaryForestGreen,
                                             fontFamily: 'Fredoka',
                                           ),
                                         ),
@@ -430,27 +428,27 @@ class _ChatPageState extends State<ChatPage> {
                         data: message.text,
                         styleSheet: MarkdownStyleSheet(
                           p: const TextStyle(
-                            color: AppTheme.textCharcoal,
+                            color: AppColors.textCharcoal,
                             fontSize: 15.0,
                             height: 1.4,
                             fontFamily: 'Fredoka',
                           ),
                           strong: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.textCharcoal,
+                            color: AppColors.textCharcoal,
                             fontFamily: 'Fredoka',
                           ),
                           em: const TextStyle(
                             fontStyle: FontStyle.italic,
                           ),
                           listBullet: const TextStyle(
-                            color: AppTheme.primaryForestGreen,
+                            color: AppColors.primaryForestGreen,
                           ),
                         ),
                       ),
                       if (isLastAndStreaming) ...[
                         const SizedBox(height: 8.0),
-                        const ThreeDotBounce(color: AppTheme.primaryForestGreen, size: 5.0),
+                        const ThreeDotBounce(color: AppColors.primaryForestGreen, size: 5.0),
                       ],
                     ],
                   )),
@@ -460,25 +458,25 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildMessageInput(bool isStreaming) {
     return Container(
-      color: AppTheme.cardCleanWhite,
-      padding: const EdgeInsets.all(12.0),
+      color: AppColors.cardCleanWhite,
+      padding: const EdgeInsets.all(AppSize.p12),
       child: SafeArea(
         child: Row(
           children: [
             IconButton(
               onPressed: _toggleMic,
               style: IconButton.styleFrom(
-                backgroundColor: _isListening ? Colors.redAccent : AppTheme.primaryForestGreen.withValues(alpha: 0.1),
+                backgroundColor: _isListening ? Colors.redAccent : AppColors.primaryForestGreen.withValues(alpha: 0.1),
                 padding: const EdgeInsets.all(10.0),
               ),
-              icon: Icon(
-                _isListening ? Icons.mic : Icons.mic_none,
-                color: _isListening ? Colors.white : AppTheme.primaryForestGreen,
+              icon: HugeIcon(
+                icon: AppIcons.mic,
+                color: _isListening ? Colors.white : AppColors.primaryForestGreen,
                 size: 22.0,
               ),
               tooltip: _isListening ? "Écoute en cours..." : "Dictée vocale",
             ),
-            const SizedBox(width: 8.0),
+            const SizedBox(width: AppSize.p8),
             Expanded(
               child: TextField(
                 controller: _messageController,
@@ -489,35 +487,35 @@ class _ChatPageState extends State<ChatPage> {
                 textCapitalization: TextLinesSpacing.hasUnderlyingSpacing ? TextCapitalization.sentences : TextCapitalization.none,
                 decoration: InputDecoration(
                   hintText: "Posez des questions sur le manioc, le neem, etc...",
-                  hintStyle: const TextStyle(color: AppTheme.textGrey, fontSize: 14),
+                  hintStyle: const TextStyle(color: AppColors.textGrey, fontSize: 14),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20.0),
-                    borderSide: BorderSide(color: AppTheme.primaryForestGreen.withValues(alpha: 0.12)),
+                    borderSide: BorderSide(color: AppColors.primaryForestGreen.withValues(alpha: 0.12)),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20.0),
-                    borderSide: BorderSide(color: AppTheme.primaryForestGreen.withValues(alpha: 0.12)),
+                    borderSide: BorderSide(color: AppColors.primaryForestGreen.withValues(alpha: 0.12)),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20.0),
-                    borderSide: const BorderSide(color: AppTheme.primaryForestGreen),
+                    borderSide: const BorderSide(color: AppColors.primaryForestGreen),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: AppSize.p16, vertical: 10.0),
                 ),
                 onSubmitted: (_) => _submitMessage(),
               ),
             ),
-            const SizedBox(width: 8.0),
+            const SizedBox(width: AppSize.p8),
             IconButton(
               onPressed: isStreaming ? null : _submitMessage,
               style: IconButton.styleFrom(
-                backgroundColor: AppTheme.primaryForestGreen,
-                disabledBackgroundColor: AppTheme.textGrey.withValues(alpha: 0.2),
+                backgroundColor: AppColors.primaryForestGreen,
+                disabledBackgroundColor: AppColors.textGrey.withValues(alpha: 0.2),
                 shape: const CircleBorder(),
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.all(AppSize.p12),
               ),
               icon: const HugeIcon(
-                icon: HugeIcons.strokeRoundedSent,
+                icon: AppIcons.send,
                 color: Colors.white,
                 size: 20.0,
               ),
@@ -539,7 +537,7 @@ class ThreeDotBounce extends StatefulWidget {
 
   const ThreeDotBounce({
     super.key,
-    this.color = AppTheme.primaryForestGreen,
+    this.color = AppColors.primaryForestGreen,
     this.size = 6.0,
   });
 

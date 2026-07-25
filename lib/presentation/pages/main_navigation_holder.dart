@@ -5,13 +5,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:gemmea/core/theme/app_theme.dart';
-import 'package:gemmea/data/datasources/gemma_local_source.dart';
-import 'package:gemmea/presentation/bloc/home_cubit.dart';
-import 'package:gemmea/presentation/bloc/scan_cubit.dart';
-import 'package:gemmea/presentation/widgets/scan_result_modal.dart';
-import 'package:gemmea/presentation/pages/chat_page.dart';
-import 'package:gemmea/presentation/pages/home_page.dart';
+import 'package:gemmea/core/core.dart';
+import 'package:gemmea/data/data.dart';
+import 'package:gemmea/presentation/presentation.dart';
 
 class MainNavigationHolder extends StatefulWidget {
   const MainNavigationHolder({super.key});
@@ -45,7 +41,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSize.r24)),
       ),
       builder: (modalContext) => MediaQuery.removeViewInsets(
         context: modalContext,
@@ -55,8 +51,8 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
             maxHeight: screenHeight * 0.85,
           ),
           decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            color: AppColors.cardCleanWhite,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(AppSize.r24)),
           ),
           child: BlocProvider(
             create: (_) => ScanCubit(GemmaLocalSourceImpl())..analyzeCrop(imageFile),
@@ -86,7 +82,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Erreur appareil photo : $e"),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.errorRed,
         ),
       );
       return;
@@ -103,11 +99,11 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Material(
-          color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          color: AppColors.cardCleanWhite,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSize.r24)),
           clipBehavior: Clip.antiAlias,
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSize.p24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,21 +114,21 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                     fontFamily: 'Fredoka',
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryForestGreen,
+                    color: AppColors.primaryForestGreen,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSize.p8),
                 const Text(
                   "Effectuez un vrai scan hors ligne avec votre appareil photo ou sélectionnez l'un de nos fichiers de simulation intégrés pour un test immédiat.",
                   style: TextStyle(
                     fontFamily: 'Fredoka',
                     fontSize: 13,
-                    color: AppTheme.textGrey,
+                    color: AppColors.textGrey,
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSize.p20),
                 _buildSourceTile(
-                  icon: HugeIcons.strokeRoundedCamera01,
+                  icon: AppIcons.scan,
                   title: "Scan de culture par caméra saine",
                   subtitle: "Prenez une photo de feuille en temps réel avec votre appareil photo",
                   onTap: () {
@@ -142,7 +138,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                 ),
                 const Divider(height: 1, color: Color(0xFFEEEEEE)),
                 _buildSourceTile(
-                  icon: HugeIcons.strokeRoundedAlertCircle,
+                  icon: AppIcons.alert,
                   title: "Scan de Mosaïque du Manioc",
                   subtitle: "Simuler une feuille de manioc affectée par la mosaïque",
                   onTap: () async {
@@ -153,7 +149,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                 ),
                 const Divider(height: 1, color: Color(0xFFEEEEEE)),
                 _buildSourceTile(
-                  icon: HugeIcons.strokeRoundedCalendar01,
+                  icon: AppIcons.calendar,
                   title: "Scan de Rouille du Maïs",
                   subtitle: "Simuler une feuille de maïs affectée par la rouille commune",
                   onTap: () async {
@@ -164,7 +160,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                 ),
                 const Divider(height: 1, color: Color(0xFFEEEEEE)),
                 _buildSourceTile(
-                  icon: HugeIcons.strokeRoundedCamera01,
+                  icon: AppIcons.scan,
                   title: "Scan de feuille saine",
                   subtitle: "Simuler une feuille de culture saine et verte",
                   onTap: () async {
@@ -188,21 +184,21 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
     required VoidCallback onTap,
   }) {
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      contentPadding: const EdgeInsets.symmetric(vertical: AppSize.p8, horizontal: AppSize.p4),
       leading: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: AppTheme.primaryForestGreen.withValues(alpha: 0.08),
+          color: AppColors.primaryForestGreen.withValues(alpha: 0.08),
           shape: BoxShape.circle,
         ),
-        child: HugeIcon(icon: icon, color: AppTheme.primaryForestGreen, size: 24.0),
+        child: HugeIcon(icon: icon, color: AppColors.primaryForestGreen, size: AppSize.iconMd),
       ),
       title: Text(
         title,
         style: const TextStyle(
           fontFamily: 'Fredoka',
           fontWeight: FontWeight.bold,
-          color: AppTheme.primaryForestGreen,
+          color: AppColors.primaryForestGreen,
           fontSize: 14,
         ),
       ),
@@ -211,10 +207,10 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
         style: const TextStyle(
           fontFamily: 'Fredoka',
           fontSize: 12,
-          color: AppTheme.textGrey,
+          color: AppColors.textGrey,
         ),
       ),
-      trailing: const Icon(Icons.chevron_right, color: AppTheme.textGrey, size: 20),
+      trailing: const HugeIcon(icon: AppIcons.arrowRight, color: AppColors.textGrey, size: 20.0),
       onTap: onTap,
     );
   }
@@ -228,7 +224,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
     return Scaffold(
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomAppBar(
-        color: AppTheme.cardCleanWhite,
+        color: AppColors.cardCleanWhite,
         surfaceTintColor: Colors.transparent,
         elevation: 12,
         shadowColor: Colors.black.withValues(alpha: 0.15),
@@ -237,7 +233,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
           height: 64,
           child: Row(
             children: [
-              // Tab 1: Home Dashboard Button (Expanded transparent clickable zone)
+              // Tab 1: Home Dashboard Button
               Expanded(
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
@@ -250,8 +246,8 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       HugeIcon(
-                        icon: HugeIcons.strokeRoundedHome03,
-                        color: _currentIndex == 0 ? AppTheme.primaryForestGreen : AppTheme.textGrey,
+                        icon: AppIcons.home,
+                        color: _currentIndex == 0 ? AppColors.primaryForestGreen : AppColors.textGrey,
                         size: 26.0,
                       ),
                       if (_currentIndex == 0) ...[
@@ -262,7 +258,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                             fontFamily: 'Fredoka',
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryForestGreen,
+                            color: AppColors.primaryForestGreen,
                           ),
                         ),
                       ],
@@ -271,25 +267,25 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                 ),
               ),
 
-              // Tab 2: Scan Leaf Action (Center floating button)
+              // Tab 2: Scan Leaf Action
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: _triggerCropScan,
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppSize.p12),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryForestGreen.withValues(alpha: 0.12),
+                    color: AppColors.primaryForestGreen.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedCamera01,
-                    color: AppTheme.primaryForestGreen,
+                    icon: AppIcons.scan,
+                    color: AppColors.primaryForestGreen,
                     size: 26.0,
                   ),
                 ),
               ),
 
-              // Tab 3: Chat Assistant Button (Expanded transparent clickable zone)
+              // Tab 3: Chat Assistant Button
               Expanded(
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
@@ -302,8 +298,8 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       HugeIcon(
-                        icon: HugeIcons.strokeRoundedComment01,
-                        color: _currentIndex == 1 ? AppTheme.primaryForestGreen : AppTheme.textGrey,
+                        icon: AppIcons.chat,
+                        color: _currentIndex == 1 ? AppColors.primaryForestGreen : AppColors.textGrey,
                         size: 26.0,
                       ),
                       if (_currentIndex == 1) ...[
@@ -314,7 +310,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                             fontFamily: 'Fredoka',
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryForestGreen,
+                            color: AppColors.primaryForestGreen,
                           ),
                         ),
                       ],

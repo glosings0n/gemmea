@@ -2,8 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
-import 'package:gemmea/core/theme/app_theme.dart';
-import '../bloc/scan_cubit.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:gemmea/core/core.dart';
+import 'package:gemmea/presentation/bloc/bloc.dart';
 
 class ScanResultModal extends StatelessWidget {
   final File capturedImage;
@@ -13,10 +14,10 @@ class ScanResultModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppSize.p24),
       decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        color: AppColors.cardCleanWhite,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSize.r24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -25,11 +26,26 @@ class ScanResultModal extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Analyse de Culture Gemmea", style: TextStyle(fontFamily: 'Fredoka', fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.primaryForestGreen)),
-              IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+              const Text(
+                "Analyse de Culture Gemmea",
+                style: TextStyle(
+                  fontFamily: 'Fredoka',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: AppColors.primaryForestGreen,
+                ),
+              ),
+              IconButton(
+                icon: const HugeIcon(
+                  icon: AppIcons.close,
+                  color: AppColors.textCharcoal,
+                  size: 20.0,
+                ),
+                onPressed: () => Navigator.pop(context),
+              ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSize.p16),
           Flexible(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
@@ -37,10 +53,15 @@ class ScanResultModal extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.file(capturedImage, height: 160, width: double.infinity, fit: BoxFit.cover),
+                    borderRadius: BorderRadius.circular(AppSize.r12),
+                    child: Image.file(
+                      capturedImage,
+                      height: 160,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSize.p16),
                   BlocBuilder<ScanCubit, ScanState>(
                     builder: (context, state) {
                       if (state is ScanProcessing) {
@@ -49,11 +70,15 @@ class ScanResultModal extends StatelessWidget {
                             padding: EdgeInsets.symmetric(vertical: 24.0),
                             child: Column(
                               children: [
-                                CircularProgressIndicator(color: AppTheme.primaryForestGreen),
+                                CircularProgressIndicator(color: AppColors.primaryForestGreen),
                                 SizedBox(height: 12),
                                 Text(
                                   "Gemma analyse l'image de la feuille hors ligne...",
-                                  style: TextStyle(fontFamily: 'Fredoka', color: Colors.grey, fontSize: 13),
+                                  style: TextStyle(
+                                    fontFamily: 'Fredoka',
+                                    color: AppColors.textGrey,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ],
                             ),
@@ -66,25 +91,33 @@ class ScanResultModal extends StatelessWidget {
                           children: [
                             const Text(
                               "Diagnostic et Remède Local :",
-                              style: TextStyle(fontFamily: 'Fredoka', fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.primaryForestGreen),
+                              style: TextStyle(
+                                fontFamily: 'Fredoka',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: AppColors.primaryForestGreen,
+                              ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: AppSize.p8),
                             Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(color: const Color(0xFFF4F7F4), borderRadius: BorderRadius.circular(8)),
+                              padding: const EdgeInsets.all(AppSize.p12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF4F7F4),
+                                borderRadius: BorderRadius.circular(AppSize.r8),
+                              ),
                               child: MarkdownBody(
                                 data: state.diagnosis,
                                 styleSheet: MarkdownStyleSheet(
                                   p: const TextStyle(
                                     fontFamily: 'Fredoka',
                                     fontSize: 14,
-                                    color: Colors.black87,
+                                    color: AppColors.textCharcoal,
                                     height: 1.4,
                                   ),
                                   strong: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontFamily: 'Fredoka',
-                                    color: Colors.black87,
+                                    color: AppColors.textCharcoal,
                                   ),
                                   listBullet: const TextStyle(
                                     fontFamily: 'Fredoka',
@@ -104,20 +137,17 @@ class ScanResultModal extends StatelessWidget {
                             ? const Color(0xFFE0E0E0)
                             : const Color(0xFFFFCDD2);
                         final iconColor = isNotLeaf
-                            ? AppTheme.primaryForestGreen
+                            ? AppColors.primaryForestGreen
                             : const Color(0xFFD32F2F);
                         final titleColor = isNotLeaf
-                            ? AppTheme.primaryForestGreen
+                            ? AppColors.primaryForestGreen
                             : const Color(0xFFC62828);
-                        final iconData = isNotLeaf
-                            ? Icons.center_focus_strong_rounded
-                            : Icons.error_outline_rounded;
 
                         return Container(
                           padding: const EdgeInsets.all(18),
                           decoration: BoxDecoration(
                             color: cardBg,
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(AppSize.r16),
                             border: Border.all(color: cardBorder, width: 1.2),
                           ),
                           child: Column(
@@ -125,7 +155,11 @@ class ScanResultModal extends StatelessWidget {
                             children: [
                               Row(
                                 children: [
-                                  Icon(iconData, color: iconColor, size: 24),
+                                  HugeIcon(
+                                    icon: isNotLeaf ? AppIcons.focus : AppIcons.alert,
+                                    color: iconColor,
+                                    size: 24.0,
+                                  ),
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
@@ -140,24 +174,24 @@ class ScanResultModal extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: AppSize.p12),
                               Text(
                                 state.userMessage,
                                 style: const TextStyle(
                                   fontFamily: 'Fredoka',
                                   fontSize: 13.5,
-                                  color: AppTheme.textCharcoal,
+                                  color: AppColors.textCharcoal,
                                   height: 1.4,
                                 ),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: AppSize.p16),
                               SizedBox(
                                 width: double.infinity,
                                 child: OutlinedButton.icon(
                                   onPressed: () => Navigator.pop(context),
-                                  icon: Icon(
-                                    isNotLeaf ? Icons.camera_alt_outlined : Icons.refresh_rounded,
-                                    size: 18,
+                                  icon: HugeIcon(
+                                    icon: isNotLeaf ? AppIcons.scan : AppIcons.refresh,
+                                    size: 18.0,
                                     color: titleColor,
                                   ),
                                   label: Text(

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gemmea/core/theme/app_theme.dart';
-import 'package:gemmea/presentation/bloc/initialization_cubit.dart';
-import 'package:gemmea/presentation/pages/main_navigation_holder.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:gemmea/core/core.dart';
+import 'package:gemmea/presentation/bloc/bloc.dart';
+import 'package:gemmea/presentation/pages/pages.dart';
 
 class InitializationScreen extends StatefulWidget {
   const InitializationScreen({super.key});
@@ -48,10 +49,10 @@ class _InitializationScreenState extends State<InitializationScreen> {
               context: context,
               barrierDismissible: true,
               builder: (dialogCtx) => AlertDialog(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSize.r16)),
                 title: const Row(
                   children: [
-                    Icon(Icons.wifi_off_rounded, color: AppTheme.accentYellow, size: 28),
+                    HugeIcon(icon: AppIcons.wifiOff, color: AppColors.accentYellow, size: 28.0),
                     SizedBox(width: 10),
                     Text(
                       "Statut de la connexion",
@@ -70,7 +71,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                       "OK",
                       style: TextStyle(
                         fontFamily: 'Fredoka',
-                        color: AppTheme.primaryForestGreen,
+                        color: AppColors.primaryForestGreen,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -83,7 +84,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
         builder: (context, state) {
           return Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(AppSize.p24),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -96,7 +97,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.primaryForestGreen.withValues(alpha: 0.08),
+                          color: AppColors.primaryForestGreen.withValues(alpha: 0.08),
                           blurRadius: 24,
                           offset: const Offset(0, 8),
                         ),
@@ -115,39 +116,39 @@ class _InitializationScreenState extends State<InitializationScreen> {
                       fontFamily: 'Fredoka',
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.textCharcoal,
+                      color: AppColors.textCharcoal,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSize.p8),
                   const Text(
                     "Agronome IA 100% hors ligne pour l'Est de la RDC",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontFamily: 'Fredoka',
                       fontSize: 14,
-                      color: AppTheme.textGrey,
+                      color: AppColors.textGrey,
                     ),
                   ),
                   const SizedBox(height: 48),
 
                   if (state is InitializationChecking) ...[
                     const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryForestGreen),
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryForestGreen),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSize.p24),
                     const Text(
                       "Vérification des ressources d'intelligence locale...",
-                      style: TextStyle(fontFamily: 'Fredoka', color: AppTheme.textGrey),
+                      style: TextStyle(fontFamily: 'Fredoka', color: AppColors.textGrey),
                     ),
                   ] else if (state is InitializationCheckingConnection) ...[
                     // Custom Card for Connection Check Phase with Button showing Loading
                     Card(
                       elevation: 4,
                       shadowColor: Colors.black.withValues(alpha: 0.05),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      color: AppTheme.cardCleanWhite,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSize.r16)),
+                      color: AppColors.cardCleanWhite,
                       child: Padding(
-                        padding: const EdgeInsets.all(20.0),
+                        padding: const EdgeInsets.all(AppSize.p20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -159,7 +160,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                   style: TextStyle(
                                     fontFamily: 'Fredoka',
                                     fontWeight: FontWeight.bold,
-                                    color: AppTheme.textCharcoal,
+                                    color: AppColors.textCharcoal,
                                   ),
                                 ),
                                 SizedBox(
@@ -167,42 +168,42 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                   height: 16,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryForestGreen),
+                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryForestGreen),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: AppSize.p12),
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(AppSize.r8),
                               child: LinearProgressIndicator(
                                 value: 0.0,
                                 minHeight: 8,
                                 valueColor: const AlwaysStoppedAnimation<Color>(
-                                  AppTheme.primaryForestGreen,
+                                  AppColors.primaryForestGreen,
                                 ),
-                                backgroundColor: AppTheme.primaryForestGreen.withValues(alpha: 0.12),
+                                backgroundColor: AppColors.primaryForestGreen.withValues(alpha: 0.12),
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppSize.p16),
                             const Text(
                               "Vérification de la connexion de téléchargement. Placez le fichier Gemma 4 au format LiteRT dans le dossier Documents pour un fonctionnement 100% hors ligne.",
                               style: TextStyle(
                                 fontFamily: 'Fredoka',
                                 fontSize: 12,
-                                color: AppTheme.textGrey,
+                                color: AppColors.textGrey,
                                 height: 1.4,
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppSize.p16),
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
                                 onPressed: null, // Disabled during checks
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.primaryForestGreen.withValues(alpha: 0.6),
+                                  backgroundColor: AppColors.primaryForestGreen.withValues(alpha: 0.6),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(AppSize.r12),
                                   ),
                                 ),
                                 child: const Row(
@@ -234,10 +235,10 @@ class _InitializationScreenState extends State<InitializationScreen> {
                     Card(
                       elevation: 4,
                       shadowColor: Colors.black.withValues(alpha: 0.05),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      color: AppTheme.cardCleanWhite,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSize.r16)),
+                      color: AppColors.cardCleanWhite,
                       child: Padding(
-                        padding: const EdgeInsets.all(20.0),
+                        padding: const EdgeInsets.all(AppSize.p20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -249,7 +250,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                   style: TextStyle(
                                     fontFamily: 'Fredoka',
                                     fontWeight: FontWeight.bold,
-                                    color: AppTheme.textCharcoal,
+                                    color: AppColors.textCharcoal,
                                   ),
                                 ),
                                 Text(
@@ -257,46 +258,45 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                   style: const TextStyle(
                                     fontFamily: 'Fredoka',
                                     fontWeight: FontWeight.bold,
-                                    color: AppTheme.primaryForestGreen,
+                                    color: AppColors.primaryForestGreen,
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 12),
-                            // Native linear progress bar tracking status
+                            const SizedBox(height: AppSize.p12),
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(AppSize.r8),
                               child: LinearProgressIndicator(
                                 value: state.progress,
                                 minHeight: 8,
                                 valueColor: const AlwaysStoppedAnimation<Color>(
-                                  AppTheme.primaryForestGreen,
+                                  AppColors.primaryForestGreen,
                                 ),
-                                backgroundColor: AppTheme.primaryForestGreen.withValues(alpha: 0.12),
+                                backgroundColor: AppColors.primaryForestGreen.withValues(alpha: 0.12),
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppSize.p16),
                             const Text(
                               "Recherche du point de contrôle local. Placez le fichier Gemma 4 au format LiteRT dans le dossier Documents pour un fonctionnement 100% hors ligne.",
                               style: TextStyle(
                                 fontFamily: 'Fredoka',
                                 fontSize: 12,
-                                color: AppTheme.textGrey,
+                                color: AppColors.textGrey,
                                 height: 1.4,
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppSize.p16),
                             if (state.progress > 0.0) ...[
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                padding: const EdgeInsets.symmetric(horizontal: AppSize.p12, vertical: AppSize.p8),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primaryForestGreen.withValues(alpha: 0.08),
-                                  borderRadius: BorderRadius.circular(8),
+                                  color: AppColors.primaryForestGreen.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(AppSize.r8),
                                 ),
                                 child: const Row(
                                   children: [
-                                    Icon(Icons.info_outline_rounded, size: 16, color: AppTheme.primaryForestGreen),
-                                    SizedBox(width: 8),
+                                    HugeIcon(icon: AppIcons.info, size: 16.0, color: AppColors.primaryForestGreen),
+                                    SizedBox(width: AppSize.p8),
                                     Expanded(
                                       child: Text(
                                         "Veuillez garder l'application ouverte et active jusqu'à la fin du téléchargement.",
@@ -304,14 +304,14 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                           fontFamily: 'Fredoka',
                                           fontSize: 12,
                                           fontWeight: FontWeight.w500,
-                                          color: AppTheme.primaryForestGreen,
+                                          color: AppColors.primaryForestGreen,
                                         ),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: AppSize.p16),
                             ],
                             if (state.progress == 0.0)
                               SizedBox(
@@ -321,10 +321,10 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                     context.read<InitializationCubit>().startDownload();
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTheme.primaryForestGreen,
+                                    backgroundColor: AppColors.primaryForestGreen,
                                     foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(AppSize.r12),
                                     ),
                                   ),
                                   child: const Text(
@@ -338,15 +338,13 @@ class _InitializationScreenState extends State<InitializationScreen> {
                       ),
                     ),
                   ] else if (state is InitializationFailure) ...[
-                    // Clean, robust, and beautiful error states with ONLY the resume/retry button
-                    // No red icons or alarming red warning messages!
                     Card(
                       elevation: 4,
                       shadowColor: Colors.black.withValues(alpha: 0.05),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      color: AppTheme.cardCleanWhite,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSize.r16)),
+                      color: AppColors.cardCleanWhite,
                       child: Padding(
-                        padding: const EdgeInsets.all(20.0),
+                        padding: const EdgeInsets.all(AppSize.p20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -358,7 +356,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                   style: TextStyle(
                                     fontFamily: 'Fredoka',
                                     fontWeight: FontWeight.bold,
-                                    color: AppTheme.textCharcoal,
+                                    color: AppColors.textCharcoal,
                                   ),
                                 ),
                                 Text(
@@ -366,50 +364,50 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                   style: TextStyle(
                                     fontFamily: 'Fredoka',
                                     fontWeight: FontWeight.bold,
-                                    color: AppTheme.textGrey,
+                                    color: AppColors.textGrey,
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: AppSize.p12),
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(AppSize.r8),
                               child: LinearProgressIndicator(
                                 value: 0.0,
                                 minHeight: 8,
                                 valueColor: const AlwaysStoppedAnimation<Color>(
-                                  AppTheme.textGrey,
+                                  AppColors.textGrey,
                                 ),
-                                backgroundColor: AppTheme.textGrey.withValues(alpha: 0.12),
+                                backgroundColor: AppColors.textGrey.withValues(alpha: 0.12),
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppSize.p16),
                             const Text(
                               "La configuration a été interrompue. Assurez-vous que votre connexion Internet est active, puis appuyez sur Reprendre pour continuer là où vous vous étiez arrêté.",
                               style: TextStyle(
                                 fontFamily: 'Fredoka',
                                 fontSize: 12,
-                                  color: AppTheme.textGrey,
-                                  height: 1.4,
-                                ),
+                                color: AppColors.textGrey,
+                                height: 1.4,
                               ),
-                              const SizedBox(height: 16),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    context.read<InitializationCubit>().startDownload();
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTheme.primaryForestGreen,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
+                            ),
+                            const SizedBox(height: AppSize.p16),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  context.read<InitializationCubit>().startDownload();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primaryForestGreen,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(AppSize.r12),
                                   ),
-                                  child: const Text(
-                                    "Reprendre le téléchargement",
-                                    style: TextStyle(fontFamily: 'Fredoka', fontWeight: FontWeight.bold),
+                                ),
+                                child: const Text(
+                                  "Reprendre le téléchargement",
+                                  style: TextStyle(fontFamily: 'Fredoka', fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ),

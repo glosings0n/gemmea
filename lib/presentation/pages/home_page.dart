@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:gemmea/core/theme/app_theme.dart';
-import 'package:gemmea/core/services/pdf_report_service.dart';
-import 'package:gemmea/presentation/bloc/home_cubit.dart';
-import 'package:gemmea/presentation/pages/diagnostics_history_page.dart';
+import 'package:gemmea/core/core.dart';
+import 'package:gemmea/presentation/bloc/bloc.dart';
+import 'package:gemmea/presentation/pages/pages.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,7 +11,6 @@ class HomePage extends StatefulWidget {
   @override
   State<HomePage> createState() => _HomePageState();
 }
-
 
 class _HomePageState extends State<HomePage> {
   @override
@@ -38,13 +36,13 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.all(4),
               child: Image.asset('assets/images/logo.png'),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSize.p8),
             const Text(
               "Gemmea",
               style: TextStyle(
                 fontFamily: 'Fredoka',
                 fontWeight: FontWeight.bold,
-                color: AppTheme.primaryForestGreen,
+                color: AppColors.primaryForestGreen,
               ),
             ),
           ],
@@ -65,9 +63,9 @@ class _HomePageState extends State<HomePage> {
                     );
                   },
                   icon: const HugeIcon(
-                    icon: HugeIcons.strokeRoundedPdf01,
-                    color: AppTheme.primaryForestGreen,
-                    size: 24,
+                    icon: AppIcons.pdf,
+                    color: AppColors.primaryForestGreen,
+                    size: AppSize.iconMd,
                   ),
                 );
               }
@@ -93,9 +91,9 @@ class _HomePageState extends State<HomePage> {
                       );
                     },
                     icon: const HugeIcon(
-                      icon: HugeIcons.strokeRoundedLicense,
-                      color: AppTheme.primaryForestGreen,
-                      size: 24,
+                      icon: AppIcons.license,
+                      color: AppColors.primaryForestGreen,
+                      size: AppSize.iconMd,
                     ),
                   ),
                   if (hasNew)
@@ -115,20 +113,20 @@ class _HomePageState extends State<HomePage> {
           if (state is HomeLoading) {
             return const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryForestGreen),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryForestGreen),
               ),
             );
           } else if (state is HomeError) {
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(AppSize.p24),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, color: Colors.red, size: 48),
-                    const SizedBox(height: 16),
+                    const HugeIcon(icon: AppIcons.alert, color: AppColors.errorRed, size: AppSize.iconXl),
+                    const SizedBox(height: AppSize.p16),
                     Text("Error: ${state.error}", textAlign: TextAlign.center),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSize.p16),
                     ElevatedButton(
                       onPressed: () => context.read<HomeCubit>().loadDashboard(),
                       child: const Text("Retry"),
@@ -139,22 +137,22 @@ class _HomePageState extends State<HomePage> {
             );
           } else if (state is HomeLoaded) {
             return RefreshIndicator(
-              color: AppTheme.primaryForestGreen,
+              color: AppColors.primaryForestGreen,
               onRefresh: () => context.read<HomeCubit>().loadDashboard(),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(AppSize.p16),
                 physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Welcome greeting
                     const Text(
-                      "Jambo ! 👋🏾",
+                      "Jambo ! 👋",
                       style: TextStyle(
                         fontFamily: 'Fredoka',
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.textCharcoal,
+                        color: AppColors.textCharcoal,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -163,18 +161,18 @@ class _HomePageState extends State<HomePage> {
                       style: TextStyle(
                         fontFamily: 'Fredoka',
                         fontSize: 14,
-                        color: AppTheme.textGrey,
+                        color: AppColors.textGrey,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSize.p24),
 
                     // Minimalist Grid layout summarizing metrics
                     GridView.count(
                       crossAxisCount: 2,
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
+                      crossAxisSpacing: AppSize.p16,
+                      mainAxisSpacing: AppSize.p16,
                       childAspectRatio: 1.25,
                       children: [
                         // Grid Card 1: Last Diagnostic
@@ -202,7 +200,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSize.p24),
 
                     // Soil Reminders Card
                     const Text(
@@ -211,13 +209,13 @@ class _HomePageState extends State<HomePage> {
                         fontFamily: 'Fredoka',
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.textCharcoal,
+                        color: AppColors.textCharcoal,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSize.p12),
                     Card(
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(AppSize.p16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: state.soilReminders.map((reminder) {
@@ -232,7 +230,7 @@ class _HomePageState extends State<HomePage> {
                                       reminder,
                                       style: const TextStyle(
                                         fontFamily: 'Fredoka',
-                                        color: AppTheme.textCharcoal,
+                                        color: AppColors.textCharcoal,
                                         fontSize: 14,
                                         height: 1.4,
                                       ),
@@ -245,7 +243,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSize.p24),
 
                     // Water Timetable autonomous adjustments
                     Row(
@@ -257,7 +255,7 @@ class _HomePageState extends State<HomePage> {
                             fontFamily: 'Fredoka',
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.textCharcoal,
+                            color: AppColors.textCharcoal,
                           ),
                         ),
                         const Text(
@@ -265,15 +263,15 @@ class _HomePageState extends State<HomePage> {
                           style: TextStyle(
                             fontFamily: 'Fredoka',
                             fontSize: 12,
-                            color: AppTheme.secondaryMint,
+                            color: AppColors.secondaryMint,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSize.p12),
                     ...state.calendarEvents.map((event) {
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
+                        padding: const EdgeInsets.only(bottom: AppSize.p12),
                         child: Card(
                           child: ListTile(
                             title: Text(
@@ -296,7 +294,7 @@ class _HomePageState extends State<HomePage> {
                                   style: const TextStyle(
                                     fontFamily: 'Fredoka',
                                     fontWeight: FontWeight.w500,
-                                    color: AppTheme.textGrey,
+                                    color: AppColors.textGrey,
                                   ),
                                 ),
                               ],
@@ -316,7 +314,7 @@ class _HomePageState extends State<HomePage> {
                                   onChanged: (val) {
                                     context.read<HomeCubit>().toggleRain(event.eventDate, val);
                                   },
-                                  activeThumbColor: AppTheme.primaryForestGreen,
+                                  activeThumbColor: AppColors.primaryForestGreen,
                                 ),
                               ],
                             ),
@@ -345,10 +343,10 @@ class _HomePageState extends State<HomePage> {
     return Container(
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.primaryForestGreen.withValues(alpha: 0.1), width: 1),
+        borderRadius: BorderRadius.circular(AppSize.r16),
+        border: Border.all(color: AppColors.primaryForestGreen.withValues(alpha: 0.1), width: 1),
       ),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppSize.p12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -361,7 +359,7 @@ class _HomePageState extends State<HomePage> {
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.textGrey,
+                  color: AppColors.textGrey,
                 ),
               ),
               Text(emoji, style: const TextStyle(fontSize: 18)),
@@ -377,7 +375,7 @@ class _HomePageState extends State<HomePage> {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.textCharcoal,
+                  color: AppColors.textCharcoal,
                 ),
               ),
               const SizedBox(height: 2),
@@ -387,7 +385,7 @@ class _HomePageState extends State<HomePage> {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontSize: 11,
-                  color: AppTheme.textGrey,
+                  color: AppColors.textGrey,
                 ),
               ),
             ],
