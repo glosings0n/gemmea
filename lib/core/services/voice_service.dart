@@ -76,15 +76,32 @@ class VoiceService {
 
       _isListening = true;
       dev.log("Starting STT listening session...", name: 'VOICE_SERVICE');
+      
+      // Determine best French locale if available
+      String localeId = "fr_FR";
+      try {
+        final systemLocales = await _speech.locales();
+        final frLocale = systemLocales.firstWhere(
+          (l) => l.localeId.startsWith('fr'),
+          orElse: () => systemLocales.isNotEmpty ? systemLocales.first : const stt.LocaleName("fr_FR", "French"),
+        );
+        localeId = frLocale.localeId;
+        dev.log("Selected STT locale: $localeId", name: 'VOICE_SERVICE');
+      } catch (e) {
+        dev.log("Could not query locales, fallback to fr_FR", name: 'VOICE_SERVICE');
+      }
+
       await _speech.listen(
+        localeId: localeId,
         listenOptions: stt.SpeechListenOptions(
           listenFor: const Duration(seconds: 30),
           pauseFor: const Duration(seconds: 3),
           partialResults: true,
           cancelOnError: true,
-          listenMode: stt.ListenMode.confirmation,
+          listenMode: stt.ListenMode.dictation,
         ),
         onResult: (val) {
+          dev.log("STT result: ${val.recognizedWords} (final=${val.finalResult})", name: 'VOICE_SERVICE');
           onResult(val.recognizedWords);
           if (val.finalResult) {
             _isListening = false;
