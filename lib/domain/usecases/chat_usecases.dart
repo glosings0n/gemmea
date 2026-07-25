@@ -50,7 +50,7 @@ class GetGemmaResponseStream {
   final ChatRepository repository;
   GetGemmaResponseStream(this.repository);
 
-  Stream<ModelResponse> call(String text) {
-    return repository.getGemmaResponseStream(text);
+  Stream<ModelResponse> call(String text, [List<Message>? history]) {
+    return repository.getGemmaResponseStream(text, history);
   }
 }

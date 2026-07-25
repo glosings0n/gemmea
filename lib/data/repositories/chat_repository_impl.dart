@@ -185,14 +185,14 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Stream<ModelResponse> getGemmaResponseStream(String text) async* {
+  @override
+  Stream<ModelResponse> getGemmaResponseStream(String text, [List<Message>? history]) async* {
     if (_chat == null) {
       final directory = await getApplicationDocumentsDirectory();
       final modelFile = File('${directory.path}/gemma.litertlm');
       
       if (await modelFile.exists()) {
         bool loaded = false;
-        // Try CPU backend first (stable across all Android chipsets, GPUs, and emulators)
         try {
           dev.log("Attempting CPU backend initialization for Gemma...", name: 'CHAT_REPO_IMPL');
           await FlutterGemma.installModel(
@@ -206,7 +206,7 @@ class ChatRepositoryImpl implements ChatRepository {
             maxTokens: 1024,
             preferredBackend: PreferredBackend.cpu,
           );
-          // Perform FAO RAG Query to fetch official grounded citations
+
           final faoDocs = await dbHelper.searchFAOKnowledge(text);
           final faoContext = faoDocs.map((d) => "- ${d['topic']}: ${d['content']} Remède: ${d['organic_remedy']} (Source: ${d['source_citation']})").join("\n");
 
@@ -225,13 +225,25 @@ Utilise ces données FAO pour fournir des conseils directs, précis et écologiq
             modelType: ModelType.gemmaIt,
             systemInstruction: systemPrompt,
           );
+
+          if (history != null && history.length > 1) {
+            for (final msg in history) {
+              if (msg.text.trim().isNotEmpty && msg != history.last) {
+                try {
+                  await _chat!.addQuery(msg);
+                } catch (e) {
+                  dev.log("History restoration note: $e", name: 'CHAT_REPO_IMPL');
+                }
+              }
+            }
+          }
+
           loaded = true;
           dev.log("Modèle Gemma chargé avec succès sur le moteur LiteRT-LM CPU !", name: 'CHAT_REPO_IMPL');
         } catch (cpuError, stack) {
           dev.log("Échec du chargement du moteur CPU", name: 'CHAT_REPO_IMPL', error: cpuError, stackTrace: stack);
         }
 
-        // Fallback to GPU if CPU initialization fails
         if (!loaded) {
           try {
             dev.log("Attempting GPU fallback backend for Gemma...", name: 'CHAT_REPO_IMPL');
@@ -239,10 +251,10 @@ Utilise ces données FAO pour fournir des conseils directs, précis et écologiq
               maxTokens: 1024,
               preferredBackend: PreferredBackend.gpu,
             );
-             final faoDocs = await dbHelper.searchFAOKnowledge(text);
-             final faoContext = faoDocs.map((d) => "- ${d['topic']}: ${d['content']} Remède: ${d['organic_remedy']} (Source: ${d['source_citation']})").join("\n");
+            final faoDocs = await dbHelper.searchFAOKnowledge(text);
+            final faoContext = faoDocs.map((d) => "- ${d['topic']}: ${d['content']} Remède: ${d['organic_remedy']} (Source: ${d['source_citation']})").join("\n");
 
-             final systemPrompt = '''
+            final systemPrompt = '''
 Tu es Gemmea, un assistant agronome utile sous forme d'IA hors ligne destiné aux agriculteurs de l'Est de la République Démocratique du Congo (RDC) et de l'Afrique de l'Est.
 Salue toujours en disant 'Jambo 👋🏾' (avec l'émoji noir 👋🏾).
 
@@ -253,21 +265,34 @@ $faoContext
 Utilise ces données FAO pour fournir des conseils directs, précis et écologiques. Reste très concis, clair, et cite la source FAO.
 ''';
 
-             _chat = await model.createChat(
+            _chat = await model.createChat(
               modelType: ModelType.gemmaIt,
               systemInstruction: systemPrompt,
             );
+
+            if (history != null && history.length > 1) {
+              for (final msg in history) {
+                if (msg.text.trim().isNotEmpty && msg != history.last) {
+                  try {
+                    await _chat!.addQuery(msg);
+                  } catch (e) {
+                    dev.log("History restoration note (GPU): $e", name: 'CHAT_REPO_IMPL');
+                  }
+                }
+              }
+            }
+
             loaded = true;
             dev.log("Modèle Gemma chargé avec succès sur le moteur LiteRT-LM GPU !", name: 'CHAT_REPO_IMPL');
           } catch (gpuError, stack) {
             dev.log("Échec du chargement du moteur GPU", name: 'CHAT_REPO_IMPL', error: gpuError, stackTrace: stack);
-            yield* _mockResponseStream(text);
+            yield* _mockResponseStream(text, history);
             return;
           }
         }
       } else {
         dev.log("Model file not found locally, defaulting to local fallback stream", name: 'CHAT_REPO_IMPL');
-        yield* _mockResponseStream(text);
+        yield* _mockResponseStream(text, history);
         return;
       }
     }
@@ -283,17 +308,89 @@ Utilise ces données FAO pour fournir des conseils directs, précis et écologiq
     } catch (e, stack) {
       dev.log("Error generating chat response stream", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
       if (e.toString().contains("channel-error") || e.toString().contains("PlatformException")) {
-        throw Exception("Impossible d'établir la connexion avec le moteur du modèle local.\n\nVeuillez fermer complètement l'application et la relancer à froid (par exemple, relancez 'flutter run' dans votre terminal) pour lier les bibliothèques locales MediaPipe.");
+        throw Exception("Impossible d'établir la connexion avec le moteur du modèle local.\n\nVeuillez fermer complètement l'application et la relancer à froid pour lier les bibliothèques locales MediaPipe.");
       }
-      yield* _mockResponseStream(text);
+      yield* _mockResponseStream(text, history);
     }
   }
 
-  Stream<ModelResponse> _mockResponseStream(String text) async* {
+  Stream<ModelResponse> _mockResponseStream(String text, [List<Message>? history]) async* {
     String reply = "";
     final input = text.toLowerCase();
-    
-    if (input.contains("manioc") || input.contains("cassava")) {
+
+    // Contextual topic extraction from past messages
+    String? contextTopic;
+    if (history != null && history.isNotEmpty) {
+      for (final msg in history.reversed) {
+        final prevText = msg.text.toLowerCase();
+        if (prevText.contains("maïs") || prevText.contains("corn") || prevText.contains("maize")) {
+          contextTopic = "maïs";
+          break;
+        } else if (prevText.contains("manioc") || prevText.contains("cassava")) {
+          contextTopic = "manioc";
+          break;
+        } else if (prevText.contains("banane") || prevText.contains("banana") || prevText.contains("bananier")) {
+          contextTopic = "banane";
+          break;
+        } else if (prevText.contains("haricot") || prevText.contains("bean")) {
+          contextTopic = "haricot";
+          break;
+        } else if (prevText.contains("café") || prevText.contains("coffee")) {
+          contextTopic = "café";
+          break;
+        } else if (prevText.contains("irrigation") || prevText.contains("eau") || prevText.contains("pluie")) {
+          contextTopic = "irrigation";
+          break;
+        }
+      }
+    }
+
+    final isFollowUpRequest = input.contains("dire plus") ||
+        input.contains("détail") ||
+        input.contains("explicite") ||
+        input.contains("explique") ||
+        input.contains("pourquoi") ||
+        input.contains("comment") ||
+        input.contains("continuer") ||
+        input.contains("suite") ||
+        input.contains("encore") ||
+        input.contains("autre") ||
+        input.contains("précis");
+
+    if (isFollowUpRequest && contextTopic != null) {
+      if (contextTopic == "maïs") {
+        reply = "Jambo 👋🏾 ! Voici des précisions agronomiques approfondies pour réussir votre culture de maïs :\n\n"
+            "1. **Densité & Semis** : Semez 1 à 2 graines par poquet à 3-5 cm de profondeur. Gardez 75 cm entre les lignes et 25 cm entre les poquets pour permettre un bon développement des épis.\n\n"
+            "2. **Fertilisation Organique** : Apportez du compost mûr lors du labour (5-10 t/ha). Complétez avec du purin de tithonia ou de fientes d'oiseaux riches en azote au moment du sarclage.\n\n"
+            "3. **Lutte contre la Chenille Légionnaire** : Déposez de la cendre de bois sèche dans le cornet des jeunes plants ou pulvérisez un extrait d'huile ou de feuilles de neem (200g/L).\n\n"
+            "4. **Maladies Foliaires (Rouille)** : Pratiquez la rotation avec le haricot ou le soja pour couper le cycle du champignon et éliminez les résidus infectés.";
+      } else if (contextTopic == "manioc") {
+        reply = "Jambo 👋🏾 ! Voici les détails clés pour maximiser votre production de manioc :\n\n"
+            "1. **Sélection des Boutures** : Choisissez des tiges saines de 20-30 cm ayant au moins 4 à 6 yeux. Prélevez-les sur des pieds vigoureux exempts de mosaïque.\n\n"
+            "2. **Plantation Inclinée** : Plantez les boutures inclinées à 45° dans le sens de la pente ou sur buttes pour stimuler l'enracinement et la tubérisation.\n\n"
+            "3. **Gestion de la Mosaïque (CMD)** : Inspectez votre champ chaque semaine. Arrachez et brûlez immédiatement les plants atteints de jaunissement/enroulement foliaire.\n\n"
+            "4. **Buttage & Paillage** : Effectuez un premier buttage à 2 mois pour protéger les jeunes tubercules de la lumière et conserver l'humidité.";
+      } else if (contextTopic == "banane") {
+        reply = "Jambo 👋🏾 ! Voici les détails agronomiques pour vos bananiers :\n\n"
+            "1. **Rejets & Trous** : Plantez des rejets baïonnettes sains dans des trous de 60x60x60 cm fertilisés avec du compost riche.\n\n"
+            "2. **Lutte contre le Flétrissement (BXW)** : Coupez le bourgeon mâle (la popote) dès la formation du régime et désinfectez vos outils à la flamme.\n\n"
+            "3. **OEillonnage** : Ne conservez que 3 tiges par touffe (mère, fille, petite-fille) pour préserver les nutriments du sol.";
+      } else if (contextTopic == "haricot") {
+        reply = "Jambo 👋🏾 ! Voici des détails pratiques pour le haricot :\n\n"
+            "1. **Association Mosaïque** : Intercalez le haricot dans le maïs. Il fixe l'azote atmosphérique et enrichit naturellement le sol.\n\n"
+            "2. **Traitement Anti-Pucerons** : Pulvérisez une solution savonneuse (savon noir) additionnée d'extrait de piment.\n\n"
+            "3. **Séchage Post-Récolte** : Séchez les gousses sur des bâches propres avant le battage pour éviter les charançons.";
+      } else if (contextTopic == "café") {
+        reply = "Jambo 👋🏾 ! Voici les précisions pour la conduite de votre caféière :\n\n"
+            "1. **Ombrage & Mulching** : Associez les caféiers à des bananiers ou des légumineuses d'ombrage. Paillez généreusement les pieds.\n\n"
+            "2. **Scolyte des Baies** : Installez des pièges artisanaux en bouteilles d'alcool pour capturer les insectes adultes.\n\n"
+            "3. **Taille d'Aération** : Éliminez les gourmands et le bois mort après la récolte pour stimuler la floraison suivante.";
+      } else if (contextTopic == "irrigation") {
+        reply = "Jambo 👋🏾 ! Voici les précisions pour l'arrosage de vos cultures :\n\n"
+            "1. **Horaires Optimaux** : Arrosez tôt le matin ou en fin d'après-midi pour éviter le choc thermique et l'évaporation.\n\n"
+            "2. **Paillage Régulateur** : Une couche de 5 à 10 cm de paille sèche conserve l'eau dans le sol 3 fois plus longtemps.";
+      }
+    } else if (input.contains("manioc") || input.contains("cassava")) {
       reply = "Jambo 👋🏾 ! Pour planter du manioc de manière optimale : coupez des boutures de tiges saines (20 à 30 cm de long, 4 à 6 nœuds). Plantez-les inclinées à 45 degrés dans un sol limoneux bien drainé, à 1 mètre d'intervalle. La mosaïque du manioc (CMD) est une maladie grave qui provoque l'enroulement et le jaunissement des feuilles. Éliminez-la en déracinant les plants infectés et en utilisant des boutures résistantes fournies par l'IITA ou l'INERA.";
     } else if (input.contains("maïs") || input.contains("corn") || input.contains("maize")) {
       reply = "Jambo 👋🏾 ! Le maïs a besoin d'un sol riche en azote. Plantez au début de la saison des pluies. Gardez une distance de 25 cm sur la ligne et 75 cm entre les lignes. La rouille du maïs provoque des pustules jaunes poussiéreuses sur les feuilles. Pratiquez la rotation des cultures et désherbez tôt pour prévenir la rouille.";
@@ -305,14 +402,22 @@ Utilise ces données FAO pour fournir des conseils directs, précis et écologiq
       reply = "Jambo 👋🏾 ! Les haricots s'associent parfaitement avec le maïs. Semez à 3-5 cm de profondeur, espacés de 10-15 cm. Ils enrichissent le sol en azote. Surveillez les pucerons et traitez-les avec du savon noir ou un extrait de neem.";
     } else if (input.contains("eau") || input.contains("irrigation") || input.contains("pluie") || input.contains("calendrier") || input.contains("water")) {
       reply = "Jambo 👋🏾 ! Arrosez tôt le matin ou tard le soir. Le manioc craint l'excès d'eau stagnante. J'ai intégré votre calendrier d'irrigation local pour ajuster automatiquement les dates selon vos indications de pluie ou de sécheresse !";
-    } else if (input.contains("ravageur") || input.contains("maladie") || input.contains("neem") || input.contains("pest")) {
+    } else if (input.contains("ravageur") || input.contains("maladie") || input.contains("neem") || input.contains("pest") || input.contains("chenille") || input.contains("rouille")) {
       reply = "Jambo 👋🏾 ! Pour un insecticide biologique : pilez 1 kg de feuilles ou graines de neem, laissez macérer dans 5 litres d'eau pendant 24h, filtrez, ajoutez une cuillère de savon de Marseille et pulvérisez. Cela élimine chenilles, criquets et pucerons de façon écologique.";
     } else if (input.contains("hello") || input.contains("hi") || input.contains("hey") || input.contains("jambo") || input.contains("bonjour")) {
       reply = "Jambo 👋🏾 ! Je suis Gemmea, votre compagnon agronome hors ligne pour l'Est de la RDC. Posez-moi vos questions sur le manioc, le maïs, le café, la banane, le haricot, le calendrier d'irrigation ou les remèdes biologiques !";
     } else if (input.contains("merci") || input.contains("thank") || input.contains("thanks")) {
       reply = "Je vous en prie ! Que votre sol soit riche et votre récolte abondante. N'hésitez pas si vous avez d'autres questions sur vos cultures.";
+    } else if (contextTopic != null) {
+      if (contextTopic == "maïs") {
+        reply = "Jambo 👋🏾 ! Concernant votre champ de maïs : veillez à un désherbage régulier au cours des 4 premières semaines pour éviter la compétition en azote. N'hésitez pas si vous souhaitez aborder la fertilisation ou les ravageurs.";
+      } else if (contextTopic == "manioc") {
+        reply = "Jambo 👋🏾 ! Concernant votre culture de manioc : effectuez un buttat régulier au pied et veillez à utiliser des boutures certifiées FAO sans mosaïque.";
+      } else {
+        reply = "Jambo 👋🏾 ! Concernant votre culture : veillez à un arrosage régulier tôt le matin et à l'utilisation de paillage organique.";
+      }
     } else {
-      reply = "L'agriculture à l'Est de la RDC et en Afrique de l'Est exige de la patience et du savoir-faire. Parlez-moi de vos cultures (Banane, Haricot, Manioc, Patate douce, Maïs, Café) ou décrivez les ravageurs que vous observez, et je vous proposerai des solutions biologiques adaptées !";
+      reply = "Jambo 👋🏾 ! Je suis là pour vous accompagner. Précisez-moi simplement ce que vous souhaitez savoir sur votre culture (période de semis, fertilisation, traitement contre les ravageurs ou arrosage) !";
     }
 
     final words = reply.split(" ");

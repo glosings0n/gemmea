@@ -128,7 +128,7 @@ class ChatCubit extends Cubit<ChatState> {
       // 3. Initiate local stream response from Gemma
       StringBuffer fullReply = StringBuffer();
       
-      _streamSubscription = getGemmaResponseStream(text).listen(
+      _streamSubscription = getGemmaResponseStream(text, updatedMessages).listen(
         (response) {
           if (response is TextResponse) {
             fullReply.write(response.token);
