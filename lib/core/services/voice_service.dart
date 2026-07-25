@@ -92,8 +92,8 @@ class VoiceService {
       }
 
       await _speech.listen(
-        localeId: localeId,
         listenOptions: stt.SpeechListenOptions(
+          localeId: localeId,
           listenFor: const Duration(seconds: 30),
           pauseFor: const Duration(seconds: 3),
           partialResults: true,
