@@ -187,6 +187,8 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   @override
   Stream<ModelResponse> getGemmaResponseStream(String text, [List<Message>? history]) async* {
+    await _ensureEngineInitialized();
+
     if (_chat == null) {
       final directory = await getApplicationDocumentsDirectory();
       final modelFile = File('${directory.path}/gemma.litertlm');
@@ -195,12 +197,16 @@ class ChatRepositoryImpl implements ChatRepository {
         bool loaded = false;
         try {
           dev.log("Attempting CPU backend initialization for Gemma...", name: 'CHAT_REPO_IMPL');
-          await FlutterGemma.installModel(
-            modelType: ModelType.gemmaIt,
-            fileType: ModelFileType.litertlm,
-          )
-          .fromFile(modelFile.path)
-          .install();
+          try {
+            await FlutterGemma.installModel(
+              modelType: ModelType.gemmaIt,
+              fileType: ModelFileType.litertlm,
+            )
+            .fromFile(modelFile.path)
+            .install();
+          } catch (e) {
+            dev.log("Model install registration note: $e", name: 'CHAT_REPO_IMPL');
+          }
 
           final model = await FlutterGemma.getActiveModel(
             maxTokens: 1024,
@@ -212,9 +218,9 @@ class ChatRepositoryImpl implements ChatRepository {
 
           final systemPrompt = '''
 Tu es Gemmea, un assistant agronome utile sous forme d'IA hors ligne destiné aux agriculteurs de l'Est de la République Démocratique du Congo (RDC) et de l'Afrique de l'Est.
-Salue toujours en disant 'Jambo 👋🏾' (avec l'émoji noir 👋🏾).
+NE salue PAS à chaque message. Ne dis jamais 'Jambo' ou 'Bonjour' lors des réponses de suivi dans la conversation. Réponds directement et précisément aux questions de l'utilisateur.
 
-RÈGLE DE ANCRAGE (RAG FAO) :
+RÈGLE D'ANCRAGE (RAG FAO) :
 Voici les extraits officiels de la FAO pertinents extraits de la base locale :
 $faoContext
 
@@ -256,9 +262,9 @@ Utilise ces données FAO pour fournir des conseils directs, précis et écologiq
 
             final systemPrompt = '''
 Tu es Gemmea, un assistant agronome utile sous forme d'IA hors ligne destiné aux agriculteurs de l'Est de la République Démocratique du Congo (RDC) et de l'Afrique de l'Est.
-Salue toujours en disant 'Jambo 👋🏾' (avec l'émoji noir 👋🏾).
+NE salue PAS à chaque message. Ne dis jamais 'Jambo' ou 'Bonjour' lors des réponses de suivi dans la conversation. Réponds directement et précisément aux questions de l'utilisateur.
 
-RÈGLE DE ANCRAGE (RAG FAO) :
+RÈGLE D'ANCRAGE (RAG FAO) :
 Voici les extraits officiels de la FAO pertinents extraits de la base locale :
 $faoContext
 
@@ -355,69 +361,67 @@ Utilise ces données FAO pour fournir des conseils directs, précis et écologiq
         input.contains("suite") ||
         input.contains("encore") ||
         input.contains("autre") ||
-        input.contains("précis");
+        input.contains("précis") ||
+        input.contains("maladie") ||
+        input.contains("si ce n'est pas") ||
+        input.contains("pas cette");
 
     if (isFollowUpRequest && contextTopic != null) {
       if (contextTopic == "maïs") {
-        reply = "Jambo 👋🏾 ! Voici des précisions agronomiques approfondies pour réussir votre culture de maïs :\n\n"
+        reply = "Voici des précisions agronomiques approfondies pour réussir votre culture de maïs :\n\n"
             "1. **Densité & Semis** : Semez 1 à 2 graines par poquet à 3-5 cm de profondeur. Gardez 75 cm entre les lignes et 25 cm entre les poquets pour permettre un bon développement des épis.\n\n"
             "2. **Fertilisation Organique** : Apportez du compost mûr lors du labour (5-10 t/ha). Complétez avec du purin de tithonia ou de fientes d'oiseaux riches en azote au moment du sarclage.\n\n"
             "3. **Lutte contre la Chenille Légionnaire** : Déposez de la cendre de bois sèche dans le cornet des jeunes plants ou pulvérisez un extrait d'huile ou de feuilles de neem (200g/L).\n\n"
-            "4. **Maladies Foliaires (Rouille)** : Pratiquez la rotation avec le haricot ou le soja pour couper le cycle du champignon et éliminez les résidus infectés.";
+            "4. **Autres Pathologies Possibles (Strie / Helminthosporiose)** : Si ce n'est pas la rouille du maïs, observez les feuilles : des bandes jaunâtres parallèles indiquent la strie du maïs. Dans ce cas, éliminez les plants infectés et appliquez un purin d'ortie ou neem pour renforcer la plante.";
       } else if (contextTopic == "manioc") {
-        reply = "Jambo 👋🏾 ! Voici les détails clés pour maximiser votre production de manioc :\n\n"
-            "1. **Sélection des Boutures** : Choisissez des tiges saines de 20-30 cm ayant au moins 4 à 6 yeux. Prélevez-les sur des pieds vigoureux exempts de mosaïque.\n\n"
-            "2. **Plantation Inclinée** : Plantez les boutures inclinées à 45° dans le sens de la pente ou sur buttes pour stimuler l'enracinement et la tubérisation.\n\n"
-            "3. **Gestion de la Mosaïque (CMD)** : Inspectez votre champ chaque semaine. Arrachez et brûlez immédiatement les plants atteints de jaunissement/enroulement foliaire.\n\n"
-            "4. **Buttage & Paillage** : Effectuez un premier buttage à 2 mois pour protéger les jeunes tubercules de la lumière et conserver l'humidité.";
+        reply = "Voici les détails clés pour votre production de manioc :\n\n"
+            "1. **Sélection des Boutures** : Choisissez des tiges saines de 20-30 cm ayant au moins 4 à 6 yeux.\n\n"
+            "2. **Autres Pathologies (Anthracnose / Strie Brune)** : Si les feuilles présentent des chancres brun foncé sur les tiges au lieu de jaunissement, il s'agit d'anthracnose. Coupez les parties atteintes et évitez de blesser les plants.";
       } else if (contextTopic == "banane") {
-        reply = "Jambo 👋🏾 ! Voici les détails agronomiques pour vos bananiers :\n\n"
-            "1. **Rejets & Trous** : Plantez des rejets baïonnettes sains dans des trous de 60x60x60 cm fertilisés avec du compost riche.\n\n"
-            "2. **Lutte contre le Flétrissement (BXW)** : Coupez le bourgeon mâle (la popote) dès la formation du régime et désinfectez vos outils à la flamme.\n\n"
-            "3. **OEillonnage** : Ne conservez que 3 tiges par touffe (mère, fille, petite-fille) pour préserver les nutriments du sol.";
+        reply = "Voici les détails agronomiques pour vos bananiers :\n\n"
+            "1. **Rejets & Trous** : Plantez des rejets baïonnettes sains dans des trous de 60x60x60 cm.\n\n"
+            "2. **Si ce n'est pas le BXW (Sigatoka / Cercosporiose)** : Des taches foncées bordées de jaune sur les feuilles indiquent la cercosporiose noire. Éliminez les feuilles bases séchées et améliorez le drainage.";
       } else if (contextTopic == "haricot") {
-        reply = "Jambo 👋🏾 ! Voici des détails pratiques pour le haricot :\n\n"
-            "1. **Association Mosaïque** : Intercalez le haricot dans le maïs. Il fixe l'azote atmosphérique et enrichit naturellement le sol.\n\n"
-            "2. **Traitement Anti-Pucerons** : Pulvérisez une solution savonneuse (savon noir) additionnée d'extrait de piment.\n\n"
-            "3. **Séchage Post-Récolte** : Séchez les gousses sur des bâches propres avant le battage pour éviter les charançons.";
+        reply = "Voici des détails pratiques pour le haricot :\n\n"
+            "1. **Association Mosaïque** : Intercalez le haricot dans le maïs.\n\n"
+            "2. **Autres Maladie (Anthracnose du haricot)** : Si des taches noires apparaissent sur les gousses, brûlez les résidus et appliquez une décoction de prêle ou neem.";
       } else if (contextTopic == "café") {
-        reply = "Jambo 👋🏾 ! Voici les précisions pour la conduite de votre caféière :\n\n"
-            "1. **Ombrage & Mulching** : Associez les caféiers à des bananiers ou des légumineuses d'ombrage. Paillez généreusement les pieds.\n\n"
-            "2. **Scolyte des Baies** : Installez des pièges artisanaux en bouteilles d'alcool pour capturer les insectes adultes.\n\n"
-            "3. **Taille d'Aération** : Éliminez les gourmands et le bois mort après la récolte pour stimuler la floraison suivante.";
+        reply = "Voici les précisions pour votre caféière :\n\n"
+            "1. **Ombrage & Mulching** : Paillez généreusement les pieds.\n\n"
+            "2. **Autres Maladie (Anthracnose des baies)** : Des baies noires desséchées indiquent l'anthracnose. Taillez les branches trop denses pour laisser passer l'air.";
       } else if (contextTopic == "irrigation") {
-        reply = "Jambo 👋🏾 ! Voici les précisions pour l'arrosage de vos cultures :\n\n"
-            "1. **Horaires Optimaux** : Arrosez tôt le matin ou en fin d'après-midi pour éviter le choc thermique et l'évaporation.\n\n"
-            "2. **Paillage Régulateur** : Une couche de 5 à 10 cm de paille sèche conserve l'eau dans le sol 3 fois plus longtemps.";
+        reply = "Voici les précisions pour l'arrosage de vos cultures :\n\n"
+            "1. **Horaires Optimaux** : Arrosez tôt le matin ou en fin d'après-midi.\n\n"
+            "2. **Paillage Régulateur** : Une couche de 5 à 10 cm de paille sèche conserve l'eau dans le sol.";
       }
     } else if (input.contains("manioc") || input.contains("cassava")) {
-      reply = "Jambo 👋🏾 ! Pour planter du manioc de manière optimale : coupez des boutures de tiges saines (20 à 30 cm de long, 4 à 6 nœuds). Plantez-les inclinées à 45 degrés dans un sol limoneux bien drainé, à 1 mètre d'intervalle. La mosaïque du manioc (CMD) est une maladie grave qui provoque l'enroulement et le jaunissement des feuilles. Éliminez-la en déracinant les plants infectés et en utilisant des boutures résistantes fournies par l'IITA ou l'INERA.";
+      reply = "Pour planter du manioc de manière optimale : coupez des boutures de tiges saines (20 à 30 cm de long, 4 à 6 nœuds). Plantez-les inclinées à 45 degrés dans un sol limoneux bien drainé, à 1 mètre d'intervalle. La mosaïque du manioc (CMD) est une maladie grave qui provoque l'enroulement et le jaunissement des feuilles. Éliminez-la en déracinant les plants infectés et en utilisant des boutures résistantes fournies par l'IITA ou l'INERA.";
     } else if (input.contains("maïs") || input.contains("corn") || input.contains("maize")) {
-      reply = "Jambo 👋🏾 ! Le maïs a besoin d'un sol riche en azote. Plantez au début de la saison des pluies. Gardez une distance de 25 cm sur la ligne et 75 cm entre les lignes. La rouille du maïs provoque des pustules jaunes poussiéreuses sur les feuilles. Pratiquez la rotation des cultures et désherbez tôt pour prévenir la rouille.";
+      reply = "Le maïs a besoin d'un sol riche en azote. Plantez au début de la saison des pluies. Gardez une distance de 25 cm sur la ligne et 75 cm entre les lignes. La rouille du maïs provoque des pustules jaunes poussiéreuses sur les feuilles. Pratiquez la rotation des cultures et désherbez tôt pour prévenir la rouille.";
     } else if (input.contains("banane") || input.contains("banana") || input.contains("bananier")) {
-      reply = "Jambo 👋🏾 ! Pour les bananiers, sélectionnez des rejets sains (baïonnettes) de 1,5 m de haut. Creusez des trous de 60x60x60 cm espacés de 3 mètres. Ajoutez du compost riche au fond. Surveillez le flétrissement bactérien (BXW). Coupez les bourgeons mâles dès la fin de la formation du régime et désinfectez vos outils à la flamme.";
+      reply = "Pour les bananiers, sélectionnez des rejets sains (baïonnettes) de 1,5 m de haut. Creusez des trous de 60x60x60 cm espacés de 3 mètres. Ajoutez du compost riche au fond. Surveillez le flétrissement bactérien (BXW). Coupez les bourgeons mâles dès la fin de la formation du régime et désinfectez vos outils à la flamme.";
     } else if (input.contains("café") || input.contains("coffee") || input.contains("caféier")) {
-      reply = "Jambo 👋🏾 ! À l'Est de la RDC, le caféier (Arabica/Robusta) a besoin d'un ombrage partiel et de paillage pour conserver l'humidité. Taillez régulièrement pour aérer l'arbre. Traitez le scolyte des baies du café à l'aide de pièges à alcool ou de solutions organiques à base de neem.";
+      reply = "À l'Est de la RDC, le caféier (Arabica/Robusta) a besoin d'un ombrage partiel et de paillage pour conserver l'humidité. Taillez régulièrement pour aérer l'arbre. Traitez le scolyte des baies du café à l'aide de pièges à alcool ou de solutions organiques à base de neem.";
     } else if (input.contains("haricot") || input.contains("bean") || input.contains("haricots")) {
-      reply = "Jambo 👋🏾 ! Les haricots s'associent parfaitement avec le maïs. Semez à 3-5 cm de profondeur, espacés de 10-15 cm. Ils enrichissent le sol en azote. Surveillez les pucerons et traitez-les avec du savon noir ou un extrait de neem.";
+      reply = "Les haricots s'associent parfaitement avec le maïs. Semez à 3-5 cm de profondeur, espacés de 10-15 cm. Ils enrichissent le sol en azote. Surveillez les pucerons et traitez-les avec du savon noir ou un extrait de neem.";
     } else if (input.contains("eau") || input.contains("irrigation") || input.contains("pluie") || input.contains("calendrier") || input.contains("water")) {
-      reply = "Jambo 👋🏾 ! Arrosez tôt le matin ou tard le soir. Le manioc craint l'excès d'eau stagnante. J'ai intégré votre calendrier d'irrigation local pour ajuster automatiquement les dates selon vos indications de pluie ou de sécheresse !";
+      reply = "Arrosez tôt le matin ou tard le soir. Le manioc craint l'excès d'eau stagnante. J'ai intégré votre calendrier d'irrigation local pour ajuster automatiquement les dates selon vos indications de pluie ou de sécheresse !";
     } else if (input.contains("ravageur") || input.contains("maladie") || input.contains("neem") || input.contains("pest") || input.contains("chenille") || input.contains("rouille")) {
-      reply = "Jambo 👋🏾 ! Pour un insecticide biologique : pilez 1 kg de feuilles ou graines de neem, laissez macérer dans 5 litres d'eau pendant 24h, filtrez, ajoutez une cuillère de savon de Marseille et pulvérisez. Cela élimine chenilles, criquets et pucerons de façon écologique.";
+      reply = "Pour un insecticide biologique : pilez 1 kg de feuilles ou graines de neem, laissez macérer dans 5 litres d'eau pendant 24h, filtrez, ajoutez une cuillère de savon de Marseille et pulvérisez. Cela élimine chenilles, criquets et pucerons de façon écologique.";
     } else if (input.contains("hello") || input.contains("hi") || input.contains("hey") || input.contains("jambo") || input.contains("bonjour")) {
-      reply = "Jambo 👋🏾 ! Je suis Gemmea, votre compagnon agronome hors ligne pour l'Est de la RDC. Posez-moi vos questions sur le manioc, le maïs, le café, la banane, le haricot, le calendrier d'irrigation ou les remèdes biologiques !";
+      reply = "Bonjour ! Je suis Gemmea, votre compagnon agronome hors ligne pour l'Est de la RDC. Posez-moi vos questions sur le manioc, le maïs, le café, la banane, le haricot, le calendrier d'irrigation ou les remèdes biologiques !";
     } else if (input.contains("merci") || input.contains("thank") || input.contains("thanks")) {
       reply = "Je vous en prie ! Que votre sol soit riche et votre récolte abondante. N'hésitez pas si vous avez d'autres questions sur vos cultures.";
     } else if (contextTopic != null) {
       if (contextTopic == "maïs") {
-        reply = "Jambo 👋🏾 ! Concernant votre champ de maïs : veillez à un désherbage régulier au cours des 4 premières semaines pour éviter la compétition en azote. N'hésitez pas si vous souhaitez aborder la fertilisation ou les ravageurs.";
+        reply = "Concernant votre champ de maïs : veillez à un désherbage régulier au cours des 4 premières semaines pour éviter la compétition en azote. Si vous observez des taches particulières sur les feuilles, décrivez-les moi !";
       } else if (contextTopic == "manioc") {
-        reply = "Jambo 👋🏾 ! Concernant votre culture de manioc : effectuez un buttat régulier au pied et veillez à utiliser des boutures certifiées FAO sans mosaïque.";
+        reply = "Concernant votre culture de manioc : effectuez un buttage régulier au pied et veillez à utiliser des boutures certifiées FAO sans mosaïque.";
       } else {
-        reply = "Jambo 👋🏾 ! Concernant votre culture : veillez à un arrosage régulier tôt le matin et à l'utilisation de paillage organique.";
+        reply = "Concernant votre culture : veillez à un arrosage régulier tôt le matin et à l'utilisation de paillage organique.";
       }
     } else {
-      reply = "Jambo 👋🏾 ! Je suis là pour vous accompagner. Précisez-moi simplement ce que vous souhaitez savoir sur votre culture (période de semis, fertilisation, traitement contre les ravageurs ou arrosage) !";
+      reply = "Je suis là pour vous accompagner. Précisez-moi simplement ce que vous souhaitez savoir sur votre culture (période de semis, fertilisation, traitement contre les ravageurs ou arrosage) !";
     }
 
     final words = reply.split(" ");
