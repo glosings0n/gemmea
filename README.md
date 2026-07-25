@@ -123,11 +123,11 @@ flutter run --release
 Bien que **Gemmea** soit pleinement fonctionnelle en mode 100% hors ligne, certaines limitations liées aux contraintes actuelles ont été identifiées :
 
 1. **Jeu de données visuel & Plante inconnue** :  
-   Gemma 4 VLM est un modèle multimodal généraliste qui n'a pas encore fait l'objet d'un **fine-tuning** ciblé sur les variétés de feuilles tropicales spécifiques à notre région (ex: cultivars locaux de manioc ou patate douce). Il peut donc arriver que Gemma qualifie certaines feuilles de *"Plante inconnue"* ou de culture générique. Un affinage (*fine-tuning*) sur un dataset spécialisé est prévu.
+   Gemma 4 VLM est un modèle multimodal généraliste qui n'a pas encore fait l'objet d'un **fine-tuning** ciblé sur les variétés de feuilles tropicales spécifiques à notre région (ex: cultivars locaux de manioc ou de patate douce). Il peut donc arriver que Gemma qualifie certaines feuilles de *"Plante inconnue"* ou de culture générique. Un affinage (*fine-tuning*) sur un dataset spécialisé est prévu.
 2. **Taille du contexte & Quantification sur mobile** :  
-   Pour garantir une exécution fluide sur des smartphones Android abordables (4 à 8 Go de RAM), nous utilisons la version quantifiée `gemma-4-E2B-it.litertlm`. En raison de la mémoire limitée sur mobile, il n'a pas encore été possible d'utiliser un modèle à plus large fenêtre de contexte (ex: Gemma 9B), ce qui peut parfois conduire à des réponses synthétiques ou légèrement tronquées pour les requêtes complexes.
+   Pour garantir une exécution fluide sur des smartphones Android abordables (4 à 8 Go de RAM), nous utilisons la version quantifiée `gemma-4-E2B-it.litertlm`. En raison de la mémoire limitée sur mobile, il n'a pas encore été possible d'utiliser un modèle à plus grande fenêtre de contexte (ex. : Gemma 9B), ce qui peut parfois conduire à des réponses synthétiques ou légèrement tronquées pour les requêtes complexes.
 3. **Localisation multilingue (Swahili, Lingala, Anglais)** :  
-   Par manque de temps durant le hackathon, le support natif complet de plusieurs langues (**Kiswahili**, **Lingala**, **Anglais**) au niveau de l'interface et des prompts n'a pas pu être totalement achevé (l'application fonctionne actuellement en Français principal avec termes swahili intégrés).
+   Par manque de temps durant le hackathon, le support natif complet de plusieurs langues (**Kiswahili**, **Lingala**, **Anglais**) au niveau de l'interface et des prompts n'a pas pu être totalement achevé (l'application fonctionne actuellement en Français principal avec des termes swahili intégrés).
 4. **Variabilité du temps de calcul CPU** :  
    Sur les appareils d'entrée de gamme dépourvus d'accélérateur NPU, l'analyse visuelle par le CPU prend environ 5 à 10 secondes.
 
@@ -138,13 +138,13 @@ Bien que **Gemmea** soit pleinement fonctionnelle en mode 100% hors ligne, certa
 * **Fine-Tuning de Gemma 4 VLM sur les cultures tropicales** : Affinage du modèle VLM sur une base de données annotée de maladies des plantes d'Afrique de l'Est (Manioc, Maïs, Bananier, Haricot) via QLoRA.
 * **Support Multilingue Intégral** : Prise en charge native du Kiswahili, du Lingala et de l'Anglais pour une adoption facile par tous les agriculteurs.
 * **Partage Hors Ligne entre Coopératives (Mesh/Bluetooth)** : Synchronisation des rapports sanitaires entre agriculteurs et responsables de coopératives via Bluetooth ou Wi-Fi Direct sans internet.
-* **Intégration de Capteurs IoT Bluetooth** : Connexion avec des capteurs d'humidité du sol et de pH pour déclencher des alertes d'irrigation autonomes via RAG.
+* **Intégration de capteurs IoT Bluetooth** : Connexion avec des capteurs d'humidité du sol et de pH pour déclencher des alertes d'irrigation autonomes via RAG.
 
 ---
 
 ## Confidentialité & Souveraineté des Données
 
-* **0% de requêtes réseau** : Aucune donnée utilisateur, aucune photo, aucun message de chat ne quitte le téléphone.
+* **0% de requêtes réseau** : Aucune donnée utilisateur, aucune photo, aucun message de chat ne quittent le téléphone.
 * **Respect total de la vie privée** : Traitement 100% sur l'appareil (*On-Device AI*).
 * **Opérationnel en zone blanche** : Fonctionne parfaitement au milieu d'un champ sans couverture réseau.
 
@@ -157,4 +157,4 @@ Bien que **Gemmea** soit pleinement fonctionnelle en mode 100% hors ligne, certa
 * **Localisation :** Bukavu, Sud-Kivu, République Démocratique du Congo  
 * **Événement :** Concours *Build with Gemma 2026* (GDG on Campus UCB)  
 * **Bio :** [https://linktr.ee/glosings0n](https://linktr.ee/glosings0n)  
-* **Vidéo Demo :** [https://github.com/glosings0n/gemmea](https://youtu.be/dPMXgOpZFEc)
+* **Vidéo démo :** [https://youtu.be/dPMXgOpZFEc](https://youtu.be/dPMXgOpZFEc)
