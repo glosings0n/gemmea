@@ -40,7 +40,9 @@ class _HomePageState extends State<HomePage> {
             if (state is HomeLoading) {
               return const Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryForestGreen),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppColors.primaryForestGreen,
+                  ),
                 ),
               );
             } else if (state is HomeError) {
@@ -50,26 +52,39 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const HugeIcon(icon: AppIcons.alert, color: AppColors.errorRed, size: AppSize.iconXl),
+                      const HugeIcon(
+                        icon: AppIcons.alert,
+                        color: AppColors.errorRed,
+                        size: AppSize.iconXl,
+                      ),
                       const SizedBox(height: AppSize.p16),
-                      Text("Error: ${state.error}", textAlign: TextAlign.center),
+                      Text(
+                        "Error: ${state.error}",
+                        textAlign: TextAlign.center,
+                      ),
                       const SizedBox(height: AppSize.p16),
                       ElevatedButton(
-                        onPressed: () => context.read<HomeCubit>().loadDashboard(),
-                        child: const Text("Retry"),
+                        onPressed: () =>
+                            context.read<HomeCubit>().loadDashboard(),
+                        child: const Text("Reessayer"),
                       ),
                     ],
                   ),
                 ),
               );
             } else if (state is HomeLoaded) {
-              final hasNew = state.diagnosticsHistory.any((d) => d.status == 'new');
+              final hasNew = state.diagnosticsHistory.any(
+                (d) => d.status == 'new',
+              );
 
               return Column(
+                spacing: AppSize.p12,
                 children: [
-                  // Fixed Non-scrollable Header Row: Jambo ! 👋🏾 on left, Action buttons on right aligned to top
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSize.p16, vertical: AppSize.p8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSize.p16,
+                      vertical: AppSize.p8,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,7 +107,7 @@ class _HomePageState extends State<HomePage> {
                                 "Votre ferme est entièrement protégée hors ligne.",
                                 style: TextStyle(
                                   fontFamily: 'Fredoka',
-                                  fontSize: 12.5,
+                                  fontSize: 12,
                                   color: AppColors.textGrey,
                                 ),
                               ),
@@ -108,8 +123,12 @@ class _HomePageState extends State<HomePage> {
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
                               onPressed: () async {
-                                final diags = state.diagnosticsHistory.map((d) => d.toMap()).toList();
-                                final events = state.calendarEvents.map((c) => c.toMap()).toList();
+                                final diags = state.diagnosticsHistory
+                                    .map((d) => d.toMap())
+                                    .toList();
+                                final events = state.calendarEvents
+                                    .map((c) => c.toMap())
+                                    .toList();
                                 await PDFReportService.printOrShareReport(
                                   diagnostics: diags,
                                   calendarEvents: events,
@@ -134,7 +153,8 @@ class _HomePageState extends State<HomePage> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const DiagnosticsHistoryPage(),
+                                        builder: (context) =>
+                                            const DiagnosticsHistoryPage(),
                                       ),
                                     );
                                   },
@@ -160,7 +180,9 @@ class _HomePageState extends State<HomePage> {
 
                   // Fixed Non-scrollable Metrics Grid
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSize.p16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSize.p16,
+                    ),
                     child: GridView.count(
                       crossAxisCount: 2,
                       shrinkWrap: true,
@@ -174,7 +196,9 @@ class _HomePageState extends State<HomePage> {
                           title: "Dernier Diagnostic",
                           emoji: "🔍",
                           value: state.lastDiagnostic != null
-                              ? state.lastDiagnostic!.disease.split('(')[0].trim()
+                              ? state.lastDiagnostic!.disease
+                                    .split('(')[0]
+                                    .trim()
                               : "Aucun scan effectué",
                           subtitle: state.lastDiagnostic != null
                               ? "${(state.lastDiagnostic!.confidence * 100).toInt()}% de confiance"
@@ -195,154 +219,175 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSize.p12),
 
                   // Scrollable Body Content (Starts at Reminders)
                   Expanded(
                     child: RefreshIndicator(
                       color: AppColors.primaryForestGreen,
-                      onRefresh: () => context.read<HomeCubit>().loadDashboard(),
+                      onRefresh: () =>
+                          context.read<HomeCubit>().loadDashboard(),
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSize.p16),
-                        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSize.p16,
+                        ),
+                        physics: const AlwaysScrollableScrollPhysics(
+                          parent: BouncingScrollPhysics(),
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: AppSize.p8),
 
-                    // Soil Reminders Card
-                    const Text(
-                      "Rappels du Sol",
-                      style: TextStyle(
-                        fontFamily: 'Fredoka',
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textCharcoal,
-                      ),
-                    ),
-                    const SizedBox(height: AppSize.p12),
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSize.p16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: state.soilReminders.map((reminder) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 6.0),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text("🌱 ", style: TextStyle(fontSize: 16)),
-                                  Expanded(
-                                    child: Text(
-                                      reminder,
-                                      style: const TextStyle(
-                                        fontFamily: 'Fredoka',
-                                        color: AppColors.textCharcoal,
-                                        fontSize: 14,
-                                        height: 1.4,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: AppSize.p24),
-
-                    // Water Timetable autonomous adjustments
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Calendrier d'Irrigation",
-                          style: TextStyle(
-                            fontFamily: 'Fredoka',
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textCharcoal,
-                          ),
-                        ),
-                        const Text(
-                          "Ajustement autonome actif",
-                          style: TextStyle(
-                            fontFamily: 'Fredoka',
-                            fontSize: 12,
-                            color: AppColors.secondaryMint,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSize.p12),
-                    ...state.calendarEvents.map((event) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: AppSize.p12),
-                        child: Card(
-                          child: ListTile(
-                            title: Text(
-                              event.title,
-                              style: const TextStyle(
+                            // Soil Reminders Card
+                            const Text(
+                              "Rappels du Sol",
+                              style: TextStyle(
                                 fontFamily: 'Fredoka',
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
+                                color: AppColors.textCharcoal,
                               ),
                             ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  event.description,
-                                  style: const TextStyle(fontFamily: 'Fredoka'),
+                            const SizedBox(height: AppSize.p12),
+                            Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(AppSize.p16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: state.soilReminders.map((reminder) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 6.0,
+                                      ),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            "🌱 ",
+                                            style: TextStyle(fontSize: 16),
+                                          ),
+                                          Expanded(
+                                            child: Text(
+                                              reminder,
+                                              style: const TextStyle(
+                                                fontFamily: 'Fredoka',
+                                                color: AppColors.textCharcoal,
+                                                fontSize: 14,
+                                                height: 1.4,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  "Date: ${_formatSlashDate(event.eventDate)}",
-                                  style: const TextStyle(
-                                    fontFamily: 'Fredoka',
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.textGrey,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
+                            const SizedBox(height: AppSize.p24),
+
+                            // Water Timetable autonomous adjustments
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Text(
-                                  "Pluie ",
+                                  "Calendrier d'Irrigation",
+                                  style: TextStyle(
+                                    fontFamily: 'Fredoka',
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textCharcoal,
+                                  ),
+                                ),
+                                const Text(
+                                  "Ajustement autonome actif",
                                   style: TextStyle(
                                     fontFamily: 'Fredoka',
                                     fontSize: 12,
+                                    color: AppColors.secondaryMint,
                                   ),
-                                ),
-                                Switch(
-                                  value: event.isRainy,
-                                  onChanged: (val) {
-                                    context.read<HomeCubit>().toggleRain(event.eventDate, val);
-                                  },
-                                  activeThumbColor: AppColors.primaryForestGreen,
                                 ),
                               ],
                             ),
-                          ),
+                            const SizedBox(height: AppSize.p12),
+                            ...state.calendarEvents.map((event) {
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                  bottom: AppSize.p12,
+                                ),
+                                child: Card(
+                                  child: ListTile(
+                                    title: Text(
+                                      event.title,
+                                      style: const TextStyle(
+                                        fontFamily: 'Fredoka',
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          event.description,
+                                          style: const TextStyle(
+                                            fontFamily: 'Fredoka',
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          "Date: ${_formatSlashDate(event.eventDate)}",
+                                          style: const TextStyle(
+                                            fontFamily: 'Fredoka',
+                                            fontWeight: FontWeight.w500,
+                                            color: AppColors.textGrey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text(
+                                          "Pluie ",
+                                          style: TextStyle(
+                                            fontFamily: 'Fredoka',
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        Switch(
+                                          value: event.isRainy,
+                                          onChanged: (val) {
+                                            context
+                                                .read<HomeCubit>()
+                                                .toggleRain(
+                                                  event.eventDate,
+                                                  val,
+                                                );
+                                          },
+                                          activeThumbColor:
+                                              AppColors.primaryForestGreen,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+                          ],
                         ),
-                      );
-                    }),
-                  ],
-                ),
                       ),
                     ),
                   ),
                 ],
               );
             }
-          return Container();
-        },
+            return Container();
+          },
+        ),
       ),
-    ),
-  );
+    );
   }
 
   Widget _buildMetricCard({
@@ -356,7 +401,10 @@ class _HomePageState extends State<HomePage> {
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(AppSize.r16),
-        border: Border.all(color: AppColors.primaryForestGreen.withValues(alpha: 0.1), width: 1),
+        border: Border.all(
+          color: AppColors.primaryForestGreen.withValues(alpha: 0.1),
+          width: 1,
+        ),
       ),
       padding: const EdgeInsets.all(AppSize.p12),
       child: Column(
@@ -395,10 +443,7 @@ class _HomePageState extends State<HomePage> {
                 subtitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: AppColors.textGrey,
-                ),
+                style: const TextStyle(fontSize: 11, color: AppColors.textGrey),
               ),
             ],
           ),
@@ -415,7 +460,8 @@ class _AnimatedDotBadge extends StatefulWidget {
   State<_AnimatedDotBadge> createState() => _AnimatedDotBadgeState();
 }
 
-class _AnimatedDotBadgeState extends State<_AnimatedDotBadge> with SingleTickerProviderStateMixin {
+class _AnimatedDotBadgeState extends State<_AnimatedDotBadge>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -446,7 +492,9 @@ class _AnimatedDotBadgeState extends State<_AnimatedDotBadge> with SingleTickerP
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Colors.redAccent.withValues(alpha: 0.6 * _controller.value),
+                color: Colors.redAccent.withValues(
+                  alpha: 0.6 * _controller.value,
+                ),
                 blurRadius: 5 * _controller.value,
                 spreadRadius: 2.5 * _controller.value,
               ),
