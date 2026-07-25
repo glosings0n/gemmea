@@ -88,4 +88,4 @@ Si vous souhaitez tester directement l'application sur votre smartphone Android 
 
 ---
 
-*Projet conçu et développé par [Georges Byona](https://lintr.ee/glosings0n) — Bukavu, RDC.*
+*Projet conçu et développé par [Georges Byona](https://linktr.ee/glosings0n) — Bukavu, RDC.*
