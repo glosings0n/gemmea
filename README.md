@@ -153,8 +153,7 @@ Bien que **Gemmea** soit pleinement fonctionnelle en mode 100% hors ligne, certa
 ### À propos de l'Auteur
 
 * **Développeur :** Georges Byona  
-* **Rôle :** Software Engineer  
-* **Localisation :** Bukavu, Sud-Kivu, République Démocratique du Congo  
+* **Rôle :** Software Engineer
 * **Événement :** Concours *Build with Gemma 2026* (GDG on Campus UCB)  
 * **Bio :** [https://linktr.ee/glosings0n](https://linktr.ee/glosings0n)  
 * **Vidéo démo :** [https://youtu.be/dPMXgOpZFEc](https://youtu.be/dPMXgOpZFEc)
