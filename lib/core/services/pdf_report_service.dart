@@ -186,7 +186,6 @@ class PDFReportService {
       }
 
       final primaryColor = PdfColor.fromHex('#1B4324');
-      final secondaryColor = PdfColor.fromHex('#2E7D32');
       final accentColor = PdfColor.fromHex('#FBC02D');
       final grayColor = PdfColor.fromHex('#666666');
 
@@ -251,38 +250,39 @@ class PDFReportService {
                   ],
                 ),
               ),
-              pw.SizedBox(height: 16),
+              pw.SizedBox(height: 12),
 
               // Metadata Row
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Text('Localisation: $farmerLocation', style: pw.TextStyle(color: grayColor, fontSize: 10)),
-                  pw.Text('Généré $nowFormatted', style: pw.TextStyle(color: grayColor, fontSize: 10)),
+                  pw.Text('Localisation: $farmerLocation', style: pw.TextStyle(color: grayColor, fontSize: 8)),
+                  pw.Text('Généré $nowFormatted', style: pw.TextStyle(color: grayColor, fontSize: 8)),
                 ],
               ),
+              pw.SizedBox(height: 4),
               pw.Divider(thickness: 1, color: PdfColors.grey300),
               pw.SizedBox(height: 12),
 
               // Section 1: Executive Summary
               pw.Text(
                 '1. Synthèse de Productivité & Triage Sanitaire',
-                style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: secondaryColor),
+                style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: primaryColor),
               ),
               pw.SizedBox(height: 8),
               pw.Container(
                 padding: const pw.EdgeInsets.all(12),
                 decoration: pw.BoxDecoration(
-                  color: PdfColor.fromHex('#F6F8F5'),
+                  color: PdfColor.fromHex('#F4F6F4'),
                   borderRadius: pw.BorderRadius.circular(6),
                   border: pw.Border.all(color: PdfColors.grey300),
                 ),
                 child: pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStatItem('Diagnostics Effectués', '${diagnostics.length}'),
-                    _buildStatItem('Alertes Actives', '${diagnostics.where((d) => d['status'] == 'new').length}'),
-                    _buildStatItem('Cycles d\'Irrigation', '${calendarEvents.length}'),
+                    _buildStatItem('Diagnostics Effectués', '${diagnostics.length}', primaryColor),
+                    _buildStatItem('Alertes Actives', '${diagnostics.where((d) => d['status'] == 'new').length}', primaryColor),
+                    _buildStatItem('Cycles d\'Irrigation', '${calendarEvents.length}', primaryColor),
                   ],
                 ),
               ),
@@ -352,7 +352,7 @@ class PDFReportService {
                     ];
                   }).toList(),
                   headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 9),
-                  headerDecoration: pw.BoxDecoration(color: secondaryColor),
+                  headerDecoration: pw.BoxDecoration(color: primaryColor),
                   cellStyle: const pw.TextStyle(fontSize: 8),
                   cellPadding: const pw.EdgeInsets.all(6),
                 ),
@@ -383,12 +383,12 @@ class PDFReportService {
     }
   }
 
-  static pw.Widget _buildStatItem(String label, String value) {
+  static pw.Widget _buildStatItem(String label, String value, PdfColor primaryColor) {
     return pw.Column(
       children: [
         pw.Text(
           value,
-          style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColor.fromHex('#1B4324')),
+          style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: primaryColor),
         ),
         pw.SizedBox(height: 2),
         pw.Text(
