@@ -38,24 +38,28 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
   }
 
   void _executeCropScan(File imageFile) {
+    final screenHeight = MediaQuery.of(context).size.height;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (modalContext) => Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.85,
-        ),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: BlocProvider(
-          create: (_) => ScanCubit(GemmaLocalSourceImpl())..analyzeCrop(imageFile),
-          child: SafeArea(
+      builder: (modalContext) => MediaQuery.removeViewInsets(
+        context: modalContext,
+        removeBottom: true,
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: screenHeight * 0.85,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: BlocProvider(
+            create: (_) => ScanCubit(GemmaLocalSourceImpl())..analyzeCrop(imageFile),
             child: ScanResultModal(capturedImage: imageFile),
           ),
         ),
