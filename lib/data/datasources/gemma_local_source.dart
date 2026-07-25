@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_gemma/flutter_gemma.dart';
 import 'package:flutter_gemma_litertlm/flutter_gemma_litertlm.dart';
+import 'package:image/image.dart' as img;
 
 abstract class GemmaLocalSource {
   Future<String> evaluateCropImage(File imageFile, String prompt);
@@ -34,10 +35,30 @@ class GemmaLocalSourceImpl implements GemmaLocalSource {
       }
 
       dev.log("Reading image bytes for evaluation: ${imageFile.path}", name: 'GEMMA_LOCAL_SOURCE');
-      final Uint8List imageBytes = await imageFile.readAsBytes();
+      Uint8List imageBytes = await imageFile.readAsBytes();
 
       if (imageBytes.isEmpty) {
         throw Exception("L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture.");
+      }
+
+      // Preprocess image bytes to fit Gemma VLM patch/tensor dimensions safely (max 384x384)
+      try {
+        final img.Image? decoded = img.decodeImage(imageBytes);
+        if (decoded != null) {
+          const int maxDim = 384;
+          if (decoded.width > maxDim || decoded.height > maxDim) {
+            final img.Image resized = img.copyResize(
+              decoded,
+              width: decoded.width >= decoded.height ? maxDim : null,
+              height: decoded.height > decoded.width ? maxDim : null,
+              interpolation: img.Interpolation.linear,
+            );
+            imageBytes = Uint8List.fromList(img.encodeJpg(resized, quality: 85));
+            dev.log("Preprocessed and resized image to ${resized.width}x${resized.height} (${imageBytes.length} bytes) for Gemma VLM", name: 'GEMMA_LOCAL_SOURCE');
+          }
+        }
+      } catch (e) {
+        dev.log("Image preprocessing note: $e", name: 'GEMMA_LOCAL_SOURCE');
       }
 
       InferenceModel model;
@@ -57,7 +78,7 @@ class GemmaLocalSourceImpl implements GemmaLocalSource {
       }
       final session = await model.createSession();
       
-      // Send raw image bytes to Gemma VLM engine with agronomy evaluation prompt
+      // Send preprocessed image bytes to Gemma VLM engine with agronomy evaluation prompt
       await session.addQueryChunk(
         Message.withImage(
           text: "Look closely at this image. Is this a crop leaf? If yes, diagnose any visible plant disease, identify the crop, and provide localized organic remedies. If it is NOT a crop leaf or not a plant, reply strictly 'NOT_A_LEAF'. Prompt: $prompt",

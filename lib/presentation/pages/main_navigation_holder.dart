@@ -73,9 +73,9 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
     try {
       image = await picker.pickImage(
         source: ImageSource.camera,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 80,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
       );
     } catch (e) {
       if (!mounted) return;
