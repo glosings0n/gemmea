@@ -44,6 +44,124 @@ class PDFReportService {
         .trim();
   }
 
+  static String _extractCropName(Map<String, dynamic> d) {
+    final rawCrop = d['crop_name']?.toString() ?? '';
+    if (rawCrop.isNotEmpty && !rawCrop.toLowerCase().contains('inconnu')) {
+      return rawCrop;
+    }
+
+    final disease = (d['disease']?.toString() ?? '').toLowerCase();
+    final remedy = (d['remedy']?.toString() ?? '').toLowerCase();
+    final combined = "$disease $remedy";
+
+    if (combined.contains('manioc') || combined.contains('cassava')) return 'Manioc';
+    if (combined.contains('maïs') || combined.contains('mais') || combined.contains('maize') || combined.contains('corn')) return 'Maïs';
+    if (combined.contains('haricot') || combined.contains('bean')) return 'Haricot';
+    if (combined.contains('banan') || combined.contains('banana')) return 'Banane';
+    if (combined.contains('tomate') || combined.contains('tomato')) return 'Tomate';
+    if (combined.contains('café') || combined.contains('coffee')) return 'Café';
+    if (combined.contains('patate')) return 'Patate Douce';
+    if (combined.contains('riz') || combined.contains('rice')) return 'Riz';
+    if (combined.contains('piment') || combined.contains('poivron')) return 'Piment';
+    if (combined.contains('soja')) return 'Soja';
+    if (combined.contains('arachide')) return 'Arachide';
+    if (combined.contains('cacao')) return 'Cacao';
+
+    return 'Plante / Feuille';
+  }
+
+  static pw.Widget _parseMarkdownToPdfWidget(
+    String text, {
+    double fontSize = 7.5,
+    PdfColor color = PdfColors.black,
+  }) {
+    final lines = text.trim().split('\n');
+    final List<pw.Widget> widgets = [];
+
+    for (final line in lines) {
+      final trimmed = line.trim();
+      if (trimmed.isEmpty) continue;
+
+      if (trimmed.startsWith('#')) {
+        final headerText = trimmed.replaceAll(RegExp(r'^#+\s*'), '');
+        widgets.add(
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(top: 2, bottom: 2),
+            child: pw.Text(
+              headerText,
+              style: pw.TextStyle(
+                fontSize: fontSize + 1.0,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColor.fromHex('#1B4324'),
+              ),
+            ),
+          ),
+        );
+        continue;
+      }
+
+      bool isBullet = false;
+      String contentLine = trimmed;
+      if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+        isBullet = true;
+        contentLine = trimmed.substring(2).trim();
+      }
+
+      final List<pw.InlineSpan> spans = [];
+      if (isBullet) {
+        spans.add(pw.TextSpan(
+          text: '• ',
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: fontSize, color: color),
+        ));
+      }
+
+      final RegExp regex = RegExp(r'(\*\*.*?\*\*|__.*?__|[^*_]+)');
+      final matches = regex.allMatches(contentLine);
+
+      for (final match in matches) {
+        final matchText = match.group(0) ?? '';
+        if ((matchText.startsWith('**') && matchText.endsWith('**')) ||
+            (matchText.startsWith('__') && matchText.endsWith('__'))) {
+          final clean = matchText.substring(2, matchText.length - 2);
+          spans.add(pw.TextSpan(
+            text: clean,
+            style: pw.TextStyle(
+              fontWeight: pw.FontWeight.bold,
+              fontSize: fontSize,
+              color: color,
+            ),
+          ));
+        } else {
+          spans.add(pw.TextSpan(
+            text: matchText,
+            style: pw.TextStyle(
+              fontSize: fontSize,
+              color: color,
+            ),
+          ));
+        }
+      }
+
+      widgets.add(
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: 2),
+          child: pw.RichText(
+            text: pw.TextSpan(children: spans),
+          ),
+        ),
+      );
+    }
+
+    if (widgets.isEmpty) {
+      return pw.Text(text, style: pw.TextStyle(fontSize: fontSize, color: color));
+    }
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: widgets,
+    );
+  }
+
   static Future<Uint8List> generateFarmDiagnosticReport({
     required List<Map<String, dynamic>> diagnostics,
     required List<Map<String, dynamic>> calendarEvents,
@@ -191,11 +309,11 @@ class PDFReportService {
                   data: diagnostics.map((d) {
                     final confidence = (d['confidence'] as double? ?? 0.0) * 100;
                     return [
-                      d['crop_name'] ?? 'Inconnu',
+                      _extractCropName(d),
                       d['disease'] ?? 'Sain',
                       '${confidence.toStringAsFixed(0)}%',
                       d['status'] == 'new' ? 'Alerte' : 'Traité',
-                      _cleanMarkdown(d['remedy'] ?? 'Aucun'),
+                      _parseMarkdownToPdfWidget(d['remedy'] ?? 'Aucun'),
                     ];
                   }).toList(),
                   headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 9),

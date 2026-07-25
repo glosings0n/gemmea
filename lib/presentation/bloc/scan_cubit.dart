@@ -73,13 +73,13 @@ class ScanCubit extends Cubit<ScanState> {
       }
 
       // Extract details dynamically from local Gemma response
-      String cropName = "Culture Inconnue";
-      String disease = "Diagnostics Spécifique";
+      String cropName = "Plante / Feuille";
+      String disease = "Diagnostic Agronomique";
       String remedy = diagnosticResult;
 
       if (textLower.contains("manioc") || textLower.contains("cassava")) {
         cropName = "Manioc";
-      } else if (textLower.contains("maïs") || textLower.contains("maize") || textLower.contains("corn")) {
+      } else if (textLower.contains("maïs") || textLower.contains("mais") || textLower.contains("maize") || textLower.contains("corn")) {
         cropName = "Maïs";
       } else if (textLower.contains("haricot") || textLower.contains("bean") || textLower.contains("cowpea")) {
         cropName = "Haricot";
@@ -87,8 +87,24 @@ class ScanCubit extends Cubit<ScanState> {
         cropName = "Banane";
       } else if (textLower.contains("café") || textLower.contains("coffee")) {
         cropName = "Café";
-      } else if (textLower.contains("patate douce") || textLower.contains("sweet potato")) {
+      } else if (textLower.contains("patate douce") || textLower.contains("sweet potato") || textLower.contains("patate")) {
         cropName = "Patate Douce";
+      } else if (textLower.contains("tomate") || textLower.contains("tomato")) {
+        cropName = "Tomate";
+      } else if (textLower.contains("piment") || textLower.contains("poivron") || textLower.contains("pepper")) {
+        cropName = "Piment";
+      } else if (textLower.contains("riz") || textLower.contains("rice")) {
+        cropName = "Riz";
+      } else if (textLower.contains("soja") || textLower.contains("soybean")) {
+        cropName = "Soja";
+      } else if (textLower.contains("pomme de terre") || textLower.contains("potato")) {
+        cropName = "Pomme de Terre";
+      } else if (textLower.contains("sorgho") || textLower.contains("sorghum")) {
+        cropName = "Sorgho";
+      } else if (textLower.contains("arachide") || textLower.contains("peanut")) {
+        cropName = "Arachide";
+      } else if (textLower.contains("cacao") || textLower.contains("cocoa")) {
+        cropName = "Cacao";
       }
 
       if (textLower.contains("mosaïque") || textLower.contains("mosaic")) {
