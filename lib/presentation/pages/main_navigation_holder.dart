@@ -223,88 +223,87 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
         surfaceTintColor: Colors.transparent,
         elevation: 12,
         shadowColor: Colors.black.withValues(alpha: 0.15),
-        child: Container(
-          height: 60,
-          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+        padding: EdgeInsets.zero,
+        child: SizedBox(
+          height: 64,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              // Tab 1: Home Dashboard Button
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _currentIndex = 0;
-                  });
-                },
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedHome03,
-                      color: _currentIndex == 0 ? AppTheme.primaryForestGreen : AppTheme.textGrey,
-                      size: 24.0,
-                    ),
-                    if (_currentIndex == 0) ...[
-                      const SizedBox(height: 4),
-                      const Text(
+              // Tab 1: Home Dashboard Button (Expanded clickable zone)
+              Expanded(
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      _currentIndex = 0;
+                    });
+                  },
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedHome03,
+                        color: _currentIndex == 0 ? AppTheme.primaryForestGreen : AppTheme.textGrey,
+                        size: 26.0,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
                         "Accueil",
                         style: TextStyle(
                           fontFamily: 'Fredoka',
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryForestGreen,
+                          fontSize: 12,
+                          fontWeight: _currentIndex == 0 ? FontWeight.bold : FontWeight.w500,
+                          color: _currentIndex == 0 ? AppTheme.primaryForestGreen : AppTheme.textGrey,
                         ),
                       ),
                     ],
-                  ],
+                  ),
                 ),
               ),
 
-              // Tab 2: Scan Leaf Action (integrated in Nav bar)
+              // Tab 2: Scan Leaf Action (Center floating button)
               GestureDetector(
                 onTap: _triggerCropScan,
                 child: Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryForestGreen.withValues(alpha: 0.1),
+                    color: AppTheme.primaryForestGreen.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: const HugeIcon(
                     icon: HugeIcons.strokeRoundedCamera01,
                     color: AppTheme.primaryForestGreen,
-                    size: 24.0,
+                    size: 26.0,
                   ),
                 ),
               ),
 
-              // Tab 3: Chat Assistant Button
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _currentIndex = 1;
-                  });
-                },
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    HugeIcon(
-                      icon: HugeIcons.strokeRoundedComment01,
-                      color: _currentIndex == 1 ? AppTheme.primaryForestGreen : AppTheme.textGrey,
-                      size: 24.0,
-                    ),
-                    if (_currentIndex == 1) ...[
-                      const SizedBox(height: 4),
-                      const Text(
+              // Tab 3: Chat Assistant Button (Expanded clickable zone)
+              Expanded(
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      _currentIndex = 1;
+                    });
+                  },
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedComment01,
+                        color: _currentIndex == 1 ? AppTheme.primaryForestGreen : AppTheme.textGrey,
+                        size: 26.0,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
                         "Gemmea",
                         style: TextStyle(
                           fontFamily: 'Fredoka',
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryForestGreen,
+                          fontSize: 12,
+                          fontWeight: _currentIndex == 1 ? FontWeight.bold : FontWeight.w500,
+                          color: _currentIndex == 1 ? AppTheme.primaryForestGreen : AppTheme.textGrey,
                         ),
                       ),
                     ],
-                  ],
+                  ),
                 ),
               ),
             ],

@@ -147,9 +147,9 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Welcome Farmer greeting
+                    // Welcome greeting
                     const Text(
-                      "Jambo, Agriculteur ! 👋🏾",
+                      "Jambo ! 👋🏾",
                       style: TextStyle(
                         fontFamily: 'Fredoka',
                         fontSize: 24,
