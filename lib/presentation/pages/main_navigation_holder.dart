@@ -75,7 +75,12 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
     final picker = ImagePicker();
     XFile? image;
     try {
-      image = await picker.pickImage(source: ImageSource.camera, imageQuality: 85);
+      image = await picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 80,
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
