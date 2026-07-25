@@ -73,27 +73,31 @@ class PDFReportService {
     return 'Plante / Feuille';
   }
 
-  static pw.Widget _parseMarkdownToPdfWidget(
+  static List<pw.Widget> _parseMarkdownToPdfWidgets(
     String text, {
     double fontSize = 7.5,
     PdfColor color = PdfColors.black,
   }) {
-    final lines = text.trim().split('\n');
+    final sanitized = TextSanitizer.cleanLatexAndFormatting(text);
+    final lines = sanitized.trim().split('\n');
     final List<pw.Widget> widgets = [];
 
     for (final line in lines) {
       final trimmed = line.trim();
-      if (trimmed.isEmpty) continue;
+      if (trimmed.isEmpty) {
+        widgets.add(pw.SizedBox(height: 2));
+        continue;
+      }
 
       if (trimmed.startsWith('#')) {
         final headerText = trimmed.replaceAll(RegExp(r'^#+\s*'), '');
         widgets.add(
           pw.Padding(
-            padding: const pw.EdgeInsets.only(top: 2, bottom: 2),
+            padding: const pw.EdgeInsets.only(top: 4, bottom: 2),
             child: pw.Text(
               headerText,
               style: pw.TextStyle(
-                fontSize: fontSize + 1.0,
+                fontSize: fontSize + 1.5,
                 fontWeight: pw.FontWeight.bold,
                 color: PdfColor.fromHex('#1B4324'),
               ),
@@ -114,7 +118,11 @@ class PDFReportService {
       if (isBullet) {
         spans.add(pw.TextSpan(
           text: '• ',
-          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: fontSize, color: color),
+          style: pw.TextStyle(
+            fontWeight: pw.FontWeight.bold,
+            fontSize: fontSize,
+            color: PdfColor.fromHex('#1B4324'),
+          ),
         ));
       }
 
@@ -147,7 +155,7 @@ class PDFReportService {
 
       widgets.add(
         pw.Padding(
-          padding: const pw.EdgeInsets.only(bottom: 2),
+          padding: const pw.EdgeInsets.only(bottom: 2.5),
           child: pw.RichText(
             text: pw.TextSpan(children: spans),
           ),
@@ -156,13 +164,10 @@ class PDFReportService {
     }
 
     if (widgets.isEmpty) {
-      return pw.Text(text, style: pw.TextStyle(fontSize: fontSize, color: color));
+      return [pw.Text(text, style: pw.TextStyle(fontSize: fontSize, color: color))];
     }
 
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: widgets,
-    );
+    return widgets;
   }
 
   static Future<Uint8List> generateFarmDiagnosticReport({
@@ -331,42 +336,39 @@ class PDFReportService {
                 pw.SizedBox(height: 12),
 
                 // Detailed Protocol Cards (Flowing line-by-line across pages)
-                ...diagnostics.map((d) {
+                ...diagnostics.expand((d) {
                   final cropName = _extractCropName(d);
                   final disease = d['disease'] ?? 'Sain';
                   final remedy = d['remedy'] ?? '';
 
-                  return pw.Container(
-                    margin: const pw.EdgeInsets.only(bottom: 10),
-                    padding: const pw.EdgeInsets.all(10),
-                    decoration: pw.BoxDecoration(
-                      color: PdfColor.fromHex('#FAFAFA'),
-                      borderRadius: pw.BorderRadius.circular(6),
-                      border: pw.Border.all(color: PdfColors.grey300),
+                  return [
+                    pw.SizedBox(height: 8),
+                    pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                      decoration: pw.BoxDecoration(
+                        color: PdfColor.fromHex('#E8F5E9'),
+                        borderRadius: pw.BorderRadius.circular(4),
+                        border: pw.Border.all(color: PdfColor.fromHex('#A5D6A7')),
+                      ),
+                      child: pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Text(
+                            'Fiche Médicale Détaillée : $cropName - $disease',
+                            style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: primaryColor),
+                          ),
+                          pw.Text(
+                            d['status'] == 'new' ? 'Alerte Active' : 'Traité',
+                            style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: primaryColor),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Row(
-                          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                          children: [
-                            pw.Text(
-                              'Fiche Médicale Détaillée : $cropName - $disease',
-                              style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: primaryColor),
-                            ),
-                            pw.Text(
-                              d['status'] == 'new' ? 'Alerte Active' : 'Traité',
-                              style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: primaryColor),
-                            ),
-                          ],
-                        ),
-                        pw.SizedBox(height: 4),
-                        pw.Divider(thickness: 0.5, color: PdfColors.grey300),
-                        pw.SizedBox(height: 4),
-                        _parseMarkdownToPdfWidget(remedy, fontSize: 8),
-                      ],
-                    ),
-                  );
+                    pw.SizedBox(height: 4),
+                    ..._parseMarkdownToPdfWidgets(remedy, fontSize: 8),
+                    pw.SizedBox(height: 6),
+                    pw.Divider(thickness: 0.5, color: PdfColors.grey300),
+                  ];
                 }),
               ],
 
@@ -710,20 +712,29 @@ class PDFReportService {
               pw.SizedBox(height: 16),
 
               // Detailed Protocol Section
-              pw.Text(
-                'Actions Correctives & Traitement Recommandé (FAO / IITA)',
-                style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: primaryColor),
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: pw.BoxDecoration(
+                  color: PdfColor.fromHex('#E8F5E9'),
+                  borderRadius: pw.BorderRadius.circular(4),
+                  border: pw.Border.all(color: PdfColor.fromHex('#A5D6A7')),
+                ),
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(
+                      'Actions Correctives & Traitement Recommandé (FAO / IITA)',
+                      style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: primaryColor),
+                    ),
+                    pw.Text(
+                      '100% Hors-Ligne',
+                      style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: primaryColor),
+                    ),
+                  ],
+                ),
               ),
               pw.SizedBox(height: 8),
-              pw.Container(
-                padding: const pw.EdgeInsets.all(12),
-                decoration: pw.BoxDecoration(
-                  color: PdfColor.fromHex('#FAFAFA'),
-                  borderRadius: pw.BorderRadius.circular(6),
-                  border: pw.Border.all(color: PdfColors.grey300),
-                ),
-                child: _parseMarkdownToPdfWidget(remedy, fontSize: 8.5),
-              ),
+              ..._parseMarkdownToPdfWidgets(remedy, fontSize: 8.5),
 
               pw.SizedBox(height: 24),
               pw.Divider(thickness: 1, color: PdfColors.grey300),
