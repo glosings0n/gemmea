@@ -59,7 +59,7 @@ class _HomePageState extends State<HomePage> {
                     await PDFReportService.printOrShareReport(
                       diagnostics: diags,
                       calendarEvents: events,
-                      farmerLocation: 'Goma, Nord-Kivu, RDC',
+                      farmerLocation: 'Bukavu, Sud-Kivu, RDC',
                     );
                   },
                   icon: const HugeIcon(

@@ -1,28 +1,69 @@
 import 'dart:developer' as dev;
 import 'dart:typed_data';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 class PDFReportService {
+  static String _formatFrenchDate(String dateStr, {bool includeTime = false}) {
+    try {
+      final dt = DateTime.parse(dateStr);
+      final months = [
+        'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+        'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+      ];
+      final monthName = months[dt.month - 1];
+      final dateFormatted = "${dt.day} $monthName ${dt.year}";
+      if (includeTime) {
+        final hour = dt.hour.toString().padLeft(2, '0');
+        final minute = dt.minute.toString().padLeft(2, '0');
+        return "le $dateFormatted à $hour:$minute";
+      }
+      return dateFormatted;
+    } catch (_) {
+      return dateStr;
+    }
+  }
+
   static Future<Uint8List> generateFarmDiagnosticReport({
     required List<Map<String, dynamic>> diagnostics,
     required List<Map<String, dynamic>> calendarEvents,
-    required String farmerLocation,
+    String farmerLocation = 'Bukavu, Sud-Kivu, RDC',
   }) async {
     try {
       dev.log("Generating PDF farm diagnostic report...", name: 'PDF_REPORT_SERVICE');
       final pdf = pw.Document();
+
+      pw.Font? fontRegular;
+      pw.Font? fontBold;
+
+      try {
+        final fontDataRegular = await rootBundle.load('assets/fonts/Fredoka-Regular.ttf');
+        final fontDataBold = await rootBundle.load('assets/fonts/Fredoka-Bold.ttf');
+        fontRegular = pw.Font.ttf(fontDataRegular);
+        fontBold = pw.Font.ttf(fontDataBold);
+      } catch (e) {
+        dev.log("Fredoka font load note, falling back to Georgia: $e", name: 'PDF_REPORT_SERVICE');
+        fontRegular = pw.Font.helvetica();
+        fontBold = pw.Font.helveticaBold();
+      }
 
       final primaryColor = PdfColor.fromHex('#1B4324');
       final secondaryColor = PdfColor.fromHex('#2E7D32');
       final accentColor = PdfColor.fromHex('#FBC02D');
       final grayColor = PdfColor.fromHex('#666666');
 
+      final nowFormatted = _formatFrenchDate(DateTime.now().toIso8601String(), includeTime: true);
+
       pdf.addPage(
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
           margin: const pw.EdgeInsets.all(32),
+          theme: pw.ThemeData.withFont(
+            base: fontRegular,
+            bold: fontBold,
+          ),
           build: (pw.Context context) {
             return [
               // Header
@@ -39,10 +80,10 @@ class PDFReportService {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text(
-                          'GEMMEA - RAPPORT DE PRODUCTIVITÉ AGRICOLE',
+                          'Gemmea - Rapport de Productivité Agricole',
                           style: pw.TextStyle(
                             color: PdfColors.white,
-                            fontSize: 16,
+                            fontSize: 15,
                             fontWeight: pw.FontWeight.bold,
                           ),
                         ),
@@ -81,7 +122,7 @@ class PDFReportService {
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text('Localisation: $farmerLocation', style: pw.TextStyle(color: grayColor, fontSize: 10)),
-                  pw.Text('Généré le: ${DateTime.now().toString().split('.')[0]}', style: pw.TextStyle(color: grayColor, fontSize: 10)),
+                  pw.Text('Généré $nowFormatted', style: pw.TextStyle(color: grayColor, fontSize: 10)),
                 ],
               ),
               pw.Divider(thickness: 1, color: PdfColors.grey300),
@@ -152,8 +193,10 @@ class PDFReportService {
                 pw.TableHelper.fromTextArray(
                   headers: ['Date', 'Tâche / Intervention', 'Pluie Détectée', 'Instructions'],
                   data: calendarEvents.map((c) {
+                    final rawDate = c['event_date'] ?? '';
+                    final frenchDate = _formatFrenchDate(rawDate);
                     return [
-                      c['event_date'] ?? '',
+                      frenchDate,
                       c['title'] ?? '',
                       c['is_rainy'] == 1 ? 'Oui (Pause)' : 'Non (Actif)',
                       c['description'] ?? '',
@@ -174,7 +217,7 @@ class PDFReportService {
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text('Ancré dans les guides officiels FAO & IITA East Africa', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
-                  pw.Text('Propulsé par Google Gemma 2B IT & Gemma 4 E2B', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: primaryColor)),
+                  pw.Text('Propulsé par Gemmea', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: primaryColor)),
                 ],
               ),
             ];
@@ -210,7 +253,7 @@ class PDFReportService {
   static Future<void> printOrShareReport({
     required List<Map<String, dynamic>> diagnostics,
     required List<Map<String, dynamic>> calendarEvents,
-    required String farmerLocation,
+    String farmerLocation = 'Bukavu, Sud-Kivu, RDC',
   }) async {
     try {
       dev.log("Printing/sharing PDF report...", name: 'PDF_REPORT_SERVICE');
