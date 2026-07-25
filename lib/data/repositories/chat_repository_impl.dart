@@ -308,7 +308,11 @@ Utilise ces données FAO et cet historique pour fournir des conseils directs, pr
   List<Message> _getRecentHistoryWindow(List<Message>? history) {
     if (history == null || history.length <= 1) return [];
     final validHistory = history
-        .where((m) => m.text.trim().isNotEmpty && !m.text.startsWith("Toutes mes excuses") && !m.text.startsWith("Je ne peux pas"))
+        .where((m) =>
+            m.text.trim().isNotEmpty &&
+            !m.text.startsWith("Jambo 👋🏾") &&
+            !m.text.startsWith("Toutes mes excuses") &&
+            !m.text.startsWith("Je ne peux pas"))
         .toList();
     if (validHistory.length <= 1) return [];
     
@@ -325,10 +329,11 @@ Utilise ces données FAO et cet historique pour fournir des conseils directs, pr
     String reply = "";
     final input = text.toLowerCase();
 
-    // Contextual topic extraction from past messages
+    // Contextual topic extraction strictly from past USER messages (excluding welcome messages)
     String? contextTopic;
     if (history != null && history.isNotEmpty) {
       for (final msg in history.reversed) {
+        if (!msg.isUser) continue; // Only analyze user messages for context
         final prevText = msg.text.toLowerCase();
         if (prevText.contains("maïs") || prevText.contains("corn") || prevText.contains("maize")) {
           contextTopic = "maïs";
@@ -352,6 +357,17 @@ Utilise ces données FAO et cet historique pour fournir des conseils directs, pr
       }
     }
 
+    final isGreeting = input.contains("hello") ||
+        input.contains("hi") ||
+        input.contains("hey") ||
+        input.contains("jambo") ||
+        input.contains("bonjour") ||
+        input.contains("salut") ||
+        input.contains("coucou") ||
+        input.contains("bonsoir") ||
+        input.contains("slt") ||
+        input.contains("cc");
+
     final isFollowUpRequest = input.contains("dire plus") ||
         input.contains("détail") ||
         input.contains("explicite") ||
@@ -367,7 +383,9 @@ Utilise ces données FAO et cet historique pour fournir des conseils directs, pr
         input.contains("si ce n'est pas") ||
         input.contains("pas cette");
 
-    if (isFollowUpRequest && contextTopic != null) {
+    if (isGreeting) {
+      reply = "Bonjour ! Je suis Gemmea, votre compagnon agronome hors ligne. Posez-moi vos questions sur le manioc, le maïs, le café, la banane, le haricot, le calendrier d'irrigation ou les remèdes biologiques !";
+    } else if (isFollowUpRequest && contextTopic != null) {
       if (contextTopic == "maïs") {
         reply = "Voici des précisions agronomiques approfondies pour réussir votre culture de maïs :\n\n"
             "1. **Densité & Semis** : Semez 1 à 2 graines par poquet à 3-5 cm de profondeur. Gardez 75 cm entre les lignes et 25 cm entre les poquets pour permettre un bon développement des épis.\n\n"
@@ -415,8 +433,6 @@ Utilise ces données FAO et cet historique pour fournir des conseils directs, pr
       reply = "Arrosez tôt le matin ou tard le soir. Le manioc craint l'excès d'eau stagnante. J'ai intégré votre calendrier d'irrigation local pour ajuster automatiquement les dates selon vos indications de pluie ou de sécheresse !";
     } else if (input.contains("ravageur") || input.contains("maladie") || input.contains("neem") || input.contains("pest") || input.contains("chenille") || input.contains("rouille")) {
       reply = "Pour un insecticide biologique : pilez 1 kg de feuilles ou graines de neem, laissez macérer dans 5 litres d'eau pendant 24h, filtrez, ajoutez une cuillère de savon de Marseille et pulvérisez. Cela élimine chenilles, criquets et pucerons de façon écologique.";
-    } else if (input.contains("hello") || input.contains("hi") || input.contains("hey") || input.contains("jambo") || input.contains("bonjour")) {
-      reply = "Bonjour ! Je suis Gemmea, votre compagnon agronome hors ligne pour l'Est de la RDC. Posez-moi vos questions sur le manioc, le maïs, le café, la banane, le haricot, le calendrier d'irrigation ou les remèdes biologiques !";
     } else if (input.contains("merci") || input.contains("thank") || input.contains("thanks")) {
       reply = "Je vous en prie ! Que votre sol soit riche et votre récolte abondante. N'hésitez pas si vous avez d'autres questions sur vos cultures.";
     } else if (contextTopic != null) {
