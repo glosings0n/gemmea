@@ -39,6 +39,8 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      isDismissible: false,
+      enableDrag: false,
       backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppSize.r24)),
