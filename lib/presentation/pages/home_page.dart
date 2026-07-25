@@ -69,12 +69,12 @@ class _HomePageState extends State<HomePage> {
                 color: AppColors.primaryForestGreen,
                 onRefresh: () => context.read<HomeCubit>().loadDashboard(),
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(AppSize.p16),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSize.p16),
                   physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header Row: Jambo ! 👋🏿 on left, Action buttons on right
+                      // Header Row: Jambo ! 👋🏾 on left, Action buttons on right
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -84,7 +84,7 @@ class _HomePageState extends State<HomePage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  "Jambo ! 👋🏿",
+                                  "Jambo ! 👋🏾",
                                   style: TextStyle(
                                     fontFamily: 'Fredoka',
                                     fontSize: 24,

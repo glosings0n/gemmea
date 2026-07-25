@@ -272,7 +272,7 @@ class _ChatPageState extends State<ChatPage> {
                     behavior: HitTestBehavior.translucent,
                     child: ListView.builder(
                       controller: _scrollController,
-                      padding: const EdgeInsets.all(AppSize.p16),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSize.p16),
                       itemCount: state.messages.length,
                       itemBuilder: (context, index) {
                         final message = state.messages[index];
