@@ -14,6 +14,20 @@ class DiagnosticsHistoryPage extends StatefulWidget {
 }
 
 class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
+  String _formatFrenchDate(String dateStr) {
+    try {
+      final dt = DateTime.parse(dateStr);
+      final day = dt.day.toString().padLeft(2, '0');
+      final month = dt.month.toString().padLeft(2, '0');
+      final year = dt.year.toString();
+      final hour = dt.hour.toString().padLeft(2, '0');
+      final minute = dt.minute.toString().padLeft(2, '0');
+      return "$day/$month/$year à ${hour}h$minute";
+    } catch (_) {
+      return dateStr;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -50,7 +64,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
             ],
           ),
           content: Text(
-            "Êtes-vous sûr de vouloir supprimer ce diagnostic du ${log.timestamp.toString().split(' ')[0]} ? Cette action est irréversible.",
+            "Êtes-vous sûr de vouloir supprimer ce diagnostic du ${_formatFrenchDate(log.timestamp.toString())} ? Cette action est irréversible.",
             style: const TextStyle(
               fontFamily: 'Fredoka',
               fontSize: 14,
@@ -404,7 +418,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                         ),
                                         const SizedBox(width: 6),
                                         Text(
-                                          "Enregistré le : ${log.timestamp.toString().split('.')[0]}",
+                                          "Enregistré le : ${_formatFrenchDate(log.timestamp.toString())}",
                                           style: const TextStyle(
                                             fontFamily: 'Fredoka',
                                             fontSize: 11,

@@ -13,6 +13,17 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  String _formatSlashDate(String dateStr) {
+    try {
+      final dt = DateTime.parse(dateStr);
+      final day = dt.day.toString().padLeft(2, '0');
+      final month = dt.month.toString().padLeft(2, '0');
+      return "$day/$month/${dt.year}";
+    } catch (_) {
+      return dateStr;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -290,7 +301,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  "Date: ${event.eventDate}",
+                                  "Date: ${_formatSlashDate(event.eventDate)}",
                                   style: const TextStyle(
                                     fontFamily: 'Fredoka',
                                     fontWeight: FontWeight.w500,

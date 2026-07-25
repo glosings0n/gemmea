@@ -37,6 +37,13 @@ class PDFReportService {
     }
   }
 
+  static String _cleanMarkdown(String text) {
+    return text
+        .replaceAll(RegExp(r'\*\*|\*|__|#|`'), '')
+        .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+        .trim();
+  }
+
   static Future<Uint8List> generateFarmDiagnosticReport({
     required List<Map<String, dynamic>> diagnostics,
     required List<Map<String, dynamic>> calendarEvents,
@@ -174,6 +181,13 @@ class PDFReportService {
               else
                 pw.TableHelper.fromTextArray(
                   headers: ['Culture', 'Diagnostic / Pathologie', 'Confiance', 'Statut', 'Remède Recommandé (FAO)'],
+                  columnWidths: {
+                    0: const pw.FlexColumnWidth(1.2),
+                    1: const pw.FlexColumnWidth(1.8),
+                    2: const pw.FlexColumnWidth(1.0),
+                    3: const pw.FlexColumnWidth(0.9),
+                    4: const pw.FlexColumnWidth(5.0),
+                  },
                   data: diagnostics.map((d) {
                     final confidence = (d['confidence'] as double? ?? 0.0) * 100;
                     return [
@@ -181,7 +195,7 @@ class PDFReportService {
                       d['disease'] ?? 'Sain',
                       '${confidence.toStringAsFixed(0)}%',
                       d['status'] == 'new' ? 'Alerte' : 'Traité',
-                      d['remedy'] ?? 'Aucun',
+                      _cleanMarkdown(d['remedy'] ?? 'Aucun'),
                     ];
                   }).toList(),
                   headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 9),
@@ -203,6 +217,12 @@ class PDFReportService {
               else
                 pw.TableHelper.fromTextArray(
                   headers: ['Date', 'Tâche / Intervention', 'Pluie Détectée', 'Instructions'],
+                  columnWidths: {
+                    0: const pw.FlexColumnWidth(1.3),
+                    1: const pw.FlexColumnWidth(2.0),
+                    2: const pw.FlexColumnWidth(1.3),
+                    3: const pw.FlexColumnWidth(4.5),
+                  },
                   data: calendarEvents.map((c) {
                     final rawDate = c['event_date'] ?? '';
                     final tableDate = _formatSlashDate(rawDate);
@@ -210,7 +230,7 @@ class PDFReportService {
                       tableDate,
                       c['title'] ?? '',
                       c['is_rainy'] == 1 ? 'Oui (Pause)' : 'Non (Actif)',
-                      c['description'] ?? '',
+                      _cleanMarkdown(c['description'] ?? ''),
                     ];
                   }).toList(),
                   headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 9),

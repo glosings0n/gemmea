@@ -86,6 +86,7 @@ class ScanResultModal extends StatelessWidget {
                                 SizedBox(height: 12),
                                 Text(
                                   "Gemma analyse l'image de la feuille hors ligne...",
+                                  textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontFamily: 'Fredoka',
                                     color: AppColors.textGrey,
@@ -95,6 +96,7 @@ class ScanResultModal extends StatelessWidget {
                                 SizedBox(height: 6),
                                 Text(
                                   "Vous pouvez fermer cet écran pour continuer d'utiliser l'application.",
+                                  textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontFamily: 'Fredoka',
                                     color: AppColors.primaryForestGreen,

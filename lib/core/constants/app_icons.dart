@@ -1,7 +1,7 @@
 import 'package:hugeicons/hugeicons.dart';
 
 class AppIcons {
-  static const home = HugeIcons.strokeRoundedHome01;
+  static const home = HugeIcons.strokeRoundedHome03;
   static const chat = HugeIcons.strokeRoundedComment01;
   static const scan = HugeIcons.strokeRoundedCamera01;
   static const history = HugeIcons.strokeRoundedClock01;
