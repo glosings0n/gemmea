@@ -94,7 +94,7 @@ class _HomePageState extends State<HomePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                "Jambo !",
+                                "Jambo ! 👋🏾",
                                 style: TextStyle(
                                   fontFamily: 'Fredoka',
                                   fontSize: 24,

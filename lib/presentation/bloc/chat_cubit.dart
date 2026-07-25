@@ -68,7 +68,7 @@ class ChatCubit extends Cubit<ChatState> {
       final messages = await getChatMessages();
       if (messages.isEmpty) {
         final welcome = Message.text(
-          text: "Jambo ! Je suis Gemmea, votre assistant agronome 100% hors ligne. Posez-moi vos questions sur le manioc, l'espacement du maïs, les pesticides biologiques à base de neem ou l'état de la pluie pour mettre à jour votre calendrier d'irrigation !",
+          text: "Jambo 👋🏾 ! Je suis Gemmea, votre assistant agronome 100% hors ligne. Posez-moi vos questions sur le manioc, l'espacement du maïs, les pesticides biologiques à base de neem ou l'état de la pluie pour mettre à jour votre calendrier d'irrigation !",
           isUser: false,
         );
         emit(ChatLoaded(messages: [welcome], isStreaming: false));
@@ -206,7 +206,7 @@ class ChatCubit extends Cubit<ChatState> {
       dev.log("Clearing chat conversation...", name: 'CHAT_CUBIT');
       await clearChat();
       final welcome = Message.text(
-        text: "Jambo ! Je suis Gemmea, votre assistant agronome 100% hors ligne. Posez-moi vos questions sur le manioc, l'espacement du maïs, les pesticides biologiques à base de neem ou l'état de la pluie pour mettre à jour votre calendrier d'irrigation !",
+        text: "Jambo 👋🏾 ! Je suis Gemmea, votre assistant agronome 100% hors ligne. Posez-moi vos questions sur le manioc, l'espacement du maïs, les pesticides biologiques à base de neem ou l'état de la pluie pour mettre à jour votre calendrier d'irrigation !",
         isUser: false,
       );
       emit(ChatLoaded(messages: [welcome], isStreaming: false));
