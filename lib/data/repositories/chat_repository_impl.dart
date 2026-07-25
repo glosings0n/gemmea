@@ -178,123 +178,91 @@ class ChatRepositoryImpl implements ChatRepository {
     }
   }
 
+  bool _isSimpleGreeting(String input) {
+    final clean = input.trim().toLowerCase().replaceAll(RegExp(r'[^\w\s]'), '');
+    final greetings = {'salut', 'bonjour', 'bonsoir', 'jambo', 'habari', 'coucou', 'hello', 'hi', 'merci', 'cv', 'comment vas tu', 'comment allez vous'};
+    return greetings.contains(clean) || (clean.split(' ').length <= 2 && greetings.any((g) => clean.startsWith(g)));
+  }
+
   @override
   Stream<ModelResponse> getGemmaResponseStream(String text, [List<Message>? history]) async* {
     yield* GemmaEngineManager.runStreamWithLock(() async* {
       await GemmaEngineManager.ensureInitialized();
 
-      if (_chat == null) {
-        final directory = await getApplicationDocumentsDirectory();
-        final modelFile = File('${directory.path}/gemma.litertlm');
-        
-        if (await modelFile.exists()) {
-          bool loaded = false;
-          try {
-            dev.log("Attempting CPU backend initialization for Gemma...", name: 'CHAT_REPO_IMPL');
-            try {
-              await FlutterGemma.installModel(
-                modelType: ModelType.gemmaIt,
-                fileType: ModelFileType.litertlm,
-              )
-              .fromFile(modelFile.path)
-              .install();
-            } catch (e) {
-              dev.log("Model install registration note: $e", name: 'CHAT_REPO_IMPL');
-            }
+      final directory = await getApplicationDocumentsDirectory();
+      final modelFile = File('${directory.path}/gemma.litertlm');
 
-            final model = await FlutterGemma.getActiveModel(
-              maxTokens: 1024,
-              preferredBackend: PreferredBackend.cpu,
-            );
+      if (!await modelFile.exists()) {
+        dev.log("Model file not found locally", name: 'CHAT_REPO_IMPL');
+        throw Exception("Le fichier de modèle local 'gemma.litertlm' est introuvable. Veuillez télécharger le modèle Gemma 4 pour lancer l'inférence locale.");
+      }
 
-            final faoDocs = await dbHelper.searchFAOKnowledge(text);
-            final faoContext = faoDocs.map((d) => "- ${d['topic']}: ${d['content']} Remède: ${d['organic_remedy']} (Source: ${d['source_citation']})").join("\n");
-
-            String historyFormatted = "";
-            if (history != null && history.length > 1) {
-              final recentHistory = _getRecentHistoryWindow(history);
-              if (recentHistory.isNotEmpty) {
-                final formattedHistoryItems = recentHistory.map((m) => "${m.isUser ? 'Utilisateur' : 'Gemmea'}: ${m.text}").join("\n");
-                historyFormatted = "\n\nHISTORIQUE RÉCENT DE LA CONVERSATION :\n$formattedHistoryItems";
-              }
-            }
-
-            final systemPrompt = '''
-Tu es Gemmea, un assistant agronome utile sous forme d'IA hors ligne destiné aux agriculteurs de l'Est de la République Démocratique du Congo (RDC) et de l'Afrique de l'Est.
-NE salue PAS à chaque message. Ne dis jamais 'Jambo' ou 'Bonjour' lors des réponses de suivi dans la conversation. Réponds directement et précisément aux questions de l'utilisateur.
-N'utilise AUCUN émoji dans tes réponses. Rédige un texte purement professionnel sans émojis ni icônes.
-
-RÈGLE D'ANCRAGE (RAG FAO) :
-Voici les extraits officiels de la FAO pertinents extraits de la base locale :
-$faoContext
-$historyFormatted
-
-Utilise ces données FAO et cet historique pour fournir des conseils directs, précis et écologiques. Reste très concis, clair, et cite la source FAO.
-''';
-
-            _chat = await model.createChat(
-              modelType: ModelType.gemmaIt,
-              systemInstruction: systemPrompt,
-            );
-
-            loaded = true;
-            dev.log("Modèle Gemma chargé avec succès sur le moteur LiteRT-LM CPU !", name: 'CHAT_REPO_IMPL');
-          } catch (cpuError, stack) {
-            dev.log("Échec du chargement du moteur CPU", name: 'CHAT_REPO_IMPL', error: cpuError, stackTrace: stack);
-          }
-
-          if (!loaded) {
-            try {
-              dev.log("Attempting GPU fallback backend for Gemma...", name: 'CHAT_REPO_IMPL');
-              final model = await FlutterGemma.getActiveModel(
-                maxTokens: 1024,
-                preferredBackend: PreferredBackend.gpu,
-              );
-              final faoDocs = await dbHelper.searchFAOKnowledge(text);
-              final faoContext = faoDocs.map((d) => "- ${d['topic']}: ${d['content']} Remède: ${d['organic_remedy']} (Source: ${d['source_citation']})").join("\n");
-
-              String historyFormatted = "";
-              if (history != null && history.length > 1) {
-                final recentHistory = _getRecentHistoryWindow(history);
-                if (recentHistory.isNotEmpty) {
-                  final formattedHistoryItems = recentHistory.map((m) => "${m.isUser ? 'Utilisateur' : 'Gemmea'}: ${m.text}").join("\n");
-                  historyFormatted = "\n\nHISTORIQUE RÉCENT DE LA CONVERSATION :\n$formattedHistoryItems";
-                }
-              }
-
-              final systemPrompt = '''
-Tu es Gemmea, un assistant agronome utile sous forme d'IA hors ligne destiné aux agriculteurs de l'Est de la République Démocratique du Congo (RDC) et de l'Afrique de l'Est.
-NE salue PAS à chaque message. Ne dis jamais 'Jambo' ou 'Bonjour' lors des réponses de suivi dans la conversation. Réponds directement et précisément aux questions de l'utilisateur.
-N'utilise AUCUN émoji dans tes réponses. Rédige un texte purement professionnel sans émojis ni icônes.
-
-MISE EN FORME MARKDOWN :
-Utilise une mise en forme Markdown riche et très soignée (titres avec ###, texte important en **gras**, sous-titres, listes à puces -) pour que tes réponses soient claires, très lisibles, structurées et professionnelles pour l'agriculteur. Ne mets simplement aucun émoji.
-
-RÈGLE D'ANCRAGE (RAG FAO) :
-Voici les extraits officiels de la FAO pertinents extraits de la base locale :
-$faoContext
-$historyFormatted
-
-Utilise ces données FAO et cet historique pour fournir des conseils directs, précis, détaillés et écologiques. Reste structuré, clair, et cite la source FAO.
-''';
-
-              _chat = await model.createChat(
-                modelType: ModelType.gemmaIt,
-                systemInstruction: systemPrompt,
-              );
-
-              loaded = true;
-              dev.log("Modèle Gemma chargé avec succès sur le moteur LiteRT-LM GPU !", name: 'CHAT_REPO_IMPL');
-            } catch (gpuError, stack) {
-              dev.log("Échec du chargement du moteur GPU", name: 'CHAT_REPO_IMPL', error: gpuError, stackTrace: stack);
-              throw Exception("Échec de l'initialisation du moteur LiteRT Gemma sur GPU/CPU local. Veuillez vérifier le fichier gemma.litertlm.");
-            }
-          }
-        } else {
-          dev.log("Model file not found locally", name: 'CHAT_REPO_IMPL');
-          throw Exception("Le fichier de modèle local 'gemma.litertlm' est introuvable. Veuillez télécharger le modèle Gemma 4 pour lancer l'inférence locale.");
+      // Fetch dynamic RAG context for the specific user query only if it's a technical query (not a simple greeting)
+      String faoContext = "";
+      if (!_isSimpleGreeting(text)) {
+        final faoDocs = await dbHelper.searchFAOKnowledge(text);
+        if (faoDocs.isNotEmpty) {
+          faoContext = faoDocs.map((d) {
+            final content = (d['content'] ?? '').toString();
+            final trimmedContent = content.length > 400 ? "${content.substring(0, 400)}..." : content;
+            return "- ${d['topic']}: $trimmedContent Remède/Action: ${d['organic_remedy']} (Source: ${d['source_citation']})";
+          }).join("\n");
         }
       }
+
+      String historyFormatted = "";
+      if (history != null && history.length > 1) {
+        final recentHistory = _getRecentHistoryWindow(history);
+        if (recentHistory.isNotEmpty) {
+          final formattedHistoryItems = recentHistory.map((m) => "- ${m.isUser ? 'Utilisateur' : 'Gemmea'}: ${m.text}").join("\n");
+          historyFormatted = "\n\nHISTORIQUE DES 5 DERNIERS MESSAGES :\n$formattedHistoryItems";
+        }
+      }
+
+      final systemPrompt = '''
+Tu es Gemmea, l'expert agronome IA de terrain pour l'Afrique de l'Est et la région des Grands Lacs (RDC/Kivu, Rwanda, Burundi, Ouganda).
+
+RÈGLE ABSOLUE ANTI-AVERTISSEMENT :
+INTERDICTION STRICTE d'utiliser des phrases vagues, d'esquiver les questions ou d'ajouter des clauses de non-responsabilité du type "Vérifiez auprès d'un expert local" ou "Consultez les recommandations spécifiques de votre zone". Tu ES l'expert agronomique de référence ! Donne TOUJOURS des réponses affirmatives, concrètes, datées, dosées et directement applicables sur le terrain par le fermier.
+
+CONNAISSANCES RÉGIONALES INTÉGRÉES (AFRIQUE DE L'EST / GRANDS LACS) :
+- Climat : Tropical d'altitude / équatorial à 2 saisons des pluies principales :
+  * Saison A (grandes pluies) : Semis du Maïs et du Haricot de mi-septembre à début octobre aux premières pluies. Récolte en janvier/février.
+  * Saison B (petites pluies) : Semis de mars à début avril. Récolte en juin/juillet.
+  * Manioc & Bananier : Boutures saines plantées en début de saison A (septembre) ou saison B (mars). Récolte du manioc après 12 à 18 mois.
+- Densités & Écartements : Maïs (75cm x 25cm, 1 graine/poquet), Haricot (40cm x 10cm), Manioc (1m x 1m en quinconce).
+- Sol : Sols argilo-volcaniques fertiles mais sensibles à l'érosion. Préconiser le paillage, le compost bio et la culture associée Maïs-Haricot.
+
+RÈGLES D'EXPRESSION CONVERSATIONNELLE :
+1. Réponds STRICTEMENT et DIRECTEMENT à la question posée sans tourner autour du pot.
+2. Pour les salutations (ex: "salut", "bonjour", "habari", "merci") : réponds de manière courtoise, naturelle et TRÈS BRÈVE (1 sentence).
+3. Pour les questions techniques, de calendrier ou de traitement : réponds directement avec une structure Markdown claire (mots-clés en **gras**, étapes numérotées 1. 2. 3., conseils sous forme de puces - ).
+4. N'utilise AUCUN émoji ni icône.
+$historyFormatted
+${faoContext.isNotEmpty ? '\n\nDONNÉES OFFICIELLES FAO DE RÉFÉRENCE :\n$faoContext' : ''}
+''';
+
+      InferenceModel model;
+      try {
+        dev.log("Attempting CPU backend initialization for Gemma with 2048 tokens...", name: 'CHAT_REPO_IMPL');
+        model = await FlutterGemma.getActiveModel(
+          supportImage: true,
+          maxTokens: 2048,
+          preferredBackend: PreferredBackend.cpu,
+        );
+      } catch (e) {
+        dev.log("Fallback to GPU/default backend for Gemma...", name: 'CHAT_REPO_IMPL');
+        model = await FlutterGemma.getActiveModel(
+          supportImage: true,
+          maxTokens: 2048,
+          preferredBackend: PreferredBackend.gpu,
+        );
+      }
+
+      _chat = await model.createChat(
+        modelType: ModelType.gemmaIt,
+        systemInstruction: systemPrompt,
+      );
 
       try {
         dev.log("Sending query chunk to Gemma session...", name: 'CHAT_REPO_IMPL');
@@ -303,7 +271,7 @@ Utilise ces données FAO et cet historique pour fournir des conseils directs, pr
         
         await for (final chunk in _chat!.generateChatResponseAsync()) {
           if (chunk is TextResponse) {
-            yield TextResponse(TextSanitizer.cleanLatexAndFormatting(chunk.token));
+            yield TextResponse(TextSanitizer.cleanLatexAndFormatting(chunk.token, preserveWhitespace: true));
           } else {
             yield chunk;
           }
@@ -330,8 +298,9 @@ Utilise ces données FAO et cet historique pour fournir des conseils directs, pr
         .toList();
     if (validHistory.length <= 1) return [];
     
+    // Take the last 5 messages from history before the current query
     final past = validHistory.sublist(0, validHistory.length - 1);
-    final recent = past.length > 4 ? past.sublist(past.length - 4) : past;
+    final recent = past.length > 5 ? past.sublist(past.length - 5) : past;
     
     return recent.map((m) {
       final text = m.text.length > 250 ? "${m.text.substring(0, 250)}..." : m.text;

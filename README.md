@@ -1,6 +1,8 @@
 # 🌿 Gemmea — Assistant agronomique et de gestion agricole 100% hors ligne avec Google Gemma 4
 
-> **Développé par Georges Byona (Bukavu, Sud-Kivu, RDC) pour le concours *Build with Gemma 2026* (GDG on Campus UCB).**
+**Gemmea** est une application mobile d'aide à la décision agronomique conçue pour fonctionner **100% hors ligne, sans aucune connexion internet**. Son nom vient de la fusion de **"Mmea"** (*plante* ou *culture* en swahili, la langue parlée dans l'Est de la RDC et en Afrique de l'Est) et de **Gemma** (le modèle d'intelligence artificielle ouvert de Google).
+
+L'application combine la vision multimodale et le traitement de texte de **Google Gemma 4** (`gemma-4-E2B-it.litertlm`) exécuté directement sur le téléphone avec une base de données agronomique locale (fiches officielles de la FAO et de l'IITA). Elle permet de diagnostiquer les maladies des cultures par photo, de proposer des remèdes biologiques gratuits et de générer des bilans sanitaires au format PDF.
 
 ---
 
@@ -10,7 +12,7 @@ Habitant et développeur à Bukavu dans l'Est de la République Démocratique du
 
 Pourtant, ce sont ces mêmes agriculteurs qui font face aux pires menaces sur leurs récoltes : la mosaïque du manioc, la rouille du maïs, les chenilles légionnaires et les maladies du bananier.
 
-J'ai conçu **Gemmea** ("Mmea" signifie *plante* en swahili, combiné à *Gemma*) avec une idée fixe : **apporter la puissance de l'intelligence artificielle de Google Gemma 4 directement sur le téléphone de l'agriculteur, sans nécessiter la moindre connexion réseau.**
+J'ai donc conçu **Gemmea** avec une idée fixe : **apporter la puissance de l'intelligence artificielle de Google Gemma 4 directement sur le téléphone de l'agriculteur, sans nécessiter la moindre connexion réseau.**
 
 ---
 
@@ -73,4 +75,8 @@ flutter run --release
 
 ---
 
-*Projet conçu et développé par [Georges Byona](https://github.com/glosings0n) — Bukavu, Sud-Kivu, RDC.*
+### À propos de l'auteur
+* **Développeur :** Georges Byona  
+* **Localisation :** Bukavu, Sud-Kivu, République Démocratique du Congo  
+* **Événement :** Concours *Build with Gemma 2026* (GDG on Campus UCB)  
+* **Dépôt GitHub :** [https://github.com/glosings0n/gemmea](https://github.com/glosings0n/gemmea)

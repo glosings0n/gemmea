@@ -232,6 +232,15 @@ class SQLiteHelper {
           'estimated_loss_pct': 0.0,
           'source_citation': 'Recueil FAO des Pratiques Biologiques Traditionnelles (2024), p. 5-10',
         },
+        {
+          'topic': 'Calendrier Agricole & Semis (Afrique de l Est / Grands Lacs)',
+          'crop_name': 'Tous',
+          'keywords': 'calendrier agricole semis date periode pluie saison maïs haricot manioc septembre mars quand planter',
+          'content': 'Calendrier officiel FAO/IITA des Semis en Afrique de l Est et région des Grands Lacs (RDC/Kivu, Rwanda, Burundi, Ouganda) : 1. Saison A (Grandes pluies) : Semis du Maïs et Haricot de mi-septembre à début octobre dès les premières pluies régulières. Récolte de janvier à février. 2. Saison B (Petites pluies) : Semis de mars à début avril. Récolte en juin/juillet. 3. Manioc & Bananier : Plantations des boutures/rejets au début de la saison A (septembre/octobre) ou B (mars/avril). Récolte du manioc après 12 à 18 mois.',
+          'organic_remedy': '1. Respecter les écartements : Maïs (75cm x 25cm, 1 graine/poquet). Haricot (40cm x 10cm). Manioc (1m x 1m en quinconce). 2. Associer le Maïs et le Haricot (culture associée) pour fixer l azote naturel du sol.',
+          'estimated_loss_pct': 0.0,
+          'source_citation': 'Guide FAO des Calendriers Agricoles des Grands Lacs (2024), p. 3-8',
+        },
       ];
 
       for (final entry in initialEntries) {
@@ -379,14 +388,31 @@ class SQLiteHelper {
     }
   }
 
+  static const Map<String, String> _accentMap = {
+    'à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a', 'å': 'a',
+    'ò': 'o', 'ó': 'o', 'ô': 'o', 'õ': 'o', 'ö': 'o', 'ø': 'o',
+    'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e',
+    'ç': 'c',
+    'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i',
+    'ù': 'u', 'ú': 'u', 'û': 'u', 'ü': 'u',
+    'ÿ': 'y', 'ñ': 'n',
+    'À': 'a', 'Á': 'a', 'Â': 'a', 'Ã': 'a', 'Ä': 'a', 'Å': 'a',
+    'Ò': 'o', 'Ó': 'o', 'Ô': 'o', 'Õ': 'o', 'Ö': 'o', 'Ø': 'o',
+    'È': 'e', 'É': 'e', 'Ê': 'e', 'Ë': 'e',
+    'Ç': 'c',
+    'Ì': 'i', 'Í': 'i', 'Î': 'i', 'Ï': 'i',
+    'Ù': 'u', 'Ú': 'u', 'Û': 'u', 'Ü': 'u',
+    'Ÿ': 'y', 'Ñ': 'n',
+  };
+
   static String _stripAccents(String input) {
-    const accents = 'àáâãäåòóôõöøèéêëçìíîïùúûüÿñ';
-    const replace = 'aaaaaaoooooeeeeciiiiuuuuyn';
-    String result = input;
-    for (int i = 0; i < accents.length; i++) {
-      result = result.replaceAll(accents[i], replace[i]);
+    if (input.isEmpty) return input;
+    final buffer = StringBuffer();
+    for (int i = 0; i < input.length; i++) {
+      final char = input[i];
+      buffer.write(_accentMap[char] ?? char);
     }
-    return result;
+    return buffer.toString();
   }
 
   static const Set<String> _frenchStopWords = {

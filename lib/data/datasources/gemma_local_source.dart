@@ -53,13 +53,13 @@ class GemmaLocalSourceImpl implements GemmaLocalSource {
           try {
             model = await FlutterGemma.getActiveModel(
               supportImage: true,
-              maxTokens: 1024,
+              maxTokens: 4096,
               preferredBackend: PreferredBackend.cpu,
             );
           } catch (e) {
             model = await FlutterGemma.getActiveModel(
               supportImage: true,
-              maxTokens: 1024,
+              maxTokens: 4096,
             );
           }
 
@@ -68,21 +68,33 @@ class GemmaLocalSourceImpl implements GemmaLocalSource {
 Vous êtes Gemmea, l'assistant agronome IA d'analyse et de santé des cultures.
 Examinez l'image fournie.
 
-RÈGLE ABSOLUE ET PRIORITAIRE :
-Examinez attentivement l'image. S'il ne s'agit PAS d'une feuille de plante ou d'une culture agricole (par exemple : un téléphone, un visage, une personne, une pièce, une chaussure, un meuble, un animal, un objet divers), répondez STRICTEMENT ET UNIQUEMENT :
+RÈGLE ABSOLUE ET URGENTE (ÉVALUATION IMMÉDIATE) :
+Étape 1 : Regardez l'image. Si ce n'est PAS une feuille de plante ou une culture agricole (ex: visage, téléphone, personne, chaussure, meuble, animal, objet) :
+Arrêtez immédiatement toute génération et répondez UNIQUEMENT par cette phrase :
 "L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture."
-N'INVENTEZ PAS et N'UTILISEZ PAS le contexte RAG ci-dessous si l'image n'est pas une plante !
+NE GÉNÉREZ AUCUNE RUBRIQUE, AUCUN TITRE ET N'UTILISEZ PAS LE CONTEXTE RAG CI-DESSOUS.
 
-SI ET SEULEMENT SI L'IMAGE REPRÉSENTE BIEN UNE FEUILLE OU UNE CULTURE AGRICOLE :
+Étape 2 : SI ET SEULEMENT SI L'IMAGE EST VRAIMENT UNE FEUILLE OU UNE CULTURE AGRICOLE :
 Fournissez votre propre analyse TRÈS DÉTAILLÉE, STRUCTURÉE ET COMPLÈTE organisée selon les 7 rubriques suivantes (SANS AUCUN ÉMOJI) :
+
+EXIGENCES DE MISE EN FORME MARKDOWN :
+- Titres de rubriques clairs avec ### (ex: ### 1. DIAGNOSTIC PRINCIPAL & HYPOTHÈSES)
+- Numérotations claires (1., 2., 3.) pour les étapes du plan d'action et les méthodes de traitement
+- Points de puces (- ) pour énumérer les symptômes, causes et conseils du sol
+- Mots-clés en **gras** (ex: **Agent pathogène :**, **Dosage :**, **Traitement bio :**)
+- Remarques et conseils secondaires en *italique* (ex: *Appliquer de préférence tôt le matin.*)
+
    ### 1. DIAGNOSTIC PRINCIPAL & HYPOTHÈSES
-   (Culture, maladie suspectée, niveau de confiance, diagnostics différentiels).
+   - Culture : [Indiquer la culture exacte observée sur l'image : Maïs, Manioc, Haricot, Banane, Tomate, ou Inconnue]
+   - Maladie : [Si la plante est en bonne santé, écrire EXPLICITEMENT : "Aucune maladie (Feuille Saine)". Si malade, indiquer le nom précis de la maladie]
+   - Niveau de confiance : [Exemple : 90%]
+   - Diagnostics différentiels : [Précisions ou facteurs environnementaux si applicables]
    ### 2. SYMPTÔMES DÉTAILLÉS OBSERVÉS
-   (Mosaïque, décoloration, pustules, tavelures, enroulement, déformation du limbe).
+   (Décoloration, pustules, tavelures, enroulement, déformation du limbe, ou feuille intacte).
    ### 3. CAUSES & VECTEURS (NORMES IITA)
-   (Agent pathogène et mode de transmission selon normes IITA).
+   (Agent pathogène et mode de transmission selon normes IITA, ou état physiologique sain).
    ### 4. REMÈDES BIOLOGIQUES & TRAITEMENT ÉTAPE PAR ÉTAPE
-   (Recettes bio locales : Neem, cendre de bois, Bicarbonate de soude - NaHCO3, savon noir).
+   (Recettes bio locales si maladie : Neem, cendre de bois, Bicarbonate de soude - NaHCO3, savon noir. Si la feuille est saine, donner des conseils d'entretien préventif).
    ### 5. GESTION DU SOL, NUTRIMENTS & IRRIGATION
    (Drainage, compost, paillage, humidité).
    ### 6. PLAN D'ACTION IMMÉDIAT

@@ -46,10 +46,35 @@ class DiagnosticRepositoryImpl implements DiagnosticRepository {
         "Fournissez un diagnostic visuel agronomique structuré FAO/IITA.",
       );
 
+      final lowerText = evaluationText.toLowerCase();
+      final isHealthy = lowerText.contains("aucune maladie") ||
+          lowerText.contains("pas de maladie") ||
+          lowerText.contains("feuille saine") ||
+          lowerText.contains("plante saine") ||
+          lowerText.contains("aucun symptôme") ||
+          lowerText.contains("bonne santé");
+
+      String cropName = "Plante Agricole";
+      if (lowerText.contains("maïs") || lowerText.contains("mais") || lowerText.contains("maize") || lowerText.contains("céréale")) {
+        cropName = "Maïs";
+      } else if (lowerText.contains("manioc") || lowerText.contains("cassava")) {
+        cropName = "Manioc";
+      } else if (lowerText.contains("haricot") || lowerText.contains("bean")) {
+        cropName = "Haricot";
+      } else if (lowerText.contains("banane") || lowerText.contains("bananier")) {
+        cropName = "Banane";
+      }
+
+      String disease = isHealthy
+          ? "Feuille Saine"
+          : (lowerText.contains("rouille")
+              ? "Rouille du Maïs"
+              : (lowerText.contains("mosaïque") ? "Mosaïque du Manioc" : "Symptôme à Surveiller"));
+
       final result = DiagnosticResult(
-        cropName: evaluationText.toLowerCase().contains("mais") ? "Maïs" : "Manioc",
-        disease: evaluationText.toLowerCase().contains("rouille") ? "Rouille du Maïs" : "Mosaïque du Manioc",
-        confidence: 0.92,
+        cropName: cropName,
+        disease: disease,
+        confidence: 0.90,
         remedy: evaluationText,
         imagePath: tempFile.path,
         timestamp: DateTime.now(),

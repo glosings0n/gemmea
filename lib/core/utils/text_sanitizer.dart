@@ -1,7 +1,7 @@
 class TextSanitizer {
   /// Cleans up raw LaTeX expressions, chemical formulas, emojis, and broken escaping
   /// to convert them into clean, professional plain text for farmers.
-  static String cleanLatexAndFormatting(String input) {
+  static String cleanLatexAndFormatting(String input, {bool preserveWhitespace = false}) {
     if (input.isEmpty) return input;
     String text = input;
 
@@ -40,18 +40,6 @@ class TextSanitizer {
       RegExp(r'\$?\\?text\{CO\}_?\{?2\}\\?\$?|\$CO_2\\?\$?', caseSensitive: false),
       'dioxyde de carbone (CO2)',
     );
-    text = text.replaceAll(
-      RegExp(r'\$?\\?text\{N\}\\?\$?', caseSensitive: false),
-      'Azote (N)',
-    );
-    text = text.replaceAll(
-      RegExp(r'\$?\\?text\{P\}\\?\$?', caseSensitive: false),
-      'Phosphore (P)',
-    );
-    text = text.replaceAll(
-      RegExp(r'\$?\\?text\{K\}\\?\$?', caseSensitive: false),
-      'Potassium (K)',
-    );
 
     // 3. Remove LaTeX \text{...}, \mathrm{...}, \mathbf{...} wrappers
     text = text.replaceAllMapped(
@@ -78,7 +66,11 @@ class TextSanitizer {
     text = text.replaceAll(r'$', '');
     text = text.replaceAll(RegExp(r'\\(?![nN])'), '');
 
-    // 6. Clean up multiple spaces and blank lines
+    if (preserveWhitespace) {
+      return text;
+    }
+
+    // Clean up multiple spaces and blank lines
     text = text.replaceAll(RegExp(r' {2,}'), ' ');
     text = text.replaceAll(RegExp(r'\n{3,}'), '\n\n');
 
