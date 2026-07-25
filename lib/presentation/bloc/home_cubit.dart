@@ -51,16 +51,18 @@ class HomeCubit extends Cubit<HomeState> {
     try {
       dev.log("Marking all diagnostics as read on dashboard...", name: 'HOME_CUBIT');
       await markDiagnosticsAsRead();
-      await loadDashboard();
+      await loadDashboard(isSilent: true);
     } catch (e, stack) {
       dev.log("Error marking diagnostics read", name: 'HOME_CUBIT', error: e, stackTrace: stack);
     }
   }
 
-  Future<void> loadDashboard() async {
-    emit(HomeLoading());
+  Future<void> loadDashboard({bool isSilent = false}) async {
+    if (!isSilent || state is! HomeLoaded) {
+      emit(HomeLoading());
+    }
     try {
-      dev.log("Loading dashboard data...", name: 'HOME_CUBIT');
+      dev.log("Loading dashboard data (isSilent: $isSilent)...", name: 'HOME_CUBIT');
       final diagnostics = await getDiagnostics();
       final calendar = await getCalendarEvents();
       
@@ -99,7 +101,9 @@ class HomeCubit extends Cubit<HomeState> {
       ));
     } catch (e, stack) {
       dev.log("Error loading dashboard", name: 'HOME_CUBIT', error: e, stackTrace: stack);
-      emit(HomeError(e.toString()));
+      if (state is! HomeLoaded) {
+        emit(HomeError(e.toString()));
+      }
     }
   }
 
@@ -107,7 +111,7 @@ class HomeCubit extends Cubit<HomeState> {
     try {
       dev.log("Running scanCrop from HomeCubit...", name: 'HOME_CUBIT');
       await runCropScan(imageBytes);
-      await loadDashboard(); // Reload data with new diagnostic history
+      await loadDashboard(isSilent: true); // Reload data silently
     } catch (e, stack) {
       dev.log("scanCrop error passed to UI layer", name: 'HOME_CUBIT', error: e, stackTrace: stack);
       rethrow;
@@ -117,22 +121,82 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> toggleRain(String date, bool isRainy) async {
     try {
       dev.log("Toggling rain for date $date: $isRainy", name: 'HOME_CUBIT');
+      
+      // 1. Optimistic state update if currently in HomeLoaded
+      if (state is HomeLoaded) {
+        final currentState = state as HomeLoaded;
+        final updatedCalendar = currentState.calendarEvents.map((e) {
+          if (e.eventDate == date) {
+            return e.copyWith(isRainy: isRainy);
+          }
+          return e;
+        }).toList();
+
+        String waterStatus = "Toutes les cultures sont irriguées";
+        final upcomingWatering = updatedCalendar.where((e) => !e.isRainy).toList();
+        if (upcomingWatering.isNotEmpty) {
+          waterStatus = "Prochain : ${upcomingWatering.first.title} le ${upcomingWatering.first.eventDate}";
+        } else {
+          waterStatus = "Pluie prévue - Irrigation en pause";
+        }
+
+        final List<String> reminders = List.from(currentState.soilReminders);
+        if (updatedCalendar.any((e) => e.isRainy)) {
+          if (!reminders.contains("Pluie demain ! Gardez les seaux d'engrais à l'abri.")) {
+            reminders.add("Pluie demain ! Gardez les seaux d'engrais à l'abri.");
+          }
+          reminders.remove("Alerte sol sec. Surveillez le niveau d'humidité du maïs.");
+        } else {
+          if (!reminders.contains("Alerte sol sec. Surveillez le niveau d'humidité du maïs.")) {
+            reminders.add("Alerte sol sec. Surveillez le niveau d'humidité du maïs.");
+          }
+          reminders.remove("Pluie demain ! Gardez les seaux d'engrais à l'abri.");
+        }
+
+        emit(HomeLoaded(
+          lastDiagnostic: currentState.lastDiagnostic,
+          diagnosticsHistory: currentState.diagnosticsHistory,
+          calendarEvents: updatedCalendar,
+          waterScheduleStatus: waterStatus,
+          soilReminders: reminders,
+        ));
+      }
+
+      // 2. Persist in DB
       await updateRainStatus(date, isRainy);
-      await loadDashboard(); // Reload data to show updated watering timetable
+
+      // 3. Silent refresh in background to ensure database consistency
+      await loadDashboard(isSilent: true);
     } catch (e, stack) {
       dev.log("Error toggling rain", name: 'HOME_CUBIT', error: e, stackTrace: stack);
-      emit(HomeError(e.toString()));
+      await loadDashboard(isSilent: true);
     }
   }
 
   Future<void> deleteDiagnostic(int id) async {
     try {
       dev.log("Deleting diagnostic ID: $id", name: 'HOME_CUBIT');
+      
+      // Optimistic remove if in HomeLoaded
+      if (state is HomeLoaded) {
+        final currentState = state as HomeLoaded;
+        final updatedHistory = currentState.diagnosticsHistory.where((d) => d.id != id).toList();
+        final lastDiagnostic = updatedHistory.isNotEmpty ? updatedHistory.first : null;
+
+        emit(HomeLoaded(
+          lastDiagnostic: lastDiagnostic,
+          diagnosticsHistory: updatedHistory,
+          calendarEvents: currentState.calendarEvents,
+          waterScheduleStatus: currentState.waterScheduleStatus,
+          soilReminders: currentState.soilReminders,
+        ));
+      }
+
       await deleteDiagnosticUsecase(id);
-      await loadDashboard(); // Reload data to show updated list
+      await loadDashboard(isSilent: true);
     } catch (e, stack) {
       dev.log("Error deleting diagnostic", name: 'HOME_CUBIT', error: e, stackTrace: stack);
-      emit(HomeError(e.toString()));
+      await loadDashboard(isSilent: true);
     }
   }
 }

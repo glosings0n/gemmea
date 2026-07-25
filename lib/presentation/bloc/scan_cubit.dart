@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gemmea/core/utils/text_sanitizer.dart';
 import 'package:gemmea/data/datasources/sqlite_helper.dart';
 import '../../data/datasources/gemma_local_source.dart';
 
@@ -59,10 +60,11 @@ class ScanCubit extends Cubit<ScanState> {
       dev.log("Analyzing crop image with local Gemma VLM in background...", name: 'SCAN_CUBIT');
       final diagnosticResult = await localSource.evaluateCropImage(
         image, 
-        "Analysez attentivement cette image de feuille de culture. Identifiez toute maladie potentielle de la plante (par ex. Mosaïque du manioc, Rouille du maïs, Flétrissement du bananier, etc.) visible sur l'image. Fournissez un Diagnostic Possible et un Remède Bio/Biologique Localisé très concis et adapté aux petits exploitants agricoles."
+        "Fournissez une analyse agronomique complète et très détaillée organisée selon les 7 rubriques FAO/IITA : Diagnostic Principal & Hypothèses, Symptômes Détaillés, Causes & Vecteurs (IITA), Remèdes Biologiques Étape par Étape, Gestion du Sol & Irrigation, Plan d'Action Immédiat, Directives & Sources Officielles FAO."
       );
 
-      final textLower = diagnosticResult.toLowerCase();
+      final cleanDiagnostic = TextSanitizer.cleanLatexAndFormatting(diagnosticResult);
+      final textLower = cleanDiagnostic.toLowerCase();
 
       // Ensure that if the model returns an error string, we treat it as failure and do NOT save to DB
       if (textLower.contains("processing error") ||
@@ -75,7 +77,7 @@ class ScanCubit extends Cubit<ScanState> {
       // Extract details dynamically from local Gemma response
       String cropName = "Plante / Feuille";
       String disease = "Diagnostic Agronomique";
-      String remedy = diagnosticResult;
+      String remedy = cleanDiagnostic;
 
       if (textLower.contains("manioc") || textLower.contains("cassava")) {
         cropName = "Manioc";
@@ -129,7 +131,7 @@ class ScanCubit extends Cubit<ScanState> {
         'status': 'new',
       });
 
-      emit(ScanSuccess(diagnosticResult, image));
+      emit(ScanSuccess(cleanDiagnostic, image));
     } catch (e, stack) {
       dev.log("Error analyzing crop image (No DB insert made)", name: 'SCAN_CUBIT', error: e, stackTrace: stack);
       final cleanMsg = e.toString().replaceAll("Exception: ", "");

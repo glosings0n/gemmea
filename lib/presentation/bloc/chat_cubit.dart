@@ -153,12 +153,23 @@ class ChatCubit extends Cubit<ChatState> {
         },
         onDone: () async {
           dev.log("Gemma response stream completed", name: 'CHAT_CUBIT');
-          // Stream completed, save full message to database
           final finalState = state;
           if (finalState is ChatLoaded) {
-            final finalModelMessage = Message.text(text: fullReply.toString(), isUser: false);
+            String responseText = fullReply.toString().trim();
+            if (responseText.isEmpty) {
+              responseText = "Je ne peux pas répondre pour l'instant, veuillez me rappeler ce dont on parlait ou ouvrir de nouveau l'application.";
+            }
+            final finalModelMessage = Message.text(text: responseText, isUser: false);
+            
+            final updatedList = List<Message>.from(finalState.messages);
+            if (updatedList.isNotEmpty && !updatedList.last.isUser) {
+              updatedList[updatedList.length - 1] = finalModelMessage;
+            } else {
+              updatedList.add(finalModelMessage);
+            }
+            
             await saveChatMessage(finalModelMessage);
-            emit(finalState.copyWith(isStreaming: false));
+            emit(finalState.copyWith(messages: updatedList, isStreaming: false));
           }
         },
         cancelOnError: true,
@@ -174,7 +185,15 @@ class ChatCubit extends Cubit<ChatState> {
     final currentState = state;
     if (currentState is ChatLoaded) {
       final streamMessages = List<Message>.from(currentState.messages);
-      streamMessages.add(Message.text(text: "Toutes mes excuses, j'ai rencontré un ralentissement de connexion hors ligne. Veuillez réessayer ! Erreur : $errorMsg", isUser: false));
+      if (streamMessages.isNotEmpty && !streamMessages.last.isUser && streamMessages.last.text.isEmpty) {
+        streamMessages.removeLast();
+      }
+      final errorModelMessage = Message.text(
+        text: "Je ne peux pas répondre pour l'instant, veuillez me rappeler ce dont on parlait ou ouvrir de nouveau l'application.",
+        isUser: false,
+      );
+      streamMessages.add(errorModelMessage);
+      saveChatMessage(errorModelMessage);
       emit(currentState.copyWith(messages: streamMessages, isStreaming: false));
     } else {
       emit(ChatError(errorMsg));

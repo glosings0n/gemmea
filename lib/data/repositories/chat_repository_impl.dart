@@ -2,8 +2,9 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:io';
 import 'package:flutter_gemma/flutter_gemma.dart';
-import 'package:flutter_gemma_litertlm/flutter_gemma_litertlm.dart';
 import 'package:http/http.dart' as http;
+import 'package:gemmea/core/services/gemma_engine_manager.dart';
+import 'package:gemmea/core/utils/text_sanitizer.dart';
 import 'package:gemmea/data/datasources/sqlite_helper.dart';
 import 'package:gemmea/domain/repositories/chat_repository.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,22 +12,6 @@ import 'package:path_provider/path_provider.dart';
 class ChatRepositoryImpl implements ChatRepository {
   final SQLiteHelper dbHelper = SQLiteHelper.instance;
   InferenceChat? _chat;
-  static bool _isEngineInitialized = false;
-
-  static Future<void> _ensureEngineInitialized() async {
-    if (!_isEngineInitialized) {
-      try {
-        dev.log("Initializing FlutterGemma LiteRT-LM Engine...", name: 'CHAT_REPO_IMPL');
-        await FlutterGemma.initialize(
-          inferenceEngines: const [LiteRtLmEngine()],
-        );
-        _isEngineInitialized = true;
-        dev.log("FlutterGemma engine initialized successfully", name: 'CHAT_REPO_IMPL');
-      } catch (e, stack) {
-        dev.log("Engine initialization note: $e", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
-      }
-    }
-  }
 
   @override
   Future<bool> checkModelInstalled() async {
@@ -57,7 +42,7 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   Future<void> initializeGemma(Function(double) onProgress) async {
     try {
-      await _ensureEngineInitialized();
+      await GemmaEngineManager.ensureInitialized();
       
       final directory = await getApplicationDocumentsDirectory();
       final modelFile = File('${directory.path}/gemma.litertlm');
@@ -185,9 +170,8 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  @override
   Stream<ModelResponse> getGemmaResponseStream(String text, [List<Message>? history]) async* {
-    await _ensureEngineInitialized();
+    await GemmaEngineManager.ensureInitialized();
 
     if (_chat == null) {
       final directory = await getApplicationDocumentsDirectory();
@@ -216,6 +200,15 @@ class ChatRepositoryImpl implements ChatRepository {
           final faoDocs = await dbHelper.searchFAOKnowledge(text);
           final faoContext = faoDocs.map((d) => "- ${d['topic']}: ${d['content']} Remède: ${d['organic_remedy']} (Source: ${d['source_citation']})").join("\n");
 
+          String historyFormatted = "";
+          if (history != null && history.length > 1) {
+            final recentHistory = _getRecentHistoryWindow(history);
+            if (recentHistory.isNotEmpty) {
+              final formattedHistoryItems = recentHistory.map((m) => "${m.isUser ? 'Utilisateur' : 'Gemmea'}: ${m.text}").join("\n");
+              historyFormatted = "\n\nHISTORIQUE RÉCENT DE LA CONVERSATION :\n$formattedHistoryItems";
+            }
+          }
+
           final systemPrompt = '''
 Tu es Gemmea, un assistant agronome utile sous forme d'IA hors ligne destiné aux agriculteurs de l'Est de la République Démocratique du Congo (RDC) et de l'Afrique de l'Est.
 NE salue PAS à chaque message. Ne dis jamais 'Jambo' ou 'Bonjour' lors des réponses de suivi dans la conversation. Réponds directement et précisément aux questions de l'utilisateur.
@@ -223,26 +216,15 @@ NE salue PAS à chaque message. Ne dis jamais 'Jambo' ou 'Bonjour' lors des rép
 RÈGLE D'ANCRAGE (RAG FAO) :
 Voici les extraits officiels de la FAO pertinents extraits de la base locale :
 $faoContext
+$historyFormatted
 
-Utilise ces données FAO pour fournir des conseils directs, précis et écologiques. Reste très concis, clair, et cite la source FAO.
+Utilise ces données FAO et cet historique pour fournir des conseils directs, précis et écologiques. Reste très concis, clair, et cite la source FAO.
 ''';
 
           _chat = await model.createChat(
             modelType: ModelType.gemmaIt,
             systemInstruction: systemPrompt,
           );
-
-          if (history != null && history.length > 1) {
-            for (final msg in history) {
-              if (msg.text.trim().isNotEmpty && msg != history.last) {
-                try {
-                  await _chat!.addQuery(msg);
-                } catch (e) {
-                  dev.log("History restoration note: $e", name: 'CHAT_REPO_IMPL');
-                }
-              }
-            }
-          }
 
           loaded = true;
           dev.log("Modèle Gemma chargé avec succès sur le moteur LiteRT-LM CPU !", name: 'CHAT_REPO_IMPL');
@@ -260,6 +242,15 @@ Utilise ces données FAO pour fournir des conseils directs, précis et écologiq
             final faoDocs = await dbHelper.searchFAOKnowledge(text);
             final faoContext = faoDocs.map((d) => "- ${d['topic']}: ${d['content']} Remède: ${d['organic_remedy']} (Source: ${d['source_citation']})").join("\n");
 
+            String historyFormatted = "";
+            if (history != null && history.length > 1) {
+              final recentHistory = _getRecentHistoryWindow(history);
+              if (recentHistory.isNotEmpty) {
+                final formattedHistoryItems = recentHistory.map((m) => "${m.isUser ? 'Utilisateur' : 'Gemmea'}: ${m.text}").join("\n");
+                historyFormatted = "\n\nHISTORIQUE RÉCENT DE LA CONVERSATION :\n$formattedHistoryItems";
+              }
+            }
+
             final systemPrompt = '''
 Tu es Gemmea, un assistant agronome utile sous forme d'IA hors ligne destiné aux agriculteurs de l'Est de la République Démocratique du Congo (RDC) et de l'Afrique de l'Est.
 NE salue PAS à chaque message. Ne dis jamais 'Jambo' ou 'Bonjour' lors des réponses de suivi dans la conversation. Réponds directement et précisément aux questions de l'utilisateur.
@@ -267,26 +258,15 @@ NE salue PAS à chaque message. Ne dis jamais 'Jambo' ou 'Bonjour' lors des rép
 RÈGLE D'ANCRAGE (RAG FAO) :
 Voici les extraits officiels de la FAO pertinents extraits de la base locale :
 $faoContext
+$historyFormatted
 
-Utilise ces données FAO pour fournir des conseils directs, précis et écologiques. Reste très concis, clair, et cite la source FAO.
+Utilise ces données FAO et cet historique pour fournir des conseils directs, précis et écologiques. Reste très concis, clair, et cite la source FAO.
 ''';
 
             _chat = await model.createChat(
               modelType: ModelType.gemmaIt,
               systemInstruction: systemPrompt,
             );
-
-            if (history != null && history.length > 1) {
-              for (final msg in history) {
-                if (msg.text.trim().isNotEmpty && msg != history.last) {
-                  try {
-                    await _chat!.addQuery(msg);
-                  } catch (e) {
-                    dev.log("History restoration note (GPU): $e", name: 'CHAT_REPO_IMPL');
-                  }
-                }
-              }
-            }
 
             loaded = true;
             dev.log("Modèle Gemma chargé avec succès sur le moteur LiteRT-LM GPU !", name: 'CHAT_REPO_IMPL');
@@ -309,15 +289,36 @@ Utilise ces données FAO pour fournir des conseils directs, précis et écologiq
       await _chat!.addQuery(userMessage);
       
       await for (final chunk in _chat!.generateChatResponseAsync()) {
-        yield chunk;
+        if (chunk is TextResponse) {
+          yield TextResponse(TextSanitizer.cleanLatexAndFormatting(chunk.token));
+        } else {
+          yield chunk;
+        }
       }
     } catch (e, stack) {
       dev.log("Error generating chat response stream", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
+      _chat = null;
       if (e.toString().contains("channel-error") || e.toString().contains("PlatformException")) {
-        throw Exception("Impossible d'établir la connexion avec le moteur du modèle local.\n\nVeuillez fermer complètement l'application et la relancer à froid pour lier les bibliothèques locales MediaPipe.");
+        throw Exception("Impossible d'établir la connexion avec le moteur du modèle local.\n\nVeuillez relancer l'application.");
       }
       yield* _mockResponseStream(text, history);
     }
+  }
+
+  List<Message> _getRecentHistoryWindow(List<Message>? history) {
+    if (history == null || history.length <= 1) return [];
+    final validHistory = history
+        .where((m) => m.text.trim().isNotEmpty && !m.text.startsWith("Toutes mes excuses") && !m.text.startsWith("Je ne peux pas"))
+        .toList();
+    if (validHistory.length <= 1) return [];
+    
+    final past = validHistory.sublist(0, validHistory.length - 1);
+    final recent = past.length > 4 ? past.sublist(past.length - 4) : past;
+    
+    return recent.map((m) {
+      final text = m.text.length > 250 ? "${m.text.substring(0, 250)}..." : m.text;
+      return Message.text(text: text, isUser: m.isUser);
+    }).toList();
   }
 
   Stream<ModelResponse> _mockResponseStream(String text, [List<Message>? history]) async* {
@@ -374,9 +375,11 @@ Utilise ces données FAO pour fournir des conseils directs, précis et écologiq
             "3. **Lutte contre la Chenille Légionnaire** : Déposez de la cendre de bois sèche dans le cornet des jeunes plants ou pulvérisez un extrait d'huile ou de feuilles de neem (200g/L).\n\n"
             "4. **Autres Pathologies Possibles (Strie / Helminthosporiose)** : Si ce n'est pas la rouille du maïs, observez les feuilles : des bandes jaunâtres parallèles indiquent la strie du maïs. Dans ce cas, éliminez les plants infectés et appliquez un purin d'ortie ou neem pour renforcer la plante.";
       } else if (contextTopic == "manioc") {
-        reply = "Voici les détails clés pour votre production de manioc :\n\n"
-            "1. **Sélection des Boutures** : Choisissez des tiges saines de 20-30 cm ayant au moins 4 à 6 yeux.\n\n"
-            "2. **Autres Pathologies (Anthracnose / Strie Brune)** : Si les feuilles présentent des chancres brun foncé sur les tiges au lieu de jaunissement, il s'agit d'anthracnose. Coupez les parties atteintes et évitez de blesser les plants.";
+        reply = "Voici les détails agronomiques approfondis (normes FAO/IITA) pour la production du manioc :\n\n"
+            "1. **Sélection des Boutures & Plantation** : Choisissez des tiges centrales saines (20-30 cm, 4-6 nœuds). Plantez inclinées à 45° à 1m d'intervalle dans un sol sablo-argileux meuble.\n\n"
+            "2. **Gestion du Sol & Fertilisation** : Apportez 2 kg de compost décomposé par poquet. Le manioc absorbe beaucoup de Potassium (K) ; paillez abondamment le pied avec des herbes sèches pour nourrir la terre et garder l'humidité.\n\n"
+            "3. **Lutte contre la Mosaïque (CMD)** : Si les feuilles se déforment avec des taches jaunes, il s'agit du Geminivirus transmis par les aleurodes (mouches blanches). Déracinez et brûlez immédiatement les pieds sévèrement atteints. Pulvérisez un extrait de feuilles de Neem (200g/L d'eau) pour repousser les mouches blanches.\n\n"
+            "4. **Autres Pathologies (Anthracnose / Strie Brune - CBSD)** : Des chancres brun foncé sur les tiges indiquent l'anthracnose. Des striations brunes sur les tiges ou nécroses de la chair du tubercule indiquent la strie brune. Dans les deux cas, utilisez exclusivement des boutures saines certifiées IITA/INERA (variétés TME 419 ou SAWASA).";
       } else if (contextTopic == "banane") {
         reply = "Voici les détails agronomiques pour vos bananiers :\n\n"
             "1. **Rejets & Trous** : Plantez des rejets baïonnettes sains dans des trous de 60x60x60 cm.\n\n"
@@ -395,7 +398,11 @@ Utilise ces données FAO pour fournir des conseils directs, précis et écologiq
             "2. **Paillage Régulateur** : Une couche de 5 à 10 cm de paille sèche conserve l'eau dans le sol.";
       }
     } else if (input.contains("manioc") || input.contains("cassava")) {
-      reply = "Pour planter du manioc de manière optimale : coupez des boutures de tiges saines (20 à 30 cm de long, 4 à 6 nœuds). Plantez-les inclinées à 45 degrés dans un sol limoneux bien drainé, à 1 mètre d'intervalle. La mosaïque du manioc (CMD) est une maladie grave qui provoque l'enroulement et le jaunissement des feuilles. Éliminez-la en déracinant les plants infectés et en utilisant des boutures résistantes fournies par l'IITA ou l'INERA.";
+      reply = "Voici le guide d'excellence FAO/IITA pour le manioc :\n\n"
+          "• **Plantation** : Coupez des boutures saines de 20-30 cm. Enfoncez à 45° dans un sol meuble et bien drainé (espacement 1m x 1m).\n"
+          "• **Gestion du Sol & Irrigation** : Apportez du compost mûr au plantation. Arrosage modéré : le manioc craint la stagnation d'eau au niveau des tubercules.\n"
+          "• **Diagnostic & Protection (Mosaïque CMD)** : Si vous observez un jaunissement et de la crispation foliaire provoquée par l'aleurode (mouche blanche), déracinez les pieds infectés et pulvérisez de l'extrait de Neem (200g/L d'eau) ou saupoudrez de la cendre de bois.\n"
+          "• **Variétés Certifiées** : Privilégiez les boutures résistantes diffusées par l'IITA/INERA (TME 419, SAWASA, NAROCASS 1).";
     } else if (input.contains("maïs") || input.contains("corn") || input.contains("maize")) {
       reply = "Le maïs a besoin d'un sol riche en azote. Plantez au début de la saison des pluies. Gardez une distance de 25 cm sur la ligne et 75 cm entre les lignes. La rouille du maïs provoque des pustules jaunes poussiéreuses sur les feuilles. Pratiquez la rotation des cultures et désherbez tôt pour prévenir la rouille.";
     } else if (input.contains("banane") || input.contains("banana") || input.contains("bananier")) {
@@ -424,7 +431,8 @@ Utilise ces données FAO pour fournir des conseils directs, précis et écologiq
       reply = "Je suis là pour vous accompagner. Précisez-moi simplement ce que vous souhaitez savoir sur votre culture (période de semis, fertilisation, traitement contre les ravageurs ou arrosage) !";
     }
 
-    final words = reply.split(" ");
+    final cleanReply = TextSanitizer.cleanLatexAndFormatting(reply);
+    final words = cleanReply.split(" ");
     for (var word in words) {
       await Future.delayed(const Duration(milliseconds: 60));
       yield TextResponse("$word ");

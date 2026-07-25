@@ -116,57 +116,85 @@ class _HomePageState extends State<HomePage> {
                         ),
                         Row(
                           mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                            IconButton(
-                              tooltip: 'Exporter le Rapport PDF',
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              onPressed: () {
-                                final diags = state.diagnosticsHistory
-                                    .map((d) => d.toMap())
-                                    .toList();
-                                final events = state.calendarEvents
-                                    .map((c) => c.toMap())
-                                    .toList();
-                                _showPdfOptionsBottomSheet(context, diags, events);
-                              },
-                              icon: const HugeIcon(
-                                icon: AppIcons.pdf,
-                                color: AppColors.primaryForestGreen,
-                                size: AppSize.iconMd,
-                              ),
-                            ),
-                            const SizedBox(width: AppSize.p12),
-                            Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                IconButton(
-                                  tooltip: 'Historique des diagnostics',
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const DiagnosticsHistoryPage(),
-                                      ),
-                                    );
-                                  },
-                                  icon: const HugeIcon(
-                                    icon: AppIcons.license,
-                                    color: AppColors.primaryForestGreen,
-                                    size: AppSize.iconMd,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () {
+                                  final diags = state.diagnosticsHistory
+                                      .map((d) => d.toMap())
+                                      .toList();
+                                  final events = state.calendarEvents
+                                      .map((c) => c.toMap())
+                                      .toList();
+                                  _showPdfOptionsBottomSheet(
+                                    context,
+                                    diags,
+                                    events,
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(10),
+                                child: Tooltip(
+                                  message: 'Exporter le Rapport PDF',
+                                  child: Container(
+                                    padding: const EdgeInsets.all(7),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryForestGreen
+                                          .withValues(alpha: 0.08),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const HugeIcon(
+                                      icon: AppIcons.pdf,
+                                      color: AppColors.primaryForestGreen,
+                                      size: 20,
+                                    ),
                                   ),
                                 ),
-                                if (hasNew)
-                                  Positioned(
-                                    right: -2,
-                                    top: -2,
-                                    child: const _AnimatedDotBadge(),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const DiagnosticsHistoryPage(),
+                                    ),
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(10),
+                                child: Tooltip(
+                                  message: 'Historique des diagnostics',
+                                  child: Container(
+                                    padding: const EdgeInsets.all(7),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryForestGreen
+                                          .withValues(alpha: 0.08),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        const HugeIcon(
+                                          icon: AppIcons.license,
+                                          color: AppColors.primaryForestGreen,
+                                          size: 20,
+                                        ),
+                                        if (hasNew)
+                                          const Positioned(
+                                            right: -3,
+                                            top: -3,
+                                            child: _AnimatedDotBadge(),
+                                          ),
+                                      ],
+                                    ),
                                   ),
-                              ],
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -199,7 +227,7 @@ class _HomePageState extends State<HomePage> {
                           subtitle: state.lastDiagnostic != null
                               ? "${(state.lastDiagnostic!.confidence * 100).toInt()}% de confiance"
                               : "Appuyez sur scanneur",
-                          color: Colors.blue.withValues(alpha: 0.06),
+                          color: Colors.grey.withValues(alpha: 0.06),
                         ),
 
                         // Grid Card 2: Water Schedule
@@ -210,7 +238,7 @@ class _HomePageState extends State<HomePage> {
                               ? "Pluie - Calendrier en pause"
                               : "Irrigation active",
                           subtitle: state.waterScheduleStatus,
-                          color: Colors.teal.withValues(alpha: 0.06),
+                          color: Colors.blue.withValues(alpha: 0.06),
                         ),
                       ],
                     ),
@@ -220,159 +248,156 @@ class _HomePageState extends State<HomePage> {
                   Expanded(
                     child: RefreshIndicator(
                       color: AppColors.primaryForestGreen,
-                      onRefresh: () =>
-                          context.read<HomeCubit>().loadDashboard(),
-                      child: SingleChildScrollView(
+                      onRefresh: () {
+                        return context.read<HomeCubit>().loadDashboard();
+                      },
+                      child: ListView(
+                        primary: false,
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppSize.p16,
                         ),
                         physics: const AlwaysScrollableScrollPhysics(
                           parent: BouncingScrollPhysics(),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: AppSize.p8),
+                        children: [
+                          const SizedBox(height: AppSize.p8),
 
-                            // Soil Reminders Card
-                            const Text(
-                              "Rappels du Sol",
-                              style: TextStyle(
-                                fontFamily: 'Fredoka',
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textCharcoal,
-                              ),
+                          // Soil Reminders Card
+                          const Text(
+                            "Rappels du Sol",
+                            style: TextStyle(
+                              fontFamily: 'Fredoka',
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textCharcoal,
                             ),
-                            const SizedBox(height: AppSize.p12),
-                            Card(
-                              child: Padding(
-                                padding: const EdgeInsets.all(AppSize.p16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: state.soilReminders.map((reminder) {
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 6.0,
-                                      ),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          const Text(
-                                            "🌱 ",
-                                            style: TextStyle(fontSize: 16),
-                                          ),
-                                          Expanded(
-                                            child: Text(
-                                              reminder,
-                                              style: const TextStyle(
-                                                fontFamily: 'Fredoka',
-                                                color: AppColors.textCharcoal,
-                                                fontSize: 14,
-                                                height: 1.4,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: AppSize.p24),
-
-                            // Water Timetable autonomous adjustments
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  "Calendrier d'Irrigation",
-                                  style: TextStyle(
-                                    fontFamily: 'Fredoka',
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textCharcoal,
-                                  ),
-                                ),
-                                const Text(
-                                  "Ajustement autonome actif",
-                                  style: TextStyle(
-                                    fontFamily: 'Fredoka',
-                                    fontSize: 12,
-                                    color: AppColors.secondaryMint,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: AppSize.p12),
-                            ...state.calendarEvents.map((event) {
-                              return Padding(
-                                padding: const EdgeInsets.only(
-                                  bottom: AppSize.p12,
-                                ),
-                                child: Card(
-                                  child: ListTile(
-                                    title: Text(
-                                      event.title,
-                                      style: const TextStyle(
-                                        fontFamily: 'Fredoka',
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                          ),
+                          const SizedBox(height: AppSize.p12),
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(AppSize.p16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: state.soilReminders.map((reminder) {
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 6.0,
                                     ),
-                                    subtitle: Column(
+                                    child: Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          event.description,
-                                          style: const TextStyle(
-                                            fontFamily: 'Fredoka',
-                                          ),
+                                        const Text(
+                                          "🌱 ",
+                                          style: TextStyle(fontSize: 16),
                                         ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          "Date: ${_formatSlashDate(event.eventDate)}",
-                                          style: const TextStyle(
-                                            fontFamily: 'Fredoka',
-                                            fontWeight: FontWeight.w500,
-                                            color: AppColors.textGrey,
+                                        Expanded(
+                                          child: Text(
+                                            reminder,
+                                            style: const TextStyle(
+                                              fontFamily: 'Fredoka',
+                                              color: AppColors.textCharcoal,
+                                              fontSize: 14,
+                                              height: 1.4,
+                                            ),
                                           ),
                                         ),
                                       ],
                                     ),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Text(
-                                          "Pluie ",
-                                          style: TextStyle(
-                                            fontFamily: 'Fredoka',
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                        Switch(
-                                          value: event.isRainy,
-                                          onChanged: (val) {
-                                            context
-                                                .read<HomeCubit>()
-                                                .toggleRain(
-                                                  event.eventDate,
-                                                  val,
-                                                );
-                                          },
-                                          activeThumbColor:
-                                              AppColors.primaryForestGreen,
-                                        ),
-                                      ],
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: AppSize.p24),
+
+                          // Water Timetable autonomous adjustments
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Calendrier d'Irrigation",
+                                style: TextStyle(
+                                  fontFamily: 'Fredoka',
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textCharcoal,
+                                ),
+                              ),
+                              const Text(
+                                "Ajustement autonome actif",
+                                style: TextStyle(
+                                  fontFamily: 'Fredoka',
+                                  fontSize: 12,
+                                  color: AppColors.secondaryMint,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppSize.p12),
+                          ...state.calendarEvents.map((event) {
+                            return Padding(
+                              padding: const EdgeInsets.only(
+                                bottom: AppSize.p12,
+                              ),
+                              child: Card(
+                                child: ListTile(
+                                  title: Text(
+                                    event.title,
+                                    style: const TextStyle(
+                                      fontFamily: 'Fredoka',
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        event.description,
+                                        style: const TextStyle(
+                                          fontFamily: 'Fredoka',
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        "Date: ${_formatSlashDate(event.eventDate)}",
+                                        style: const TextStyle(
+                                          fontFamily: 'Fredoka',
+                                          fontWeight: FontWeight.w500,
+                                          color: AppColors.textGrey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text(
+                                        "Pluie ",
+                                        style: TextStyle(
+                                          fontFamily: 'Fredoka',
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      Switch(
+                                        value: event.isRainy,
+                                        onChanged: (val) {
+                                          context.read<HomeCubit>().toggleRain(
+                                            event.eventDate,
+                                            val,
+                                          );
+                                        },
+                                        activeThumbColor:
+                                            AppColors.primaryForestGreen,
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              );
-                            }),
-                          ],
-                        ),
+                              ),
+                            );
+                          }),
+                        ],
                       ),
                     ),
                   ),
@@ -449,7 +474,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showPdfOptionsBottomSheet(
-      BuildContext context, List<Map<String, dynamic>> diags, List<Map<String, dynamic>> events) {
+    BuildContext context,
+    List<Map<String, dynamic>> diags,
+    List<Map<String, dynamic>> events,
+  ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -494,17 +522,18 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 20),
-              
+
               // Option 1: Download
               InkWell(
                 onTap: () async {
                   Navigator.pop(bottomSheetContext);
                   try {
-                    final path = await PDFReportService.downloadReportToDocuments(
-                      diagnostics: diags,
-                      calendarEvents: events,
-                      farmerLocation: 'Bukavu, Sud-Kivu, RDC',
-                    );
+                    final path =
+                        await PDFReportService.downloadReportToDocuments(
+                          diagnostics: diags,
+                          calendarEvents: events,
+                          farmerLocation: 'Bukavu, Sud-Kivu, RDC',
+                        );
                     if (context.mounted) {
                       final filename = path.split('/').last;
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -519,16 +548,50 @@ class _HomePageState extends State<HomePage> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  "PDF enregistré dans les Documents :\n$filename",
-                                  style: const TextStyle(fontFamily: 'Fredoka', fontSize: 13),
+                                  "Rapport PDF enregistré dans vos Documents :\n$filename",
+                                  style: const TextStyle(
+                                    fontFamily: 'Fredoka',
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              InkWell(
+                                onTap: () {
+                                  ScaffoldMessenger.of(
+                                    context,
+                                  ).hideCurrentSnackBar();
+                                  PDFReportService.openPdfFile(path);
+                                },
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: const Text(
+                                    "OUVRIR",
+                                    style: TextStyle(
+                                      fontFamily: 'Fredoka',
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primaryForestGreen,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                           backgroundColor: AppColors.primaryForestGreen,
                           behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          duration: const Duration(seconds: 4),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          duration: const Duration(seconds: 6),
                         ),
                       );
                     }
@@ -550,7 +613,9 @@ class _HomePageState extends State<HomePage> {
                     color: AppColors.primaryForestGreen.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: AppColors.primaryForestGreen.withValues(alpha: 0.15),
+                      color: AppColors.primaryForestGreen.withValues(
+                        alpha: 0.15,
+                      ),
                     ),
                   ),
                   child: Row(
@@ -558,7 +623,9 @@ class _HomePageState extends State<HomePage> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: AppColors.primaryForestGreen.withValues(alpha: 0.12),
+                          color: AppColors.primaryForestGreen.withValues(
+                            alpha: 0.12,
+                          ),
                           shape: BoxShape.circle,
                         ),
                         child: const HugeIcon(
@@ -632,7 +699,9 @@ class _HomePageState extends State<HomePage> {
                     color: AppColors.primaryForestGreen.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: AppColors.primaryForestGreen.withValues(alpha: 0.15),
+                      color: AppColors.primaryForestGreen.withValues(
+                        alpha: 0.15,
+                      ),
                     ),
                   ),
                   child: Row(
@@ -640,7 +709,9 @@ class _HomePageState extends State<HomePage> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: AppColors.primaryForestGreen.withValues(alpha: 0.12),
+                          color: AppColors.primaryForestGreen.withValues(
+                            alpha: 0.12,
+                          ),
                           shape: BoxShape.circle,
                         ),
                         child: const HugeIcon(
@@ -730,6 +801,7 @@ class _AnimatedDotBadgeState extends State<_AnimatedDotBadge>
           decoration: BoxDecoration(
             color: Colors.redAccent,
             shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 1.5),
             boxShadow: [
               BoxShadow(
                 color: Colors.redAccent.withValues(

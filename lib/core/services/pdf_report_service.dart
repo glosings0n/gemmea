@@ -1,7 +1,7 @@
 import 'dart:developer' as dev;
 import 'dart:io';
-import 'dart:typed_data';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart';
+import 'package:gemmea/core/utils/text_sanitizer.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -40,7 +40,8 @@ class PDFReportService {
   }
 
   static String _cleanMarkdown(String text) {
-    return text
+    final sanitized = TextSanitizer.cleanLatexAndFormatting(text);
+    return sanitized
         .replaceAll(RegExp(r'\*\*|\*|__|#|`'), '')
         .replaceAll(RegExp(r'\n{3,}'), '\n\n')
         .trim();
@@ -290,7 +291,7 @@ class PDFReportService {
               ),
               pw.SizedBox(height: 16),
 
-              // Section 2: Diagnostics Table
+              // Section 2: Diagnostics Table (Synthèse)
               pw.Text(
                 '2. Historique des Diagnostics de Pathologies (Gemma Vision & FAO RAG)',
                 style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: primaryColor),
@@ -298,24 +299,28 @@ class PDFReportService {
               pw.SizedBox(height: 8),
               if (diagnostics.isEmpty)
                 pw.Text('Aucun diagnostic enregistré à ce jour.', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700))
-              else
+              else ...[
                 pw.TableHelper.fromTextArray(
-                  headers: ['Culture', 'Diagnostic / Pathologie', 'Confiance', 'Statut', 'Remède Recommandé (FAO)'],
+                  headers: ['Culture', 'Diagnostic / Pathologie', 'Confiance', 'Statut', 'Synthèse du Traitement'],
                   columnWidths: {
                     0: const pw.FlexColumnWidth(1.2),
                     1: const pw.FlexColumnWidth(1.8),
                     2: const pw.FlexColumnWidth(1.0),
                     3: const pw.FlexColumnWidth(0.9),
-                    4: const pw.FlexColumnWidth(5.0),
+                    4: const pw.FlexColumnWidth(3.5),
                   },
                   data: diagnostics.map((d) {
                     final confidence = (d['confidence'] as double? ?? 0.0) * 100;
+                    final rawRemedy = _cleanMarkdown(d['remedy'] ?? '');
+                    final shortRemedy = rawRemedy.length > 110
+                        ? '${rawRemedy.substring(0, 110)}...'
+                        : (rawRemedy.isEmpty ? 'Aucun' : rawRemedy);
                     return [
                       _extractCropName(d),
                       d['disease'] ?? 'Sain',
                       '${confidence.toStringAsFixed(0)}%',
                       d['status'] == 'new' ? 'Alerte' : 'Traité',
-                      _parseMarkdownToPdfWidget(d['remedy'] ?? 'Aucun'),
+                      shortRemedy,
                     ];
                   }).toList(),
                   headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 9),
@@ -323,6 +328,47 @@ class PDFReportService {
                   cellStyle: const pw.TextStyle(fontSize: 8),
                   cellPadding: const pw.EdgeInsets.all(6),
                 ),
+                pw.SizedBox(height: 12),
+
+                // Detailed Protocol Cards (Flowing line-by-line across pages)
+                ...diagnostics.map((d) {
+                  final cropName = _extractCropName(d);
+                  final disease = d['disease'] ?? 'Sain';
+                  final remedy = d['remedy'] ?? '';
+
+                  return pw.Container(
+                    margin: const pw.EdgeInsets.only(bottom: 10),
+                    padding: const pw.EdgeInsets.all(10),
+                    decoration: pw.BoxDecoration(
+                      color: PdfColor.fromHex('#FAFAFA'),
+                      borderRadius: pw.BorderRadius.circular(6),
+                      border: pw.Border.all(color: PdfColors.grey300),
+                    ),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Row(
+                          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                          children: [
+                            pw.Text(
+                              'Fiche Médicale Détaillée : $cropName - $disease',
+                              style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: primaryColor),
+                            ),
+                            pw.Text(
+                              d['status'] == 'new' ? 'Alerte Active' : 'Traité',
+                              style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: primaryColor),
+                            ),
+                          ],
+                        ),
+                        pw.SizedBox(height: 4),
+                        pw.Divider(thickness: 0.5, color: PdfColors.grey300),
+                        pw.SizedBox(height: 4),
+                        _parseMarkdownToPdfWidget(remedy, fontSize: 8),
+                      ],
+                    ),
+                  );
+                }),
+              ],
 
               pw.SizedBox(height: 16),
 
@@ -414,33 +460,61 @@ class PDFReportService {
         farmerLocation: farmerLocation,
       );
 
-      Directory? targetDir;
+      final filename = 'Rapport_Agronomique_Gemmea_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      List<String> savedPaths = [];
+
       if (Platform.isAndroid) {
-        final docDir = Directory('/storage/emulated/0/Documents');
-        if (await docDir.exists()) {
-          targetDir = docDir;
-        } else {
-          final dlDir = Directory('/storage/emulated/0/Download');
-          if (await dlDir.exists()) {
-            targetDir = dlDir;
+        final publicDirs = [
+          Directory('/storage/emulated/0/Documents/Gemmea'),
+          Directory('/storage/emulated/0/Documents'),
+          Directory('/storage/emulated/0/Download'),
+        ];
+
+        for (final dir in publicDirs) {
+          try {
+            if (!await dir.exists()) {
+              await dir.create(recursive: true);
+            }
+            final file = File('${dir.path}/$filename');
+            await file.writeAsBytes(pdfBytes);
+            savedPaths.add(file.path);
+            dev.log("PDF saved to public directory: ${file.path}", name: 'PDF_REPORT_SERVICE');
+
+            // Notify Android MediaScanner & MediaStore indexing immediately
+            try {
+              const channel = MethodChannel('com.gemmea.app/media_scanner');
+              await channel.invokeMethod('scanFile', {'path': file.path});
+              dev.log("Notified Android MediaScanner for ${file.path}", name: 'PDF_REPORT_SERVICE');
+            } catch (scanErr) {
+              dev.log("MediaScanner notification note: $scanErr", name: 'PDF_REPORT_SERVICE');
+            }
+          } catch (e) {
+            dev.log("Could not write to ${dir.path}: $e", name: 'PDF_REPORT_SERVICE');
           }
         }
       }
 
-      if (targetDir == null) {
+      if (savedPaths.isEmpty) {
+        Directory? targetDir;
         try {
           targetDir = await getDownloadsDirectory();
         } catch (_) {}
+        targetDir ??= await getApplicationDocumentsDirectory();
+
+        final file = File('${targetDir.path}/$filename');
+        await file.writeAsBytes(pdfBytes);
+        savedPaths.add(file.path);
+
+        try {
+          if (Platform.isAndroid) {
+            const channel = MethodChannel('com.gemmea.app/media_scanner');
+            await channel.invokeMethod('scanFile', {'path': file.path});
+          }
+        } catch (_) {}
       }
 
-      targetDir ??= await getApplicationDocumentsDirectory();
-
-      final filename = 'Rapport_Agronomique_Gemmea_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      final file = File('${targetDir.path}/$filename');
-      await file.writeAsBytes(pdfBytes);
-
-      dev.log("PDF downloaded successfully to ${file.path}", name: 'PDF_REPORT_SERVICE');
-      return file.path;
+      dev.log("PDF downloaded successfully to ${savedPaths.first}", name: 'PDF_REPORT_SERVICE');
+      return savedPaths.first;
     } catch (e, stack) {
       dev.log("Error downloading PDF report", name: 'PDF_REPORT_SERVICE', error: e, stackTrace: stack);
       rethrow;
@@ -480,5 +554,303 @@ class PDFReportService {
       calendarEvents: calendarEvents,
       farmerLocation: farmerLocation,
     );
+  }
+
+  static Future<Uint8List> generateSingleDiagnosticReport({
+    required Map<String, dynamic> diagnostic,
+    String farmerLocation = 'Bukavu, Sud-Kivu, RDC',
+  }) async {
+    try {
+      dev.log("Generating single diagnostic PDF report...", name: 'PDF_REPORT_SERVICE');
+      final pdf = pw.Document();
+
+      pw.Font? fontRegular;
+      pw.Font? fontBold;
+
+      try {
+        final fontDataRegular = await rootBundle.load('assets/fonts/Fredoka-Regular.ttf');
+        final fontDataBold = await rootBundle.load('assets/fonts/Fredoka-Bold.ttf');
+        fontRegular = pw.Font.ttf(fontDataRegular);
+        fontBold = pw.Font.ttf(fontDataBold);
+      } catch (e) {
+        fontRegular = pw.Font.helvetica();
+        fontBold = pw.Font.helveticaBold();
+      }
+
+      final primaryColor = PdfColor.fromHex('#1B4324');
+      final accentColor = PdfColor.fromHex('#FBC02D');
+      final grayColor = PdfColor.fromHex('#666666');
+
+      final crop = _extractCropName(diagnostic);
+      final disease = diagnostic['disease']?.toString() ?? 'Pathologie Inconnue';
+      final confidenceVal = (diagnostic['confidence'] as num?)?.toDouble() ?? 0.0;
+      final confidence = (confidenceVal * 100).toInt();
+      final status = diagnostic['status'] == 'new' ? 'Alerte Active' : 'Traité';
+      final rawDate = diagnostic['timestamp']?.toString() ?? DateTime.now().toIso8601String();
+      final formattedDate = _formatFrenchDate(rawDate, includeTime: true);
+      final remedy = diagnostic['remedy']?.toString() ?? '';
+
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          theme: pw.ThemeData.withFont(
+            base: fontRegular,
+            bold: fontBold,
+          ),
+          build: (pw.Context context) {
+            return [
+              // Header Banner
+              pw.Container(
+                padding: const pw.EdgeInsets.all(16),
+                decoration: pw.BoxDecoration(
+                  color: primaryColor,
+                  borderRadius: pw.BorderRadius.circular(8),
+                ),
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          'Gemmea - Diagnostic Agronomique Individuel',
+                          style: pw.TextStyle(
+                            color: PdfColors.white,
+                            fontSize: 15,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                        pw.SizedBox(height: 4),
+                        pw.Text(
+                          'Fiche Pathologique & Traitement FAO / IITA',
+                          style: const pw.TextStyle(
+                            color: PdfColors.white,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                    pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: pw.BoxDecoration(
+                        color: accentColor,
+                        borderRadius: pw.BorderRadius.circular(4),
+                      ),
+                      child: pw.Text(
+                        '100% HORS LIGNE',
+                        style: pw.TextStyle(
+                          color: primaryColor,
+                          fontSize: 8,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              pw.SizedBox(height: 12),
+
+              // Metadata Row
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('Localisation: $farmerLocation', style: pw.TextStyle(color: grayColor, fontSize: 8)),
+                  pw.Text('Diagnostic du $formattedDate', style: pw.TextStyle(color: grayColor, fontSize: 8)),
+                ],
+              ),
+              pw.SizedBox(height: 4),
+              pw.Divider(thickness: 1, color: PdfColors.grey300),
+              pw.SizedBox(height: 12),
+
+              // Summary Stats
+              pw.Container(
+                padding: const pw.EdgeInsets.all(12),
+                decoration: pw.BoxDecoration(
+                  color: PdfColor.fromHex('#F4F6F4'),
+                  borderRadius: pw.BorderRadius.circular(6),
+                  border: pw.Border.all(color: PdfColors.grey300),
+                ),
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildStatItem('Culture', crop, primaryColor),
+                    _buildStatItem('Pathologie', disease, primaryColor),
+                    _buildStatItem('Confiance IA', '$confidence%', primaryColor),
+                    _buildStatItem('Statut', status, primaryColor),
+                  ],
+                ),
+              ),
+              pw.SizedBox(height: 14),
+
+              // Economic Impact Card
+              pw.Container(
+                padding: const pw.EdgeInsets.all(10),
+                decoration: pw.BoxDecoration(
+                  color: PdfColor.fromHex('#FFF8E1'),
+                  borderRadius: pw.BorderRadius.circular(6),
+                  border: pw.Border.all(color: PdfColor.fromHex('#FFE082')),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'Estimation d\'Impact Économique & Pertes Évitées (FAO)',
+                      style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: primaryColor),
+                    ),
+                    pw.SizedBox(height: 3),
+                    pw.Text(
+                      '• Perte potentielle sans intervention : 40% à 70% du rendement parcellaire.\n'
+                      '• Gain estimé après traitement FAO / IITA : +120\$ à +350\$/hectare.',
+                      style: const pw.TextStyle(fontSize: 8, color: PdfColors.brown800),
+                    ),
+                  ],
+                ),
+              ),
+              pw.SizedBox(height: 16),
+
+              // Detailed Protocol Section
+              pw.Text(
+                'Actions Correctives & Traitement Recommandé (FAO / IITA)',
+                style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: primaryColor),
+              ),
+              pw.SizedBox(height: 8),
+              pw.Container(
+                padding: const pw.EdgeInsets.all(12),
+                decoration: pw.BoxDecoration(
+                  color: PdfColor.fromHex('#FAFAFA'),
+                  borderRadius: pw.BorderRadius.circular(6),
+                  border: pw.Border.all(color: PdfColors.grey300),
+                ),
+                child: _parseMarkdownToPdfWidget(remedy, fontSize: 8.5),
+              ),
+
+              pw.SizedBox(height: 24),
+              pw.Divider(thickness: 1, color: PdfColors.grey300),
+              pw.SizedBox(height: 8),
+
+              // Footer
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('Ancré dans les guides officiels FAO & IITA East Africa', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+                  pw.Text('Propulsé par Gemmea', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: primaryColor)),
+                ],
+              ),
+            ];
+          },
+        ),
+      );
+
+      final pdfBytes = await pdf.save();
+      dev.log("Single PDF report generated (${pdfBytes.length} bytes)", name: 'PDF_REPORT_SERVICE');
+      return pdfBytes;
+    } catch (e, stack) {
+      dev.log("Error generating single PDF report", name: 'PDF_REPORT_SERVICE', error: e, stackTrace: stack);
+      rethrow;
+    }
+  }
+
+  static Future<String> downloadSingleReportToDocuments({
+    required Map<String, dynamic> diagnostic,
+    String farmerLocation = 'Bukavu, Sud-Kivu, RDC',
+  }) async {
+    try {
+      final pdfBytes = await generateSingleDiagnosticReport(
+        diagnostic: diagnostic,
+        farmerLocation: farmerLocation,
+      );
+
+      final crop = _extractCropName(diagnostic);
+      final filename = 'Diagnostic_${crop}_Gemmea_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      List<String> savedPaths = [];
+
+      if (Platform.isAndroid) {
+        final publicDirs = [
+          Directory('/storage/emulated/0/Documents/Gemmea'),
+          Directory('/storage/emulated/0/Documents'),
+          Directory('/storage/emulated/0/Download'),
+        ];
+
+        for (final dir in publicDirs) {
+          try {
+            if (!await dir.exists()) {
+              await dir.create(recursive: true);
+            }
+            final file = File('${dir.path}/$filename');
+            await file.writeAsBytes(pdfBytes);
+            savedPaths.add(file.path);
+
+            try {
+              const channel = MethodChannel('com.gemmea.app/media_scanner');
+              await channel.invokeMethod('scanFile', {'path': file.path});
+            } catch (_) {}
+          } catch (_) {}
+        }
+      }
+
+      if (savedPaths.isEmpty) {
+        Directory? targetDir;
+        try {
+          targetDir = await getDownloadsDirectory();
+        } catch (_) {}
+        targetDir ??= await getApplicationDocumentsDirectory();
+
+        final file = File('${targetDir.path}/$filename');
+        await file.writeAsBytes(pdfBytes);
+        savedPaths.add(file.path);
+
+        try {
+          if (Platform.isAndroid) {
+            const channel = MethodChannel('com.gemmea.app/media_scanner');
+            await channel.invokeMethod('scanFile', {'path': file.path});
+          }
+        } catch (_) {}
+      }
+
+      return savedPaths.first;
+    } catch (e, stack) {
+      dev.log("Error downloading single PDF report", name: 'PDF_REPORT_SERVICE', error: e, stackTrace: stack);
+      rethrow;
+    }
+  }
+
+  static Future<void> shareSingleReport({
+    required Map<String, dynamic> diagnostic,
+    String farmerLocation = 'Bukavu, Sud-Kivu, RDC',
+  }) async {
+    try {
+      final pdfBytes = await generateSingleDiagnosticReport(
+        diagnostic: diagnostic,
+        farmerLocation: farmerLocation,
+      );
+
+      final crop = _extractCropName(diagnostic);
+      await Printing.sharePdf(
+        bytes: pdfBytes,
+        filename: 'Diagnostic_${crop}_Gemmea_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      );
+    } catch (e, stack) {
+      dev.log("Error sharing single PDF report", name: 'PDF_REPORT_SERVICE', error: e, stackTrace: stack);
+      rethrow;
+    }
+  }
+
+  static Future<void> openPdfFile(String filePath) async {
+    try {
+      dev.log("Opening PDF file directly: $filePath", name: 'PDF_REPORT_SERVICE');
+      if (Platform.isAndroid) {
+        const channel = MethodChannel('com.gemmea.app/media_scanner');
+        await channel.invokeMethod('openFile', {'path': filePath});
+      } else {
+        final file = File(filePath);
+        if (await file.exists()) {
+          final bytes = await file.readAsBytes();
+          await Printing.layoutPdf(onLayout: (_) async => bytes);
+        }
+      }
+    } catch (e, stack) {
+      dev.log("Error opening PDF file", name: 'PDF_REPORT_SERVICE', error: e, stackTrace: stack);
+    }
   }
 }

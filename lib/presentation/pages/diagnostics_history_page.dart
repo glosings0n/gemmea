@@ -14,6 +14,8 @@ class DiagnosticsHistoryPage extends StatefulWidget {
 }
 
 class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
+  int? _expandedIndex;
+
   String _formatFrenchDate(String dateStr) {
     try {
       final dt = DateTime.parse(dateStr);
@@ -129,6 +131,266 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
     }
   }
 
+  void _showSinglePdfOptionsBottomSheet(BuildContext context, dynamic log) {
+    final Map<String, dynamic> diagMap = log is Map<String, dynamic> ? log : log.toMap();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (bottomSheetContext) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: AppColors.cardCleanWhite,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(AppSize.r24),
+              topRight: Radius.circular(AppSize.r24),
+            ),
+          ),
+          padding: const EdgeInsets.all(AppSize.p24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.textGrey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Exporter Diagnostic PDF (${diagMap['crop_name'] ?? 'Plante'})",
+                style: const TextStyle(
+                  fontFamily: 'Fredoka',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textCharcoal,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                "Choisissez une option pour sauvegarder ou partager ce diagnostic.",
+                style: TextStyle(
+                  fontFamily: 'Fredoka',
+                  fontSize: 13,
+                  color: AppColors.textGrey,
+                ),
+              ),
+              const SizedBox(height: 20),
+              
+              // Option 1: Download
+              InkWell(
+                onTap: () async {
+                  Navigator.pop(bottomSheetContext);
+                  try {
+                    final path = await PDFReportService.downloadSingleReportToDocuments(
+                      diagnostic: diagMap,
+                      farmerLocation: 'Bukavu, Sud-Kivu, RDC',
+                    );
+                    if (context.mounted) {
+                      final filename = path.split('/').last;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              const HugeIcon(
+                                icon: AppIcons.check,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  "Diagnostic PDF enregistré dans vos Documents :\n$filename",
+                                  style: const TextStyle(fontFamily: 'Fredoka', fontSize: 12),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              InkWell(
+                                onTap: () {
+                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                  PDFReportService.openPdfFile(path);
+                                },
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: const Text(
+                                    "OUVRIR",
+                                    style: TextStyle(
+                                      fontFamily: 'Fredoka',
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primaryForestGreen,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          backgroundColor: AppColors.primaryForestGreen,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          duration: const Duration(seconds: 6),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Erreur lors du téléchargement du PDF: $e"),
+                          backgroundColor: AppColors.errorRed,
+                        ),
+                      );
+                    }
+                  }
+                },
+                borderRadius: BorderRadius.circular(AppSize.r12),
+                child: Container(
+                  padding: const EdgeInsets.all(AppSize.p16),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryForestGreen.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(AppSize.r12),
+                    border: Border.all(
+                      color: AppColors.primaryForestGreen.withValues(alpha: 0.15),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryForestGreen,
+                          shape: BoxShape.circle,
+                        ),
+                        child: HugeIcon(
+                          icon: AppIcons.download,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Télécharger le PDF",
+                              style: TextStyle(
+                                fontFamily: 'Fredoka',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: AppColors.textCharcoal,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              "Enregistre le document dans le dossier Documents",
+                              style: TextStyle(
+                                fontFamily: 'Fredoka',
+                                fontSize: 12,
+                                color: AppColors.textGrey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Option 2: Share
+              InkWell(
+                onTap: () async {
+                  Navigator.pop(bottomSheetContext);
+                  try {
+                    await PDFReportService.shareSingleReport(
+                      diagnostic: diagMap,
+                      farmerLocation: 'Bukavu, Sud-Kivu, RDC',
+                    );
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Erreur lors du partage du PDF: $e"),
+                          backgroundColor: AppColors.errorRed,
+                        ),
+                      );
+                    }
+                  }
+                },
+                borderRadius: BorderRadius.circular(AppSize.r12),
+                child: Container(
+                  padding: const EdgeInsets.all(AppSize.p16),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondaryMint.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(AppSize.r12),
+                    border: Border.all(
+                      color: AppColors.primaryForestGreen.withValues(alpha: 0.15),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryForestGreen,
+                          shape: BoxShape.circle,
+                        ),
+                        child: HugeIcon(
+                          icon: AppIcons.share,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Partager ou Imprimer le PDF",
+                              style: TextStyle(
+                                fontFamily: 'Fredoka',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: AppColors.textCharcoal,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              "Envoyer via WhatsApp, Email ou imprimer directement",
+                              style: TextStyle(
+                                fontFamily: 'Fredoka',
+                                fontSize: 12,
+                                color: AppColors.textGrey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -233,6 +495,8 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                   final log = state.diagnosticsHistory[index];
                   final isNew = log.status == 'new';
 
+                  final isExpanded = _expandedIndex == index;
+
                   return Card(
                     elevation: 1,
                     margin: const EdgeInsets.only(bottom: AppSize.p12),
@@ -248,6 +512,17 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(AppSize.r16),
                       child: ExpansionTile(
+                        key: Key('diagnostic_${log.id}_$isExpanded'),
+                        initiallyExpanded: isExpanded,
+                        onExpansionChanged: (expanded) {
+                          setState(() {
+                            if (expanded) {
+                              _expandedIndex = index;
+                            } else if (_expandedIndex == index) {
+                              _expandedIndex = null;
+                            }
+                          });
+                        },
                         backgroundColor: isNew 
                             ? AppColors.primaryForestGreen.withValues(alpha: 0.02) 
                             : Colors.transparent,
@@ -407,50 +682,62 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                 ),
                                 const SizedBox(height: AppSize.p12),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const HugeIcon(
-                                          icon: AppIcons.calendar,
-                                          color: AppColors.textGrey,
-                                          size: 14,
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          "Enregistré le : ${_formatFrenchDate(log.timestamp.toString())}",
-                                          style: const TextStyle(
-                                            fontFamily: 'Fredoka',
-                                            fontSize: 11,
-                                            color: AppColors.textGrey,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    TextButton.icon(
-                                      onPressed: () => _confirmDelete(context, log),
-                                      icon: const HugeIcon(
-                                        icon: AppIcons.delete,
-                                        color: Colors.redAccent,
-                                        size: 16,
-                                      ),
-                                      label: const Text(
-                                        "Supprimer",
-                                        style: TextStyle(
-                                          fontFamily: 'Fredoka',
-                                          fontSize: 12,
-                                          color: Colors.redAccent,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      style: TextButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        minimumSize: Size.zero,
-                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                   children: [
+                                     TextButton.icon(
+                                       onPressed: () => _showSinglePdfOptionsBottomSheet(context, log),
+                                       icon: const HugeIcon(
+                                         icon: AppIcons.pdf,
+                                         color: AppColors.primaryForestGreen,
+                                         size: 16,
+                                       ),
+                                       label: const Text(
+                                         "Exporter PDF",
+                                         style: TextStyle(
+                                           fontFamily: 'Fredoka',
+                                           fontSize: 12,
+                                           color: AppColors.primaryForestGreen,
+                                           fontWeight: FontWeight.bold,
+                                         ),
+                                       ),
+                                       style: TextButton.styleFrom(
+                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                         minimumSize: Size.zero,
+                                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                       ),
+                                     ),
+                                     Text(
+                                       _formatFrenchDate(log.timestamp.toString()),
+                                       style: const TextStyle(
+                                         fontFamily: 'Fredoka',
+                                         fontSize: 11,
+                                         color: AppColors.textGrey,
+                                       ),
+                                     ),
+                                     TextButton.icon(
+                                       onPressed: () => _confirmDelete(context, log),
+                                       icon: const HugeIcon(
+                                         icon: AppIcons.delete,
+                                         color: Colors.redAccent,
+                                         size: 16,
+                                       ),
+                                       label: const Text(
+                                         "Supprimer",
+                                         style: TextStyle(
+                                           fontFamily: 'Fredoka',
+                                           fontSize: 12,
+                                           color: Colors.redAccent,
+                                           fontWeight: FontWeight.bold,
+                                         ),
+                                       ),
+                                       style: TextButton.styleFrom(
+                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                         minimumSize: Size.zero,
+                                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                       ),
+                                     ),
+                                   ],
+                                 ),
                               ],
                             ),
                           ),
