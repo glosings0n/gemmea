@@ -83,7 +83,7 @@ class VoiceService {
         final systemLocales = await _speech.locales();
         final frLocale = systemLocales.firstWhere(
           (l) => l.localeId.startsWith('fr'),
-          orElse: () => systemLocales.isNotEmpty ? systemLocales.first : const stt.LocaleName("fr_FR", "French"),
+          orElse: () => systemLocales.isNotEmpty ? systemLocales.first : stt.LocaleName("fr_FR", "French"),
         );
         localeId = frLocale.localeId;
         dev.log("Selected STT locale: $localeId", name: 'VOICE_SERVICE');
