@@ -212,6 +212,7 @@ class ChatRepositoryImpl implements ChatRepository {
           final systemPrompt = '''
 Tu es Gemmea, un assistant agronome utile sous forme d'IA hors ligne destiné aux agriculteurs de l'Est de la République Démocratique du Congo (RDC) et de l'Afrique de l'Est.
 NE salue PAS à chaque message. Ne dis jamais 'Jambo' ou 'Bonjour' lors des réponses de suivi dans la conversation. Réponds directement et précisément aux questions de l'utilisateur.
+N'utilise AUCUN émoji dans tes réponses. Rédige un texte purement professionnel sans émojis ni icônes.
 
 RÈGLE D'ANCRAGE (RAG FAO) :
 Voici les extraits officiels de la FAO pertinents extraits de la base locale :
@@ -254,6 +255,7 @@ Utilise ces données FAO et cet historique pour fournir des conseils directs, pr
             final systemPrompt = '''
 Tu es Gemmea, un assistant agronome utile sous forme d'IA hors ligne destiné aux agriculteurs de l'Est de la République Démocratique du Congo (RDC) et de l'Afrique de l'Est.
 NE salue PAS à chaque message. Ne dis jamais 'Jambo' ou 'Bonjour' lors des réponses de suivi dans la conversation. Réponds directement et précisément aux questions de l'utilisateur.
+N'utilise AUCUN émoji dans tes réponses. Rédige un texte purement professionnel sans émojis ni icônes.
 
 RÈGLE D'ANCRAGE (RAG FAO) :
 Voici les extraits officiels de la FAO pertinents extraits de la base locale :
@@ -310,7 +312,7 @@ Utilise ces données FAO et cet historique pour fournir des conseils directs, pr
     final validHistory = history
         .where((m) =>
             m.text.trim().isNotEmpty &&
-            !m.text.startsWith("Jambo 👋🏾") &&
+            !m.text.startsWith("Jambo") &&
             !m.text.startsWith("Toutes mes excuses") &&
             !m.text.startsWith("Je ne peux pas"))
         .toList();

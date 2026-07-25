@@ -68,7 +68,7 @@ class ChatCubit extends Cubit<ChatState> {
       final messages = await getChatMessages();
       if (messages.isEmpty) {
         final welcome = Message.text(
-          text: "Jambo 👋🏾 ! Je suis Gemmea, votre assistant agronome 100% hors ligne. Posez-moi vos questions sur le manioc, l'espacement du maïs, les pesticides biologiques à base de neem ou l'état de la pluie pour mettre à jour votre calendrier d'irrigation !",
+          text: "Jambo ! Je suis Gemmea, votre assistant agronome 100% hors ligne. Posez-moi vos questions sur le manioc, l'espacement du maïs, les pesticides biologiques à base de neem ou l'état de la pluie pour mettre à jour votre calendrier d'irrigation !",
           isUser: false,
         );
         emit(ChatLoaded(messages: [welcome], isStreaming: false));
@@ -110,14 +110,14 @@ class ChatCubit extends Cubit<ChatState> {
         dev.log("Triggering Function Calling: Pause irrigation for rain", name: 'CHAT_CUBIT');
         await updateRainStatus(tomorrowStr, true);
         await updateRainStatus(todayStr, true);
-        functionCallingNotice = "🌧️ Calendar adjusted: Irrigation paused for rainy schedule on $tomorrowStr.";
+        functionCallingNotice = "Calendrier ajusté : Arrosage mis en pause suite au signalement de pluie.";
       } else if (lowercaseText.contains("dry") || lowercaseText.contains("hot") || lowercaseText.contains("irrigate") || lowercaseText.contains("water my field") ||
                  lowercaseText.contains("sec") || lowercaseText.contains("chaud") || lowercaseText.contains("arroser") || lowercaseText.contains("arrose")) {
         // Trigger autonomous Function Call: update rain status to false, activating watering
         dev.log("Triggering Function Calling: Resume regular irrigation for dry weather", name: 'CHAT_CUBIT');
         await updateRainStatus(tomorrowStr, false);
         await updateRainStatus(todayStr, false);
-        functionCallingNotice = "☀️ Calendar adjusted: Regular watering scheduled for dry weather.";
+        functionCallingNotice = "Calendrier ajusté : Arrosage régulier programmé pour temps sec.";
       }
 
       // Add placeholder message for streaming model response
@@ -206,7 +206,7 @@ class ChatCubit extends Cubit<ChatState> {
       dev.log("Clearing chat conversation...", name: 'CHAT_CUBIT');
       await clearChat();
       final welcome = Message.text(
-        text: "Jambo 👋🏾 ! Je suis Gemmea, votre assistant agronome 100% hors ligne. Posez-moi vos questions sur le manioc, l'espacement du maïs, les pesticides biologiques à base de neem ou l'état de la pluie pour mettre à jour votre calendrier d'irrigation !",
+        text: "Jambo ! Je suis Gemmea, votre assistant agronome 100% hors ligne. Posez-moi vos questions sur le manioc, l'espacement du maïs, les pesticides biologiques à base de neem ou l'état de la pluie pour mettre à jour votre calendrier d'irrigation !",
         isUser: false,
       );
       emit(ChatLoaded(messages: [welcome], isStreaming: false));
