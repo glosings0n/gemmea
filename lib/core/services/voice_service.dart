@@ -39,7 +39,7 @@ class VoiceService {
       dev.log("Configuring FlutterTts settings...", name: 'VOICE_SERVICE');
       await _flutterTts.setLanguage("fr-FR");
       await _flutterTts.setPitch(1.0);
-      await _flutterTts.setSpeechRate(0.50); // Calmer, clear natural rate for farmers
+      await _flutterTts.setSpeechRate(0.65); // Clear natural rate for farmers
 
       _flutterTts.setStartHandler(() {
         dev.log("TTS playback started", name: 'VOICE_SERVICE');
@@ -153,7 +153,7 @@ class VoiceService {
       }
 
       dev.log("Speaking text via TTS (${cleanText.length} chars)...", name: 'VOICE_SERVICE');
-      await _flutterTts.setSpeechRate(0.50);
+      await _flutterTts.setSpeechRate(0.65);
       await _flutterTts.speak(cleanText);
     } catch (e, stack) {
       dev.log("Error during speak", name: 'VOICE_SERVICE', error: e, stackTrace: stack);
