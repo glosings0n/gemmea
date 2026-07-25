@@ -173,13 +173,14 @@ class _ChatPageState extends State<ChatPage> {
               padding: const EdgeInsets.symmetric(horizontal: AppSize.p16, vertical: AppSize.p8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Container(
-                        width: 32,
-                        height: 32,
+                        width: 34,
+                        height: 34,
                         decoration: const BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
@@ -193,13 +194,15 @@ class _ChatPageState extends State<ChatPage> {
                         style: TextStyle(
                           fontFamily: 'Fredoka',
                           fontWeight: FontWeight.bold,
-                          fontSize: 20,
+                          fontSize: 24,
                           color: AppColors.primaryForestGreen,
                         ),
                       ),
                     ],
                   ),
                   IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                     onPressed: _showClearConfirmationDialog,
                     icon: const HugeIcon(
                       icon: AppIcons.delete,
