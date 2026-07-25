@@ -563,21 +563,21 @@ class _HomePageState extends State<HomePage> {
                                   ).hideCurrentSnackBar();
                                   PDFReportService.openPdfFile(path);
                                 },
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(12),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 5,
+                                    horizontal: 8,
+                                    vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Text(
-                                    "OUVRIR",
+                                    "Ouvrir",
                                     style: TextStyle(
                                       fontFamily: 'Fredoka',
-                                      fontSize: 11,
+                                      fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.primaryForestGreen,
                                     ),

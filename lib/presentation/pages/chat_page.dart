@@ -541,10 +541,34 @@ class _ChatPageState extends State<ChatPage> {
                         MarkdownBody(
                           data: message.text,
                           styleSheet: MarkdownStyleSheet(
+                            h1: const TextStyle(
+                              fontFamily: 'Fredoka',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: AppColors.primaryForestGreen,
+                            ),
+                            h2: const TextStyle(
+                              fontFamily: 'Fredoka',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: AppColors.primaryForestGreen,
+                            ),
+                            h3: const TextStyle(
+                              fontFamily: 'Fredoka',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14.5,
+                              color: AppColors.primaryForestGreen,
+                            ),
+                            h4: const TextStyle(
+                              fontFamily: 'Fredoka',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: AppColors.primaryForestGreen,
+                            ),
                             p: const TextStyle(
                               color: AppColors.textCharcoal,
-                              fontSize: 15.0,
-                              height: 1.4,
+                              fontSize: 14.5,
+                              height: 1.45,
                               fontFamily: 'Fredoka',
                             ),
                             strong: const TextStyle(
@@ -552,9 +576,14 @@ class _ChatPageState extends State<ChatPage> {
                               color: AppColors.textCharcoal,
                               fontFamily: 'Fredoka',
                             ),
-                            em: const TextStyle(fontStyle: FontStyle.italic),
+                            em: const TextStyle(
+                              fontStyle: FontStyle.italic,
+                              fontFamily: 'Fredoka',
+                            ),
                             listBullet: const TextStyle(
                               color: AppColors.primaryForestGreen,
+                              fontFamily: 'Fredoka',
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),

@@ -138,37 +138,106 @@ class SQLiteHelper {
         )
       ''');
 
+      // Create SQLite FTS5 Virtual Table for ultra-fast full-text search with BM25 ranking
+      try {
+        await db.execute('''
+          CREATE VIRTUAL TABLE IF NOT EXISTS fao_knowledge_fts USING fts5(
+            topic, crop_name, keywords, content, organic_remedy, source_citation,
+            content='fao_knowledge_base', content_rowid='id'
+          )
+        ''');
+
+        // Triggers to keep FTS table in sync with fao_knowledge_base
+        await db.execute('''
+          CREATE TRIGGER IF NOT EXISTS fao_ai AFTER INSERT ON fao_knowledge_base BEGIN
+            INSERT INTO fao_knowledge_fts(rowid, topic, crop_name, keywords, content, organic_remedy, source_citation)
+            VALUES (new.id, new.topic, new.crop_name, new.keywords, new.content, new.organic_remedy, new.source_citation);
+          END;
+        ''');
+      } catch (e) {
+        dev.log("FTS5 table creation notice (falling back to scored search if unavailable): $e", name: 'SQLITE_HELPER');
+      }
+
       // Seed FAO Official Agronomic Guidelines
-      await db.insert('fao_knowledge_base', {
-        'topic': 'Cassava Mosaic Disease (CMD)',
-        'crop_name': 'Manioc',
-        'keywords': 'manioc cassava mosaiqueCMD feuille jaunissement taches decoloration',
-        'content': 'La mosaïque du manioc est causée par un geminivirus transmis par la mouche blanche (Bemisia tabaci). Symptômes: déformation des feuilles, décoloration mosaïque jaune-vert, réduction du rendement des tubercules de 40% à 70%.',
-        'organic_remedy': '1. Éliminer et brûler immédiatement les plants infectés. 2. Utiliser des boutures de variétés résistantes certifiées FAO (ex. TME 419). 3. Pulvériser de la cendre de bois ou un extrait d eau de neem pour repousser les mouches blanches.',
-        'estimated_loss_pct': 55.0,
-        'source_citation': 'Guide FAO de Protection des Cultures en Afrique de l Est (2024), Chap. 4, p. 28-32',
-      });
+      final initialEntries = [
+        {
+          'topic': 'Mosaïque du Manioc (CMD)',
+          'crop_name': 'Manioc',
+          'keywords': 'manioc cassava mosaique cmd feuille jaunissement taches decoloration aleurode mouche blanche',
+          'content': 'La mosaïque du manioc est causée par un geminivirus transmis par la mouche blanche (Bemisia tabaci). Symptômes: déformation des feuilles, décoloration mosaïque jaune-vert, réduction du rendement des tubercules de 40% à 70%.',
+          'organic_remedy': '1. Éliminer et brûler immédiatement les plants infectés. 2. Utiliser des boutures de variétés résistantes certifiées FAO/IITA (ex. TME 419, SAWASA). 3. Pulvériser un extrait d eau de neem (200g/L) ou saupoudrer de la cendre de bois pour repousser les mouches blanches.',
+          'estimated_loss_pct': 55.0,
+          'source_citation': 'Guide FAO de Protection des Cultures en Afrique de l Est (2024), Chap. 4, p. 28-32',
+        },
+        {
+          'topic': 'Strie Brune du Manioc (CBSD)',
+          'crop_name': 'Manioc',
+          'keywords': 'manioc cassava strie brune cbsd necrose tubercule pourriture marron jaunissement nervures',
+          'content': 'La strie brune du manioc (CBSD) provoque des nécroses brunes/noires spongieuses dans la chair du tubercule et des striations brunes sur la tige. C est la maladie la plus destructive pour la récolte.',
+          'organic_remedy': '1. Utiliser uniquement des boutures saines certifiées INERA/IITA. 2. Éliminer les plants symptomatiques. 3. Désinfecter les machettes et outils à la flamme ou eau de javel.',
+          'estimated_loss_pct': 75.0,
+          'source_citation': 'Manuel IITA Santé du Manioc en RDC (2024), p. 15',
+        },
+        {
+          'topic': 'Rouille du Maïs (Puccinia sorghi)',
+          'crop_name': 'Maïs',
+          'keywords': 'mais maize rouille tavelure poudree pustules rouille brune brun orange',
+          'content': 'La rouille du maïs se manifeste par de petites pustules brun-orange sur les deux faces de la feuille. Favorisée par l humidité élevée et des températures de 16°C à 23°C. Risque de perte de rendement de 20% à 45%.',
+          'organic_remedy': '1. Effectuer une rotation des cultures avec des légumineuses (haricots). 2. Appliquer un extrait d ail/piment en spray foliaire biologique. 3. Éviter la sur-irrigation foliaire le soir.',
+          'estimated_loss_pct': 35.0,
+          'source_citation': 'Manuel Santé des Récoltes FAO/IITA (2023), Section 2.1',
+        },
+        {
+          'topic': 'Chenille Légionnaire d Automne du Maïs (FAW)',
+          'crop_name': 'Maïs',
+          'keywords': 'mais maize chenille legionnaire faw trou cornet perforation devoreur tithonia neem',
+          'content': 'La chenille légionnaire (Spodoptera frugiperda) dévore le cornet des jeunes plants de maïs et laisse des sciures d excréments visibles. Destruction rapide du champ.',
+          'organic_remedy': '1. Verser une poignée de cendre de bois sèche ou de sable fin directement dans le cornet des plants. 2. Pulvériser un purin de Tithonia diversifolia ou extrait de neem concentré. 3. Ramasser manuellement les chenilles au petit matin.',
+          'estimated_loss_pct': 60.0,
+          'source_citation': 'Directive d Urgence FAO contre la Chenille Légionnaire (2024), p. 8-14',
+        },
+        {
+          'topic': 'Flétrissement Bactérien de la Banane (BXW)',
+          'crop_name': 'Banane',
+          'keywords': 'banane banana fletrissement bacterien bxw jaunissement foliaire fanaison suintement',
+          'content': 'BXW causé par Xanthomonas vasicola. Symptômes: jaunissement rapide et flétrissement des feuilles, suintement bactérien jaune à la coupe du pseudo-tronc, pourriture précoce du régime.',
+          'organic_remedy': '1. Stériliser immédiatement les outils de coupe à la flamme ou avec une solution de javel à 10%. 2. Enlever le bourgeon mâle dès que la dernière main est formée. 3. Déraciner les souches atteintes.',
+          'estimated_loss_pct': 80.0,
+          'source_citation': 'Bulletin d Urgence Sanitaire Bananière FAO (2024), p. 12',
+        },
+        {
+          'topic': 'Anthracnose du Haricot (Colletotrichum)',
+          'crop_name': 'Haricot',
+          'keywords': 'haricot bean anthracnose taches noires gousses nervures rouges pourriture',
+          'content': 'L anthracnose du haricot se caractérise par de petites taches circulaires noires ou brun foncé enjambant les nervures sous les feuilles et sur les gousses.',
+          'organic_remedy': '1. Utiliser des semences saines traitées au purin d ail. 2. Éviter de circuler dans le champ quand les feuilles sont humides. 3. Pulvériser une décoction de prêle ou bicarbonate de soude (5g/L) avec du savon noir.',
+          'estimated_loss_pct': 40.0,
+          'source_citation': 'Guide FAO des Légumineuses d Afrique Centrale (2023), p. 19',
+        },
+        {
+          'topic': 'Scolyte et Rouille du Caféier',
+          'crop_name': 'Café',
+          'keywords': 'cafe coffee scolyte cerise rouille ferrugineuse hemileia taches orange baies',
+          'content': 'La rouille du caféier (Hemileia vastatrix) forme une poussière orange sous les feuilles. Le scolyte de la cerise perce les grains de café.',
+          'organic_remedy': '1. Effectuer le paillage et la taille d éclaircie pour aérer le caféier. 2. Installer des pièges artisanaux à alcool pour capturer les scolytes. 3. Pulvériser un extrait de neem sur le feuillage.',
+          'estimated_loss_pct': 50.0,
+          'source_citation': 'Manuel FAO du Caféiculteur à l Est de la RDC (2024), p. 44',
+        },
+        {
+          'topic': 'Préparation des Biopesticides & Remèdes Naturels',
+          'crop_name': 'Tous',
+          'keywords': 'biopesticide neem cendre piment ail tithonia savon noir engrais compost bio',
+          'content': 'Recette Universelle de Neem: Pilez 1 kg de feuilles de neem fraîches dans 5 litres d eau. Laissez macérer 24h à l ombre. Filtrez, ajoutez 1 cuillère de savon liquide comme mouillant et pulvérisez.',
+          'organic_remedy': '1. Cendre de bois: Saupoudrer sur le feuillage mouillé contre les pucerons et chenilles. 2. Purin de Tithonia: Macérer 2 kg de feuilles dans 10L d eau pendant 8 jours pour un engrais foliaire riche en azote.',
+          'estimated_loss_pct': 0.0,
+          'source_citation': 'Recueil FAO des Pratiques Biologiques Traditionnelles (2024), p. 5-10',
+        },
+      ];
 
-      await db.insert('fao_knowledge_base', {
-        'topic': 'Common Maize Rust (Puccinia sorghi)',
-        'crop_name': 'Maïs',
-        'keywords': 'mais maize rouille tavelure poudree pustules rouille brune',
-        'content': 'La rouille du maïs se manifeste par de petites pustules brun-orange sur les deux faces de la feuille. Favorisée par l humidité élevée et des températures de 16°C à 23°C. Risque de perte de rendement de 20% à 45%.',
-        'organic_remedy': '1. Effectuer une rotation des cultures avec des légumineuses (haricots). 2. Appliquer un extrait d ail/piment en spray foliaire biologique. 3. Éviter la sur-irrigation foliaire le soir.',
-        'estimated_loss_pct': 35.0,
-        'source_citation': 'Manuel Santé des Recoltes FAO/IITA (2023), Section 2.1',
-      });
-
-      await db.insert('fao_knowledge_base', {
-        'topic': 'Banana Bacterial Wilt (BXW)',
-        'crop_name': 'Banane',
-        'keywords': 'banane banana fletrissement bacterienBXW jaunissement foliaire fanaison',
-        'content': 'BXW causé par Xanthomonas vasicola. Symptômes: jaunissement rapide et flétrissement des feuilles, suintement bactérien jaune à la coupe du pseudo-tronc, pourriture précoce du régime.',
-        'organic_remedy': '1. Stériliser immédiatement les outils de coupe à la flamme ou avec une solution de javel à 10%. 2. Enlever le bourgeon mâle dès que la dernière main est formée. 3. Déraciner les souches atteintes.',
-        'estimated_loss_pct': 80.0,
-        'source_citation': 'Bulletin d Urgence Sanitaire Bananiere FAO (2024), p. 12',
-      });
-      dev.log("FAO knowledge base table seeded successfully", name: 'SQLITE_HELPER');
+      for (final entry in initialEntries) {
+        await db.insert('fao_knowledge_base', entry);
+      }
+      dev.log("FAO knowledge base table seeded successfully with rich entries", name: 'SQLITE_HELPER');
     } catch (e, stack) {
       dev.log("Error creating FAO tables", name: 'SQLITE_HELPER', error: e, stackTrace: stack);
     }
@@ -310,35 +379,93 @@ class SQLiteHelper {
     }
   }
 
+  static String _stripAccents(String input) {
+    const accents = 'àáâãäåòóôõöøèéêëçìíîïùúûüÿñ';
+    const replace = 'aaaaaaoooooeeeeciiiiuuuuyn';
+    String result = input;
+    for (int i = 0; i < accents.length; i++) {
+      result = result.replaceAll(accents[i], replace[i]);
+    }
+    return result;
+  }
+
+  static const Set<String> _frenchStopWords = {
+    'le', 'la', 'les', 'du', 'de', 'des', 'un', 'une', 'en', 'sur', 'avec',
+    'dans', 'pour', 'par', 'ce', 'cette', 'ces', 'est', 'sont', 'mon', 'ma',
+    'mes', 'ton', 'ta', 'tes', 'son', 'sa', 'ses', 'votre', 'vos', 'notre',
+    'nos', 'que', 'qui', 'quoi', 'dont', 'ou', 'comment', 'traiter',
+    'soigner', 'quel', 'quelle', 'quelles', 'quels', 'champ', 'champs',
+    'plante', 'plantes', 'feuille', 'feuilles', 'faire', 'fait', 'plus'
+  };
+
   // --- Helpers for FAO Knowledge Base (RAG) ---
   Future<List<Map<String, dynamic>>> searchFAOKnowledge(String query) async {
     try {
       final db = await database;
-      final cleanQuery = query.toLowerCase().replaceAll(RegExp(r'[^a-zA-Z0-9\s]'), '');
-      final terms = cleanQuery.split(' ').where((t) => t.length > 2).toList();
+
+      // 1. Clean, strip accents & normalize query
+      final normalized = _stripAccents(query.toLowerCase()).replaceAll(RegExp(r'[^a-z0-9\s]'), ' ');
+      final rawTokens = normalized.split(RegExp(r'\s+')).where((t) => t.trim().isNotEmpty).toList();
+      
+      // 2. Filter out stopwords and very short noise words
+      final terms = rawTokens.where((t) => t.length > 2 && !_frenchStopWords.contains(t)).toList();
 
       if (terms.isEmpty) {
         return await db.query('fao_knowledge_base', limit: 3);
       }
 
-      final whereClause = terms.map((_) => "(keywords LIKE ? OR content LIKE ? OR topic LIKE ?)").join(' OR ');
-      final whereArgs = <String>[];
-      for (final term in terms) {
-        whereArgs.addAll(['%$term%', '%$term%', '%$term%']);
+      // 3. Attempt FTS5 Full-Text Search first if available
+      try {
+        final ftsQuery = terms.map((t) => '"$t*"').join(' OR ');
+        final ftsResults = await db.rawQuery('''
+          SELECT k.* FROM fao_knowledge_base k
+          JOIN fao_knowledge_fts fts ON k.id = fts.rowid
+          WHERE fao_knowledge_fts MATCH ?
+          ORDER BY bm25(fao_knowledge_fts) ASC
+          LIMIT 3
+        ''', [ftsQuery]);
+
+        if (ftsResults.isNotEmpty) {
+          dev.log("FTS5 matched ${ftsResults.length} RAG documents", name: 'SQLITE_HELPER');
+          return ftsResults;
+        }
+      } catch (e) {
+        dev.log("FTS5 query note (falling back to scored match): $e", name: 'SQLITE_HELPER');
       }
 
-      final results = await db.query(
-        'fao_knowledge_base',
-        where: whereClause,
-        whereArgs: whereArgs,
-        limit: 3,
-      );
+      // 4. Fallback: Scored Multi-Term Search across all rows
+      final allRows = await db.query('fao_knowledge_base');
+      final scoredRows = <Map<String, dynamic>, int>{};
 
-      if (results.isEmpty) {
-        return await db.query('fao_knowledge_base', limit: 3);
+      for (final row in allRows) {
+        int score = 0;
+        final topic = _stripAccents((row['topic'] ?? '').toString().toLowerCase());
+        final crop = _stripAccents((row['crop_name'] ?? '').toString().toLowerCase());
+        final keywords = _stripAccents((row['keywords'] ?? '').toString().toLowerCase());
+        final content = _stripAccents((row['content'] ?? '').toString().toLowerCase());
+
+        for (final term in terms) {
+          if (crop.contains(term)) score += 8;
+          if (topic.contains(term)) score += 6;
+          if (keywords.contains(term)) score += 4;
+          if (content.contains(term)) score += 1;
+        }
+
+        if (score > 0) {
+          scoredRows[row] = score;
+        }
       }
 
-      return results;
+      if (scoredRows.isNotEmpty) {
+        final sortedEntries = scoredRows.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+        final topResults = sortedEntries.take(3).map((e) => e.key).toList();
+        dev.log("Scored RAG matched ${topResults.length} documents (highest score: ${sortedEntries.first.value})", name: 'SQLITE_HELPER');
+        return topResults;
+      }
+
+      // 5. Default Fallback
+      return await db.query('fao_knowledge_base', limit: 3);
     } catch (e, stack) {
       dev.log("Error searching FAO knowledge base", name: 'SQLITE_HELPER', error: e, stackTrace: stack);
       return [];

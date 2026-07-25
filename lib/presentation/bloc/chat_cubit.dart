@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gemma/flutter_gemma.dart';
+import 'package:gemmea/core/services/gemma_engine_manager.dart';
 import 'package:gemmea/domain/usecases/calendar_usecases.dart';
 import 'package:gemmea/domain/usecases/chat_usecases.dart';
 
@@ -121,7 +122,12 @@ class ChatCubit extends Cubit<ChatState> {
       }
 
       // Add placeholder message for streaming model response
-      final modelPlaceholder = Message.text(text: "", isUser: false);
+      final bool isAnalyzingPlant = GemmaEngineManager.isBusy;
+      final String initialPlaceholder = isAnalyzingPlant
+          ? "Je vais vous répondre une fois je fini l'analyse de votre plante en cours..."
+          : "";
+
+      final modelPlaceholder = Message.text(text: initialPlaceholder, isUser: false);
       final streamingMessages = List<Message>.from(updatedMessages)..add(modelPlaceholder);
       emit(ChatLoaded(messages: streamingMessages, isStreaming: true, systemNotification: functionCallingNotice));
 

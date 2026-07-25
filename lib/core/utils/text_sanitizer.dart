@@ -27,39 +27,45 @@ class TextSanitizer {
       '',
     );
 
-    // 2. Replace common chemical LaTeX formulas
+    // 2. Replace common chemical LaTeX formulas and escape artifacts
     text = text.replaceAll(
-      RegExp(r'\$\text\{NaHCO\}_3\\?\$|\$\text\{NaHCO3\}\$|\\text\{NaHCO_3\}|\$NaHCO_3\$', caseSensitive: false),
+      RegExp(r'\$?\\?text\{NaHCO\}_?\{?3\}?\\?\$?|\$?\\?text\{NaHCO3\}\\?\$?|\$NaHCO_3\\?\$?', caseSensitive: false),
       'Bicarbonate de soude (NaHCO3)',
     );
     text = text.replaceAll(
-      RegExp(r'\$\text\{H\}_2\text\{O\}\$|\\text\{H2O\}|\$H_2O\$', caseSensitive: false),
+      RegExp(r'\$?\\?text\{H\}_?\{?2\}?\\?text\{O\}\\?\$?|\$H_2O\\?\$?', caseSensitive: false),
       'eau (H2O)',
     );
     text = text.replaceAll(
-      RegExp(r'\$\text\{CO\}_2\$|\\text\{CO2\}|\$CO_2\$', caseSensitive: false),
+      RegExp(r'\$?\\?text\{CO\}_?\{?2\}\\?\$?|\$CO_2\\?\$?', caseSensitive: false),
       'dioxyde de carbone (CO2)',
     );
     text = text.replaceAll(
-      RegExp(r'\$\text\{N\}\$|\\text\{N\}', caseSensitive: false),
+      RegExp(r'\$?\\?text\{N\}\\?\$?', caseSensitive: false),
       'Azote (N)',
     );
     text = text.replaceAll(
-      RegExp(r'\$\text\{P\}\$|\\text\{P\}', caseSensitive: false),
+      RegExp(r'\$?\\?text\{P\}\\?\$?', caseSensitive: false),
       'Phosphore (P)',
     );
     text = text.replaceAll(
-      RegExp(r'\$\text\{K\}\$|\\text\{K\}', caseSensitive: false),
+      RegExp(r'\$?\\?text\{K\}\\?\$?', caseSensitive: false),
       'Potassium (K)',
     );
 
-    // 3. Remove LaTeX \text{...} wrappers
+    // 3. Remove LaTeX \text{...}, \mathrm{...}, \mathbf{...} wrappers
     text = text.replaceAllMapped(
-      RegExp(r'\\text\{([^}]+)\}'),
+      RegExp(r'\\(?:text|mathrm|mathbf)\{([^}]+)\}'),
       (match) => match.group(1) ?? '',
     );
 
-    // 4. Remove inline dollar sign math syntax $xyz$
+    // 4. Remove subscript braces/underscores in chemical formulas (e.g. NaHCO_3 -> NaHCO3)
+    text = text.replaceAllMapped(
+      RegExp(r'([A-Za-z]+)_\{?(\d+)\}?'),
+      (match) => '${match.group(1)}${match.group(2)}',
+    );
+
+    // 5. Remove inline dollar sign math syntax $xyz$
     text = text.replaceAllMapped(
       RegExp(r'\$([^\$]+)\$'),
       (match) {
@@ -68,7 +74,8 @@ class TextSanitizer {
       },
     );
 
-    // 5. Remove unescaped LaTeX backslashes except newlines
+    // 6. Clean remaining dollar signs and unescaped LaTeX backslashes except newlines
+    text = text.replaceAll(r'$', '');
     text = text.replaceAll(RegExp(r'\\(?![nN])'), '');
 
     // 6. Clean up multiple spaces and blank lines

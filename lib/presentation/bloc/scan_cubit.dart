@@ -64,14 +64,19 @@ class ScanCubit extends Cubit<ScanState> {
       );
 
       final cleanDiagnostic = TextSanitizer.cleanLatexAndFormatting(diagnosticResult);
-      final textLower = cleanDiagnostic.toLowerCase();
+      final textLower = cleanDiagnostic.toLowerCase().trim();
 
-      // Ensure that if the model returns an error string, we treat it as failure and do NOT save to DB
-      if (textLower.contains("processing error") ||
-          textLower.contains("veuillez fournir une image") ||
-          textLower.contains("please provide an image") ||
-          textLower.contains("error")) {
-        throw Exception("Veuillez fournir une image claire d'une feuille de culture.");
+      // Check if model explicitly indicated the image is not a leaf or valid crop
+      final isNonLeaf = textLower.contains("ne semble pas être une feuille") ||
+          textLower.contains("ne semble pas etre une feuille") ||
+          textLower.contains("ceci n'est pas une feuille") ||
+          textLower.contains("ceci ne semble pas être une feuille") ||
+          textLower.contains("veuillez reprendre une photo") ||
+          textLower.contains("pas une feuille de plante") ||
+          textLower.contains("feuille non détectée");
+
+      if (isNonLeaf) {
+        throw Exception("L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture.");
       }
 
       // Extract details dynamically from local Gemma response

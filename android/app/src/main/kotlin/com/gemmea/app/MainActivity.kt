@@ -71,9 +71,13 @@ class MainActivity : FlutterActivity() {
                                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             }
-                            val chooser = Intent.createChooser(intent, "Ouvrir le PDF avec")
-                            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            startActivity(chooser)
+                            try {
+                                startActivity(intent)
+                            } catch (e: Exception) {
+                                val chooser = Intent.createChooser(intent, "Ouvrir le PDF avec")
+                                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                startActivity(chooser)
+                            }
                             result.success(true)
                         } else {
                             result.error("FILE_NOT_FOUND", "File does not exist: $path", null)

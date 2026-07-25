@@ -15,6 +15,7 @@ class DiagnosticsHistoryPage extends StatefulWidget {
 
 class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
   int? _expandedIndex;
+  final Map<int, ExpansibleController> _controllers = {};
 
   String _formatFrenchDate(String dateStr) {
     try {
@@ -215,18 +216,18 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                   ScaffoldMessenger.of(context).hideCurrentSnackBar();
                                   PDFReportService.openPdfFile(path);
                                 },
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(12),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Text(
-                                    "OUVRIR",
+                                    "Ouvrir",
                                     style: TextStyle(
                                       fontFamily: 'Fredoka',
-                                      fontSize: 11,
+                                      fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.primaryForestGreen,
                                     ),
@@ -512,11 +513,15 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(AppSize.r16),
                       child: ExpansionTile(
-                        key: Key('diagnostic_${log.id}_$isExpanded'),
+                        key: Key('diagnostic_${log.id}'),
+                        controller: _controllers[index] ??= ExpansibleController(),
                         initiallyExpanded: isExpanded,
                         onExpansionChanged: (expanded) {
                           setState(() {
                             if (expanded) {
+                              if (_expandedIndex != null && _expandedIndex != index) {
+                                _controllers[_expandedIndex]?.collapse();
+                              }
                               _expandedIndex = index;
                             } else if (_expandedIndex == index) {
                               _expandedIndex = null;
@@ -664,19 +669,50 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                 MarkdownBody(
                                   data: log.remedy,
                                   styleSheet: MarkdownStyleSheet(
+                                    h1: const TextStyle(
+                                      fontFamily: 'Fredoka',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: AppColors.primaryForestGreen,
+                                    ),
+                                    h2: const TextStyle(
+                                      fontFamily: 'Fredoka',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                      color: AppColors.primaryForestGreen,
+                                    ),
+                                    h3: const TextStyle(
+                                      fontFamily: 'Fredoka',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: AppColors.primaryForestGreen,
+                                    ),
+                                    h4: const TextStyle(
+                                      fontFamily: 'Fredoka',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13.5,
+                                      color: AppColors.primaryForestGreen,
+                                    ),
                                     p: const TextStyle(
                                       fontFamily: 'Fredoka',
-                                      height: 1.4,
+                                      height: 1.45,
                                       color: AppColors.textCharcoal,
-                                      fontSize: 14,
+                                      fontSize: 13.5,
                                     ),
                                     strong: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontFamily: 'Fredoka',
                                       color: AppColors.textCharcoal,
                                     ),
+                                    em: const TextStyle(
+                                      fontStyle: FontStyle.italic,
+                                      fontFamily: 'Fredoka',
+                                      color: AppColors.textCharcoal,
+                                    ),
                                     listBullet: const TextStyle(
                                       fontFamily: 'Fredoka',
+                                      color: AppColors.primaryForestGreen,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),

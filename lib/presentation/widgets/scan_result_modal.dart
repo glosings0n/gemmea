@@ -132,19 +132,50 @@ class ScanResultModal extends StatelessWidget {
                               child: MarkdownBody(
                                 data: state.diagnosis,
                                 styleSheet: MarkdownStyleSheet(
+                                  h1: const TextStyle(
+                                    fontFamily: 'Fredoka',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: AppColors.primaryForestGreen,
+                                  ),
+                                  h2: const TextStyle(
+                                    fontFamily: 'Fredoka',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                    color: AppColors.primaryForestGreen,
+                                  ),
+                                  h3: const TextStyle(
+                                    fontFamily: 'Fredoka',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: AppColors.primaryForestGreen,
+                                  ),
+                                  h4: const TextStyle(
+                                    fontFamily: 'Fredoka',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13.5,
+                                    color: AppColors.primaryForestGreen,
+                                  ),
                                   p: const TextStyle(
                                     fontFamily: 'Fredoka',
-                                    fontSize: 14,
+                                    fontSize: 13.5,
                                     color: AppColors.textCharcoal,
-                                    height: 1.4,
+                                    height: 1.45,
                                   ),
                                   strong: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontFamily: 'Fredoka',
                                     color: AppColors.textCharcoal,
                                   ),
+                                  em: const TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    fontFamily: 'Fredoka',
+                                    color: AppColors.textCharcoal,
+                                  ),
                                   listBullet: const TextStyle(
                                     fontFamily: 'Fredoka',
+                                    color: AppColors.primaryForestGreen,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
