@@ -254,16 +254,20 @@ class _ChatPageState extends State<ChatPage> {
 
                 // Chat Messages viewport
                 Expanded(
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(16.0),
-                    itemCount: state.messages.length,
-                    itemBuilder: (context, index) {
-                      final message = state.messages[index];
-                      final isLast = index == state.messages.length - 1;
-                      final isLastAndStreaming = isLast && state.isStreaming;
-                      return _buildMessageBubble(message, isLastAndStreaming);
-                    },
+                  child: GestureDetector(
+                    onTap: () => FocusScope.of(context).unfocus(),
+                    behavior: HitTestBehavior.translucent,
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(16.0),
+                      itemCount: state.messages.length,
+                      itemBuilder: (context, index) {
+                        final message = state.messages[index];
+                        final isLast = index == state.messages.length - 1;
+                        final isLastAndStreaming = isLast && state.isStreaming;
+                        return _buildMessageBubble(message, isLastAndStreaming);
+                      },
+                    ),
                   ),
                 ),
 
@@ -481,6 +485,7 @@ class _ChatPageState extends State<ChatPage> {
                 minLines: 1,
                 maxLines: 5,
                 keyboardType: TextInputType.multiline,
+                onTapOutside: (event) => FocusScope.of(context).unfocus(),
                 textCapitalization: TextLinesSpacing.hasUnderlyingSpacing ? TextCapitalization.sentences : TextCapitalization.none,
                 decoration: InputDecoration(
                   hintText: "Posez des questions sur le manioc, le neem, etc...",
