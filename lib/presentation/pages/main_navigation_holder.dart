@@ -228,9 +228,10 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
           height: 64,
           child: Row(
             children: [
-              // Tab 1: Home Dashboard Button (Expanded clickable zone)
+              // Tab 1: Home Dashboard Button (Expanded transparent clickable zone)
               Expanded(
-                child: InkWell(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: () {
                     setState(() {
                       _currentIndex = 0;
@@ -244,16 +245,18 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                         color: _currentIndex == 0 ? AppTheme.primaryForestGreen : AppTheme.textGrey,
                         size: 26.0,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        "Accueil",
-                        style: TextStyle(
-                          fontFamily: 'Fredoka',
-                          fontSize: 12,
-                          fontWeight: _currentIndex == 0 ? FontWeight.bold : FontWeight.w500,
-                          color: _currentIndex == 0 ? AppTheme.primaryForestGreen : AppTheme.textGrey,
+                      if (_currentIndex == 0) ...[
+                        const SizedBox(height: 2),
+                        const Text(
+                          "Accueil",
+                          style: TextStyle(
+                            fontFamily: 'Fredoka',
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryForestGreen,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -261,6 +264,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
 
               // Tab 2: Scan Leaf Action (Center floating button)
               GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: _triggerCropScan,
                 child: Container(
                   padding: const EdgeInsets.all(12),
@@ -276,9 +280,10 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                 ),
               ),
 
-              // Tab 3: Chat Assistant Button (Expanded clickable zone)
+              // Tab 3: Chat Assistant Button (Expanded transparent clickable zone)
               Expanded(
-                child: InkWell(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: () {
                     setState(() {
                       _currentIndex = 1;
@@ -292,16 +297,18 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                         color: _currentIndex == 1 ? AppTheme.primaryForestGreen : AppTheme.textGrey,
                         size: 26.0,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        "Gemmea",
-                        style: TextStyle(
-                          fontFamily: 'Fredoka',
-                          fontSize: 12,
-                          fontWeight: _currentIndex == 1 ? FontWeight.bold : FontWeight.w500,
-                          color: _currentIndex == 1 ? AppTheme.primaryForestGreen : AppTheme.textGrey,
+                      if (_currentIndex == 1) ...[
+                        const SizedBox(height: 2),
+                        const Text(
+                          "Gemmea",
+                          style: TextStyle(
+                            fontFamily: 'Fredoka',
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryForestGreen,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
