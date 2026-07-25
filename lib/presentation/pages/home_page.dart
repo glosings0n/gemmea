@@ -158,21 +158,10 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
 
-                  // Scrollable Body Content
-                  Expanded(
-                    child: RefreshIndicator(
-                      color: AppColors.primaryForestGreen,
-                      onRefresh: () => context.read<HomeCubit>().loadDashboard(),
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSize.p16),
-                        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: AppSize.p16),
-
-                    // Minimalist Grid layout summarizing metrics
-                    GridView.count(
+                  // Fixed Non-scrollable Metrics Grid
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSize.p16),
+                    child: GridView.count(
                       crossAxisCount: 2,
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -205,7 +194,21 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppSize.p24),
+                  ),
+                  const SizedBox(height: AppSize.p12),
+
+                  // Scrollable Body Content (Starts at Reminders)
+                  Expanded(
+                    child: RefreshIndicator(
+                      color: AppColors.primaryForestGreen,
+                      onRefresh: () => context.read<HomeCubit>().loadDashboard(),
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: AppSize.p16),
+                        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: AppSize.p8),
 
                     // Soil Reminders Card
                     const Text(
