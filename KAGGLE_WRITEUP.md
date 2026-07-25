@@ -1,16 +1,16 @@
-# 🌿 Gemmea — 100% On-Device Agronomic AI Assistant for East Africa
+# Gemmea — 100% On-Device Agronomic AI Assistant for East Africa
 ## Kaggle Writeup — Build with Gemma 2026 Challenge
 
 ---
 
-### 📌 Project Summary
+### Project Summary
 **Gemmea** ("Mmea" = *plant/crop* in Swahili + *Gemma*) is a 100% offline, on-device mobile decision-support application built with **Flutter**, **Google Gemma 4 (`gemma-4-E2B-it.litertlm`)**, and an offline **SQLite FTS5 RAG engine**. 
 
 Designed specifically for smallholder farmers and agricultural cooperatives in internet-blind regions of Eastern DRC (Bukavu, Sud-Kivu) and East Africa, Gemmea diagnoses crop leaf diseases via offline multimodal VLM vision, delivers organic remedies grounded in official FAO/IITA guidelines, and manages farm irrigation calendars without transmitting a single byte to the cloud.
 
 ---
 
-### 🎯 Problem Statement & Impact
+### Problem Statement & Impact
 In Eastern DRC and rural East Africa, cellular internet is either non-existent or financially prohibitive for local farmers. Yet, these farmers face devastating threats to staple crops:
 * **Cassava Mosaic Disease (CMD)** & **Cassava Brown Streak Disease (CBSD)**
 * **Maize Common Rust** & **Fall Armyworm**
@@ -20,7 +20,7 @@ Gemmea eliminates the connectivity barrier by running Google Gemma 4 directly on
 
 ---
 
-### 🏗️ Technical Architecture & Key Innovations
+### Technical Architecture & Key Innovations
 
 #### 1. On-Device Gemma 4 Multimodal VLM Integration
 * **Runtime**: Integrated using `flutter_gemma` leveraging **Google LiteRT-LM**.
@@ -36,7 +36,7 @@ To prevent AI hallucinations, Gemmea embeds an offline SQLite Full-Text Search d
 
 ---
 
-### ⚠️ Current Limitations & Challenges
+### Current Limitations & Challenges
 
 While Gemmea is fully functional offline, the following limitations have been identified and documented:
 
@@ -51,7 +51,7 @@ While Gemmea is fully functional offline, the following limitations have been id
 
 ---
 
-### 🚀 Future Roadmap & Next Steps
+### Future Roadmap & Next Steps
 
 1. **Fine-Tuning Gemma 4 VLM on Tropical Agriculture**: Fine-tuning Gemma VLM on a curated dataset of East African crop diseases (PlantVillage + IITA local field images) using LoRA / QLoRA.
 2. **Full Multilingual Localization (Kiswahili & Lingala)**: Implementing native Swahili and Lingala UI and model prompts for seamless adoption in rural communities.
@@ -60,7 +60,7 @@ While Gemmea is fully functional offline, the following limitations have been id
 
 ---
 
-### 👨‍💻 Developer & Event Details
+### Developer & Event Details
 * **Developer:** Georges Byona
 * **Role:** Software Engineer
 * **Location:** Bukavu, Sud-Kivu, Democratic Republic of the Congo

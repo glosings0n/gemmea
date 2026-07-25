@@ -1,4 +1,4 @@
-# 🌿 Gemmea — Assistant agronomique & gestion agricole 100% hors ligne avec Google Gemma 4
+# Gemmea — Assistant agronomique & gestion agricole 100% hors ligne avec Google Gemma 4
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.27+-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Google Gemma 4](https://img.shields.io/badge/Google_Gemma_4-LiteRT--LM-4285F4?logo=google&logoColor=white)](https://ai.google.dev/gemma)
@@ -11,7 +11,7 @@ L'application associe la vision multimodale et la génération de texte de **Goo
 
 ---
 
-## 💡 Genesis & Impact Terrain
+## Genesis & Impact Terrain
 
 À Bukavu, dans l'Est de la RDC (Sud-Kivu), comme dans la majorité des régions rurales d'Afrique subsaharienne, l'accès à internet est souvent inexistant, instable ou financièrement inabordable pour les petits agriculteurs et les coopératives locales.
 
@@ -24,7 +24,7 @@ Pourtant, les menaces phytosanitaires sur les cultures vivrières y sont majeure
 
 ---
 
-## 🏗️ Architecture Technique : Gemma 4 + RAG SQLite + Flutter
+## Architecture Technique : Gemma 4 + RAG SQLite + Flutter
 
 ```
 [ 📱 Utilisateur / Agriculteur au champ ]
@@ -50,7 +50,7 @@ Pourtant, les menaces phytosanitaires sur les cultures vivrières y sont majeure
 │ 📊 3. INTERFACE FLUTTER & RAPPORTS                          │
 │ - Diagnostic visuel structuré & Recettes Biologiques        │
 │ - Synthèse Vocale (TTS) & Rapports de santé PDF             │
-└─────────────────────────────────────────────────────────────┘
+└──────────────────────────────┬──────────────────────────────┘
 ```
 
 ### 1. Le Moteur RAG Local (SQLite FTS5)
@@ -73,26 +73,26 @@ Afin d'éviter tout risque d'hallucination agronomique et de fournir des conseil
 
 ---
 
-## 📂 Structure du Code & Fichiers Clés
+## Structure du Code & Fichiers Clés
 
 Pour évaluer la qualité d'ingénierie du projet, voici les composants majeurs du dépôt :
 
-* 🧠 **Moteur et Verrou d'Exécution Gemma 4** : [`lib/core/services/gemma_engine_manager.dart`](lib/core/services/gemma_engine_manager.dart)  
+* **Moteur et Verrou d'Exécution Gemma 4** : [`lib/core/services/gemma_engine_manager.dart`](lib/core/services/gemma_engine_manager.dart)  
   Gestionnaire central de l'instance LiteRT-LM et isolation des sessions d'inférence.
-* 📚 **Base de Données & Moteur RAG SQLite** : [`lib/data/datasources/sqlite_helper.dart`](lib/data/datasources/sqlite_helper.dart)  
+* **Base de Données & Moteur RAG SQLite** : [`lib/data/datasources/sqlite_helper.dart`](lib/data/datasources/sqlite_helper.dart)  
   Indexation FTS5 des guides agronomiques FAO/IITA et requêtes de recherche contextuelle.
-* 📷 **Source Multimodale Gemma VLM** : [`lib/data/datasources/gemma_local_source.dart`](lib/data/datasources/gemma_local_source.dart)  
+* **Source Multimodale Gemma VLM** : [`lib/data/datasources/gemma_local_source.dart`](lib/data/datasources/gemma_local_source.dart)  
   Inférence visuelle locale, validation des végétaux et prompt engineering multimodal.
-* 💬 **Dépôt du Chat & Infiltration RAG** : [`lib/data/repositories/chat_repository_impl.dart`](lib/data/repositories/chat_repository_impl.dart)  
+* **Dépôt du Chat & Infiltration RAG** : [`lib/data/repositories/chat_repository_impl.dart`](lib/data/repositories/chat_repository_impl.dart)  
   Assemblage du RAG, règles conversationnelles régionales et gestion du flux de streaming.
-* 📄 **Service de Génération de Rapports PDF** : [`lib/core/services/pdf_report_service.dart`](lib/core/services/pdf_report_service.dart)  
+* **Service de Génération de Rapports PDF** : [`lib/core/services/pdf_report_service.dart`](lib/core/services/pdf_report_service.dart)  
   Exportation hors ligne des bilans sanitaires de la ferme.
-* 🎛️ **Logique Métier BLoC/Cubit** : [`lib/presentation/bloc/`](lib/presentation/bloc/)  
+* **Logique Métier BLoC/Cubit** : [`lib/presentation/bloc/`](lib/presentation/bloc/)  
   Découplage propre de l'état de l'application (`ScanCubit`, `ChatCubit`, `HomeCubit`).
 
 ---
 
-## 🛠️ Comment exécuter le projet localement
+## Comment exécuter le projet localement
 
 ### Prérequis
 1. **Flutter SDK** (v3.27.0 ou supérieure) installé et configuré.
@@ -118,7 +118,7 @@ flutter run --release
 
 ---
 
-## ⚠️ Limitations Actuelles & Défis Techniques
+## Limitations Actuelles & Défis Techniques
 
 Bien que **Gemmea** soit pleinement fonctionnelle en mode 100% hors ligne, certaines limitations liées aux contraintes actuelles ont été identifiées :
 
@@ -133,7 +133,7 @@ Bien que **Gemmea** soit pleinement fonctionnelle en mode 100% hors ligne, certa
 
 ---
 
-## 🚀 Perspectives & Feuille de Route (Roadmap)
+## Perspectives & Feuille de Route (Roadmap)
 
 * **Fine-Tuning de Gemma 4 VLM sur les cultures tropicales** : Affinage du modèle VLM sur une base de données annotée de maladies des plantes d'Afrique de l'Est (Manioc, Maïs, Bananier, Haricot) via QLoRA.
 * **Support Multilingue Intégral** : Prise en charge native du Kiswahili, du Lingala et de l'Anglais pour une adoption facile par tous les agriculteurs.
@@ -142,7 +142,7 @@ Bien que **Gemmea** soit pleinement fonctionnelle en mode 100% hors ligne, certa
 
 ---
 
-## 🔒 Confidentialité & Souveraineté des Données
+## Confidentialité & Souveraineté des Données
 
 * **0% de requêtes réseau** : Aucune donnée utilisateur, aucune photo, aucun message de chat ne quitte le téléphone.
 * **Respect total de la vie privée** : Traitement 100% sur l'appareil (*On-Device AI*).
@@ -150,12 +150,12 @@ Bien que **Gemmea** soit pleinement fonctionnelle en mode 100% hors ligne, certa
 
 ---
 
-### 📄 Writeup Officiel Kaggle
+### Writeup Officiel Kaggle
 Un document de synthèse détaillé préparé pour le concours est disponible dans le fichier [`KAGGLE_WRITEUP.md`](KAGGLE_WRITEUP.md).
 
 ---
 
-### 👤 À propos de l'Auteur
+### À propos de l'Auteur
 
 * **Développeur :** Georges Byona  
 * **Rôle :** Software Engineer  
