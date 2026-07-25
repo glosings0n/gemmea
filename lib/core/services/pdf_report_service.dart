@@ -26,6 +26,17 @@ class PDFReportService {
     }
   }
 
+  static String _formatSlashDate(String dateStr) {
+    try {
+      final dt = DateTime.parse(dateStr);
+      final day = dt.day.toString().padLeft(2, '0');
+      final month = dt.month.toString().padLeft(2, '0');
+      return "$day/$month/${dt.year}";
+    } catch (_) {
+      return dateStr;
+    }
+  }
+
   static Future<Uint8List> generateFarmDiagnosticReport({
     required List<Map<String, dynamic>> diagnostics,
     required List<Map<String, dynamic>> calendarEvents,
@@ -194,9 +205,9 @@ class PDFReportService {
                   headers: ['Date', 'Tâche / Intervention', 'Pluie Détectée', 'Instructions'],
                   data: calendarEvents.map((c) {
                     final rawDate = c['event_date'] ?? '';
-                    final frenchDate = _formatFrenchDate(rawDate);
+                    final tableDate = _formatSlashDate(rawDate);
                     return [
-                      frenchDate,
+                      tableDate,
                       c['title'] ?? '',
                       c['is_rainy'] == 1 ? 'Oui (Pause)' : 'Non (Actif)',
                       c['description'] ?? '',
