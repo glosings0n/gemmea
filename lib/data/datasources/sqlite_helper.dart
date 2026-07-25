@@ -19,12 +19,25 @@ class SQLiteHelper {
       final dbPath = await getDatabasesPath();
       final path = join(dbPath, filePath);
 
-      return await openDatabase(
+      final db = await openDatabase(
         path,
         version: 3,
         onCreate: _createDB,
         onUpgrade: _upgradeDB,
       );
+
+      // Safe, one-time cleanup of legacy error records on initialization
+      try {
+        await db.delete(
+          'diagnostics',
+          where: "disease LIKE ? OR disease = ? OR remedy LIKE ? OR remedy LIKE ? OR remedy LIKE ?",
+          whereArgs: ['%error%', 'Symptômes Analysés', '%processing error%', '%Veuillez fournir%', '%On-device%'],
+        );
+      } catch (e) {
+        dev.log("Non-critical cleanup note on initDB: $e", name: 'SQLITE_HELPER');
+      }
+
+      return db;
     } catch (e, stack) {
       dev.log("Error initializing SQLite DB", name: 'SQLITE_HELPER', error: e, stackTrace: stack);
       rethrow;
@@ -195,11 +208,6 @@ class SQLiteHelper {
   Future<List<Map<String, dynamic>>> getDiagnostics() async {
     try {
       final db = await database;
-      // Purge any invalid or failed diagnostic entries from history automatically
-      await db.delete(
-        'diagnostics',
-        where: "disease LIKE '%error%' OR disease = 'Symptômes Analysés' OR remedy LIKE '%processing error%' OR remedy LIKE '%Veuillez fournir%' OR remedy LIKE '%On-device%'",
-      );
       return await db.query('diagnostics', orderBy: 'timestamp DESC');
     } catch (e, stack) {
       dev.log("Error fetching diagnostics", name: 'SQLITE_HELPER', error: e, stackTrace: stack);
