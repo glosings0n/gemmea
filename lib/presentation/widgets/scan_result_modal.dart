@@ -131,16 +131,6 @@ class ScanResultModal extends StatelessWidget {
                                   height: 1.3,
                                 ),
                               ),
-                              const SizedBox(height: 10),
-                              const Text(
-                                "Note : Aucun scan n'a été enregistré dans votre historique.",
-                                style: TextStyle(
-                                  fontFamily: 'Fredoka',
-                                  fontSize: 11,
-                                  color: AppTheme.textGrey,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
                             ],
                           ),
                         );
