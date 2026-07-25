@@ -165,39 +165,56 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
+      body: SafeArea(
+        child: Column(
           children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
+            // Fixed Non-scrollable Custom Header Row
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSize.p16, vertical: AppSize.p8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        padding: const EdgeInsets.all(4),
+                        child: Image.asset('assets/images/logo.png'),
+                      ),
+                      const SizedBox(width: AppSize.p8),
+                      const Text(
+                        "Gemmea",
+                        style: TextStyle(
+                          fontFamily: 'Fredoka',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: AppColors.primaryForestGreen,
+                        ),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    onPressed: _showClearConfirmationDialog,
+                    icon: const HugeIcon(
+                      icon: AppIcons.delete,
+                      color: AppColors.primaryForestGreen,
+                      size: AppSize.iconMd,
+                    ),
+                    tooltip: "Effacer les discussions",
+                  ),
+                ],
               ),
-              padding: const EdgeInsets.all(4),
-              child: Image.asset('assets/images/logo.png'),
             ),
-            const SizedBox(width: AppSize.p8),
-            const Text(
-              "Gemmea",
-              style: TextStyle(
-                fontFamily: 'Fredoka',
-                fontWeight: FontWeight.bold,
-                color: AppColors.primaryForestGreen,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            onPressed: _showClearConfirmationDialog,
-            icon: const HugeIcon(icon: AppIcons.delete, color: AppColors.primaryForestGreen, size: AppSize.iconMd),
-            tooltip: "Effacer les discussions",
-          ),
-        ],
-      ),
-      body: BlocConsumer<ChatCubit, ChatState>(
+
+            // Chat content viewport
+            Expanded(
+              child: BlocConsumer<ChatCubit, ChatState>(
         listener: (context, state) {
           if (state is ChatLoaded) {
             Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
@@ -292,7 +309,11 @@ class _ChatPageState extends State<ChatPage> {
           return Container();
         },
       ),
-    );
+    ),
+  ],
+),
+),
+);
   }
 
   Widget _buildMessageBubble(Message message, bool isLastAndStreaming) {

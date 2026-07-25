@@ -65,97 +65,111 @@ class _HomePageState extends State<HomePage> {
             } else if (state is HomeLoaded) {
               final hasNew = state.diagnosticsHistory.any((d) => d.status == 'new');
 
-              return RefreshIndicator(
-                color: AppColors.primaryForestGreen,
-                onRefresh: () => context.read<HomeCubit>().loadDashboard(),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSize.p16),
-                  physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header Row: Jambo ! 👋🏾 on left, Action buttons on right
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  "Jambo ! 👋🏾",
-                                  style: TextStyle(
-                                    fontFamily: 'Fredoka',
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textCharcoal,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                const Text(
-                                  "Votre ferme est entièrement protégée hors ligne.",
-                                  style: TextStyle(
-                                    fontFamily: 'Fredoka',
-                                    fontSize: 12.5,
-                                    color: AppColors.textGrey,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
+              return Column(
+                children: [
+                  // Fixed Non-scrollable Header Row: Jambo ! 👋🏾 on left, Action buttons on right aligned to top
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSize.p16, vertical: AppSize.p8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              IconButton(
-                                tooltip: 'Exporter le Rapport PDF',
-                                onPressed: () async {
-                                  final diags = state.diagnosticsHistory.map((d) => d.toMap()).toList();
-                                  final events = state.calendarEvents.map((c) => c.toMap()).toList();
-                                  await PDFReportService.printOrShareReport(
-                                    diagnostics: diags,
-                                    calendarEvents: events,
-                                    farmerLocation: 'Bukavu, Sud-Kivu, RDC',
-                                  );
-                                },
-                                icon: const HugeIcon(
-                                  icon: AppIcons.pdf,
-                                  color: AppColors.primaryForestGreen,
-                                  size: AppSize.iconMd,
+                              const Text(
+                                "Jambo ! 👋🏾",
+                                style: TextStyle(
+                                  fontFamily: 'Fredoka',
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textCharcoal,
                                 ),
                               ),
-                              Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  IconButton(
-                                    tooltip: 'Historique des diagnostics',
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const DiagnosticsHistoryPage(),
-                                        ),
-                                      );
-                                    },
-                                    icon: const HugeIcon(
-                                      icon: AppIcons.license,
-                                      color: AppColors.primaryForestGreen,
-                                      size: AppSize.iconMd,
-                                    ),
-                                  ),
-                                  if (hasNew)
-                                    Positioned(
-                                      right: 8,
-                                      top: 8,
-                                      child: const _AnimatedDotBadge(),
-                                    ),
-                                ],
+                              const SizedBox(height: 2),
+                              const Text(
+                                "Votre ferme est entièrement protégée hors ligne.",
+                                style: TextStyle(
+                                  fontFamily: 'Fredoka',
+                                  fontSize: 12.5,
+                                  color: AppColors.textGrey,
+                                ),
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSize.p24),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            IconButton(
+                              tooltip: 'Exporter le Rapport PDF',
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              onPressed: () async {
+                                final diags = state.diagnosticsHistory.map((d) => d.toMap()).toList();
+                                final events = state.calendarEvents.map((c) => c.toMap()).toList();
+                                await PDFReportService.printOrShareReport(
+                                  diagnostics: diags,
+                                  calendarEvents: events,
+                                  farmerLocation: 'Bukavu, Sud-Kivu, RDC',
+                                );
+                              },
+                              icon: const HugeIcon(
+                                icon: AppIcons.pdf,
+                                color: AppColors.primaryForestGreen,
+                                size: AppSize.iconMd,
+                              ),
+                            ),
+                            const SizedBox(width: AppSize.p12),
+                            Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                IconButton(
+                                  tooltip: 'Historique des diagnostics',
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const DiagnosticsHistoryPage(),
+                                      ),
+                                    );
+                                  },
+                                  icon: const HugeIcon(
+                                    icon: AppIcons.license,
+                                    color: AppColors.primaryForestGreen,
+                                    size: AppSize.iconMd,
+                                  ),
+                                ),
+                                if (hasNew)
+                                  Positioned(
+                                    right: -2,
+                                    top: -2,
+                                    child: const _AnimatedDotBadge(),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Scrollable Body Content
+                  Expanded(
+                    child: RefreshIndicator(
+                      color: AppColors.primaryForestGreen,
+                      onRefresh: () => context.read<HomeCubit>().loadDashboard(),
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: AppSize.p16),
+                        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: AppSize.p16),
 
                     // Minimalist Grid layout summarizing metrics
                     GridView.count(
@@ -315,9 +329,12 @@ class _HomePageState extends State<HomePage> {
                     }),
                   ],
                 ),
-              ),
-            );
-          }
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }
           return Container();
         },
       ),
