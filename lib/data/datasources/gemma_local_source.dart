@@ -22,68 +22,41 @@ class GemmaLocalSourceImpl implements GemmaLocalSource {
         throw Exception("L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture.");
       }
 
-      // 1. Try native FlutterGemma VLM inference with image support
-      try {
-        dev.log("Attempting FlutterGemma VLM model query chunk with image...", name: 'GEMMA_LOCAL_SOURCE');
-        final model = await FlutterGemma.getActiveModel(
-          maxTokens: 1024,
-          supportImage: true,
-        );
-        final session = await model.createSession();
-        
-        await session.addQueryChunk(
-          Message.withImage(
-            text: "Is this image a crop leaf? If yes, diagnose any visible plant disease and give organic local remedies. If it is NOT a crop leaf, reply strictly 'NOT_A_LEAF'. Context: $prompt",
-            imageBytes: imageBytes,
-            isUser: true,
-          ),
-        );
-        
-        final String response = await session.getResponse();
-        dev.log("Gemma VLM evaluation response: $response", name: 'GEMMA_LOCAL_SOURCE');
+      dev.log("Passing image bytes directly to on-device Gemma VLM model instance...", name: 'GEMMA_LOCAL_SOURCE');
+      final model = await FlutterGemma.getActiveModel(
+        maxTokens: 1024,
+        supportImage: true,
+      );
+      final session = await model.createSession();
+      
+      // Send raw image bytes to Gemma VLM engine with agronomy evaluation prompt
+      await session.addQueryChunk(
+        Message.withImage(
+          text: "Look closely at this image. Is this a crop leaf? If yes, diagnose any visible plant disease, identify the crop, and provide localized organic remedies. If it is NOT a crop leaf or not a plant, reply strictly 'NOT_A_LEAF'. Prompt: $prompt",
+          imageBytes: imageBytes,
+          isUser: true,
+        ),
+      );
+      
+      final String response = await session.getResponse();
+      dev.log("Gemma VLM evaluation response: $response", name: 'GEMMA_LOCAL_SOURCE');
 
-        if (response.contains("NOT_A_LEAF") || 
-            response.toLowerCase().contains("not a leaf") || 
-            response.toLowerCase().contains("pas une feuille") ||
-            response.toLowerCase().contains("pas une plante")) {
-          throw Exception("L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture.");
-        }
+      final lowerResp = response.toLowerCase();
 
-        if (response.trim().isNotEmpty && 
-            !response.toLowerCase().contains("error") && 
-            !response.toLowerCase().contains("veuillez fournir")) {
-          return response;
-        }
-      } catch (e) {
-        dev.log("FlutterGemma VLM inference note (checking asset fallback or non-leaf exception): $e", name: 'GEMMA_LOCAL_SOURCE');
-        if (e.toString().contains("ne semble pas être une feuille")) {
-          rethrow;
-        }
+      // Check if Gemma identified that the image is not a leaf or plant
+      if (response.contains("NOT_A_LEAF") || 
+          lowerResp.contains("not a leaf") || 
+          lowerResp.contains("pas une feuille") ||
+          lowerResp.contains("pas une plante") ||
+          lowerResp.contains("ce n'est pas une feuille")) {
+        throw Exception("L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture.");
       }
 
-      // 2. High-fidelity demo asset recognition for offline simulation items
-      final fileName = imageFile.path.toLowerCase();
-      if (fileName.contains("cassava_mosaic")) {
-        return "**Diagnostic : Mosaïque du Manioc (Cassava Mosaic Disease)**\n\n"
-               "Symptômes observés : Mosaïque jaune-vert, déformation des limbes foliaires.\n\n"
-               "**Remède Bio/Local FAO :**\n"
-               "1. Éliminer et brûler immédiatement les plants attaqués.\n"
-               "2. Traiter les mouches blanches avec une pulvérisation d'eau de neem ou cendre de bois.\n"
-               "3. Utiliser des boutures saines certifiées (TME 419).";
-      } else if (fileName.contains("maize_rust")) {
-        return "**Diagnostic : Rouille Commune du Maïs (Puccinia sorghi)**\n\n"
-               "Symptômes observés : Pustules brun-orange poussiéreuses réparties sur les feuilles.\n\n"
-               "**Remède Bio/Local FAO :**\n"
-               "1. Effectuer une rotation de culture avec des haricots.\n"
-               "2. Pulvériser un extrait biologique ail/piment.\n"
-               "3. Éviter d'arroser le feuillage en soirée.";
-      } else if (fileName.contains("healthy_leaf")) {
-        return "**Diagnostic : Feuille Saine**\n\n"
-               "Symptômes : Aucun signe de maladie ou de ravageur. La culture présente une excellente vigueur foliaire.";
+      if (response.trim().isEmpty || lowerResp.contains("processing error") || lowerResp.contains("veuillez fournir")) {
+        throw Exception("L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture.");
       }
 
-      // 3. For any non-leaf photo captured via camera or unknown file:
-      throw Exception("L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture.");
+      return response;
     } catch (e, stack) {
       dev.log("On-device VLM image evaluation error", name: 'GEMMA_LOCAL_SOURCE', error: e, stackTrace: stack);
       rethrow;
