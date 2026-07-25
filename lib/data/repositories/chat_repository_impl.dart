@@ -192,9 +192,9 @@ class ChatRepositoryImpl implements ChatRepository {
       
       if (await modelFile.exists()) {
         bool loaded = false;
-        // Try GPU backend first
+        // Try CPU backend first (stable across all Android chipsets, GPUs, and emulators)
         try {
-          dev.log("Attempting GPU backend initialization for Gemma...", name: 'CHAT_REPO_IMPL');
+          dev.log("Attempting CPU backend initialization for Gemma...", name: 'CHAT_REPO_IMPL');
           await FlutterGemma.installModel(
             modelType: ModelType.gemmaIt,
             fileType: ModelFileType.litertlm,
@@ -204,7 +204,7 @@ class ChatRepositoryImpl implements ChatRepository {
 
           final model = await FlutterGemma.getActiveModel(
             maxTokens: 1024,
-            preferredBackend: PreferredBackend.gpu,
+            preferredBackend: PreferredBackend.cpu,
           );
           // Perform FAO RAG Query to fetch official grounded citations
           final faoDocs = await dbHelper.searchFAOKnowledge(text);
@@ -226,21 +226,18 @@ Utilise ces données FAO pour fournir des conseils directs, précis et écologiq
             systemInstruction: systemPrompt,
           );
           loaded = true;
-          dev.log("Modèle Gemma chargé avec succès sur le moteur LiteRT-LM GPU !", name: 'CHAT_REPO_IMPL');
-        } catch (gpuError, stack) {
-          dev.log("Échec du chargement du moteur GPU", name: 'CHAT_REPO_IMPL', error: gpuError, stackTrace: stack);
-          if (gpuError.toString().contains("channel-error") || gpuError.toString().contains("PlatformException")) {
-            throw Exception("Impossible d'établir la connexion avec le moteur du modèle local.\n\nVeuillez fermer complètement l'application et la relancer à froid (par exemple, relancez 'flutter run' dans votre terminal) pour lier les bibliothèques locales MediaPipe.");
-          }
+          dev.log("Modèle Gemma chargé avec succès sur le moteur LiteRT-LM CPU !", name: 'CHAT_REPO_IMPL');
+        } catch (cpuError, stack) {
+          dev.log("Échec du chargement du moteur CPU", name: 'CHAT_REPO_IMPL', error: cpuError, stackTrace: stack);
         }
 
-        // Fallback to CPU if GPU failed
+        // Fallback to GPU if CPU initialization fails
         if (!loaded) {
           try {
-            dev.log("Attempting CPU fallback backend for Gemma...", name: 'CHAT_REPO_IMPL');
+            dev.log("Attempting GPU fallback backend for Gemma...", name: 'CHAT_REPO_IMPL');
             final model = await FlutterGemma.getActiveModel(
               maxTokens: 1024,
-              preferredBackend: PreferredBackend.cpu,
+              preferredBackend: PreferredBackend.gpu,
             );
              final faoDocs = await dbHelper.searchFAOKnowledge(text);
              final faoContext = faoDocs.map((d) => "- ${d['topic']}: ${d['content']} Remède: ${d['organic_remedy']} (Source: ${d['source_citation']})").join("\n");
@@ -261,12 +258,9 @@ Utilise ces données FAO pour fournir des conseils directs, précis et écologiq
               systemInstruction: systemPrompt,
             );
             loaded = true;
-            dev.log("Modèle Gemma chargé avec succès sur le moteur LiteRT-LM CPU !", name: 'CHAT_REPO_IMPL');
-          } catch (cpuError, stack) {
-            dev.log("Échec du chargement du moteur CPU", name: 'CHAT_REPO_IMPL', error: cpuError, stackTrace: stack);
-            if (cpuError.toString().contains("channel-error") || cpuError.toString().contains("PlatformException") || cpuError.toString().contains("StateError")) {
-              throw Exception("Impossible d'établir la connexion avec le moteur du modèle local.\n\nVeuillez fermer complètement l'application et la relancer à froid (par exemple, relancez 'flutter run' dans votre terminal) pour lier les bibliothèques locales MediaPipe.");
-            }
+            dev.log("Modèle Gemma chargé avec succès sur le moteur LiteRT-LM GPU !", name: 'CHAT_REPO_IMPL');
+          } catch (gpuError, stack) {
+            dev.log("Échec du chargement du moteur GPU", name: 'CHAT_REPO_IMPL', error: gpuError, stackTrace: stack);
             yield* _mockResponseStream(text);
             return;
           }
