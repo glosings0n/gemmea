@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as dev;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_gemma/flutter_gemma.dart';
+import 'package:flutter_edge_ai/flutter_edge_ai.dart';
 import 'package:gemmea/core/services/gemma_engine_manager.dart';
 import 'package:gemmea/domain/usecases/calendar_usecases.dart';
 import 'package:gemmea/domain/usecases/chat_usecases.dart';

@@ -2,7 +2,7 @@ import 'dart:developer' as dev;
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'package:flutter_gemma/flutter_gemma.dart';
+import 'package:flutter_edge_ai/flutter_edge_ai.dart';
 
 import 'package:gemmea/core/services/gemma_engine_manager.dart';
 import 'package:gemmea/core/utils/text_sanitizer.dart';
@@ -51,13 +51,13 @@ class GemmaLocalSourceImpl implements GemmaLocalSource {
 
           InferenceModel model;
           try {
-            model = await FlutterGemma.getActiveModel(
+            model = await FlutterEdgeAi.getActiveModel(
               supportImage: true,
               maxTokens: 4096,
               preferredBackend: PreferredBackend.cpu,
             );
           } catch (e) {
-            model = await FlutterGemma.getActiveModel(
+            model = await FlutterEdgeAi.getActiveModel(
               supportImage: true,
               maxTokens: 4096,
             );

@@ -60,7 +60,7 @@ Afin d'éviter tout risque d'hallucination et de fournir des conseils scientifiq
 * **Calendrier Régional Intégré** : Connaissance native des saisons agricoles de l'Afrique de l'Est et des Grands Lacs (Saisons A & B, dates de semis, écartements).
 
 ### 2. Exécution de Gemma 4 sur l'Appareil
-* **Package Native Binding** : Utilisation de `flutter_gemma` qui embarque le runtime **LiteRT-LM** (Google LiteRT pour LLM sur mobile).
+* **Package Native Binding** : Utilisation de `flutter_edge_ai` qui embarque le runtime **LiteRT-LM** (Google LiteRT pour LLM sur mobile).
 * **Gestionnaire de Ressources Membre (`GemmaEngineManager`)** : Implémentation d'un gestionnaire de mémoire thread-safe ([`gemma_engine_manager.dart`](lib/core/services/gemma_engine_manager.dart)) avec verrou d'exécution (`_isEngineActive`) pour garantir la stabilité et éviter le surdimensionnement RAM sur smartphone.
 * **Analyse Multimodale VLM (Scan de Feuille)** :
   * Traitement de l'image capturée via [`gemma_local_source.dart`](lib/data/datasources/gemma_local_source.dart) configuré à **`maxTokens: 4096`**.

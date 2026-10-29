@@ -177,6 +177,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.7"
+  decimal:
+    dependency: transitive
+    description:
+      name: decimal
+      sha256: "2c3c8b74f2948066d3f42585477aec9cfc48fefd7a723a4d4274a6c71a5c0df7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.6"
   diff_match_patch:
     dependency: transitive
     description:
@@ -185,6 +193,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.1"
+  email_validator:
+    dependency: transitive
+    description:
+      name: email_validator
+      sha256: b19aa5d92fdd76fbc65112060c94d45ba855105a28bb6e462de7ff03b12fa1fb
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.0"
   fake_async:
     dependency: transitive
     description:
@@ -254,22 +270,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.1.1"
-  flutter_gemma:
+  flutter_edge_ai:
     dependency: "direct main"
     description:
-      name: flutter_gemma
-      sha256: "1235bd15c57144e7a218cb36f504b9865b771ffa1ee3399c5a83276f6333a2d0"
+      name: flutter_edge_ai
+      sha256: b7d321c7683ea84e763e030430868e894d0add2af951c555a52bc3aaf6f1cbbb
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.2"
-  flutter_gemma_litertlm:
+    version: "2.5.4"
+  flutter_edge_ai_litertlm:
     dependency: "direct main"
     description:
-      name: flutter_gemma_litertlm
-      sha256: a08926e86af44f0d938eb47bde898f95a2320cef9b00eb80d67ae2ab6e866649
+      name: flutter_edge_ai_litertlm
+      sha256: a67718fcdd671f81c502c5a0fce3535d6087f3cb6e091098b916acb1728a0aff
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.0"
+    version: "1.19.0"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:
@@ -336,6 +352,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
+  genai_primitives:
+    dependency: transitive
+    description:
+      name: genai_primitives
+      sha256: "5a1e8c7ae9caf01aa609f59c54de47b73f51bf1ae95e0f679b7c7ab6948c4d9d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.4"
   glob:
     dependency: transitive
     description:
@@ -456,6 +480,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.2"
+  intl:
+    dependency: transitive
+    description:
+      name: intl
+      sha256: "1ca20c894b1717686a2319b8548763d812bc0aabdac580420a44c5178c57a867"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.20.3"
   io:
     dependency: transitive
     description:
@@ -488,6 +520,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.12.0"
+  json_schema_builder:
+    dependency: transitive
+    description:
+      name: json_schema_builder
+      sha256: "657db3229ba10305c48e8686e8b3aca16e12e639c3a7b96687a6eeb7836b6e1b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.7"
   large_file_handler:
     dependency: transitive
     description:
@@ -776,6 +816,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.2"
+  rational:
+    dependency: transitive
+    description:
+      name: rational
+      sha256: cb808fb6f1a839e6fc5f7d8cb3b0a10e1db48b3be102de73938c627f0b636336
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.3"
   record_use:
     dependency: transitive
     description:

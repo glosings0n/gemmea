@@ -10,8 +10,8 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1
-  flutter_gemma: ^1.2.3
-  flutter_gemma_litertlm: ^1.1.0
+  flutter_edge_ai: ^2.5.4
+  flutter_edge_ai_litertlm: ^1.19.0
   flutter_markdown_plus: ^1.0.12
   http: ^1.2.1
   hugeicons: ^1.1.7

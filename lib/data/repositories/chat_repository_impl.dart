@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:io';
-import 'package:flutter_gemma/flutter_gemma.dart';
+import 'package:flutter_edge_ai/flutter_edge_ai.dart';
 import 'package:http/http.dart' as http;
 import 'package:gemmea/core/services/gemma_engine_manager.dart';
 import 'package:gemmea/core/utils/text_sanitizer.dart';
@@ -118,10 +118,10 @@ class ChatRepositoryImpl implements ChatRepository {
           }
         }
 
-        // Register this local file as the active model in FlutterGemma
+        // Register this local file as the active model in FlutterEdgeAi
         try {
-          dev.log("Installing Gemma model in FlutterGemma plugin...", name: 'CHAT_REPO_IMPL');
-          await FlutterGemma.installModel(
+          dev.log("Installing Gemma model in FlutterEdgeAi plugin...", name: 'CHAT_REPO_IMPL');
+          await FlutterEdgeAi.installModel(
             modelType: ModelType.gemmaIt,
             fileType: ModelFileType.litertlm,
           )
@@ -245,14 +245,14 @@ ${faoContext.isNotEmpty ? '\n\nDONNÉES OFFICIELLES FAO DE RÉFÉRENCE :\n$faoCo
       InferenceModel model;
       try {
         dev.log("Attempting CPU backend initialization for Gemma with 2048 tokens...", name: 'CHAT_REPO_IMPL');
-        model = await FlutterGemma.getActiveModel(
+        model = await FlutterEdgeAi.getActiveModel(
           supportImage: true,
           maxTokens: 2048,
           preferredBackend: PreferredBackend.cpu,
         );
       } catch (e) {
         dev.log("Fallback to GPU/default backend for Gemma...", name: 'CHAT_REPO_IMPL');
-        model = await FlutterGemma.getActiveModel(
+        model = await FlutterEdgeAi.getActiveModel(
           supportImage: true,
           maxTokens: 2048,
           preferredBackend: PreferredBackend.gpu,

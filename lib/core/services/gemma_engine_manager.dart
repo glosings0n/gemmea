@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as dev;
-import 'package:flutter_gemma/flutter_gemma.dart';
-import 'package:flutter_gemma_litertlm/flutter_gemma_litertlm.dart';
+import 'package:flutter_edge_ai/flutter_edge_ai.dart';
+import 'package:flutter_edge_ai_litertlm/flutter_edge_ai_litertlm.dart';
 
 class GemmaEngineManager {
   static bool _isInitialized = false;
@@ -43,12 +43,12 @@ class GemmaEngineManager {
 
     _initCompleter = Completer<void>();
     try {
-      dev.log("Initializing FlutterGemma LiteRT-LM Engine centrally...", name: 'GEMMA_ENGINE_MANAGER');
-      await FlutterGemma.initialize(
+      dev.log("Initializing FlutterEdgeAi LiteRT-LM Engine centrally...", name: 'GEMMA_ENGINE_MANAGER');
+      await FlutterEdgeAi.initialize(
         inferenceEngines: const [LiteRtLmEngine()],
       );
       _isInitialized = true;
-      dev.log("FlutterGemma engine initialized successfully", name: 'GEMMA_ENGINE_MANAGER');
+      dev.log("FlutterEdgeAi engine initialized successfully", name: 'GEMMA_ENGINE_MANAGER');
       _initCompleter!.complete();
     } catch (e, stack) {
       dev.log("Engine initialization note (FFI native engine already initialized or bound): $e", name: 'GEMMA_ENGINE_MANAGER', error: e, stackTrace: stack);
