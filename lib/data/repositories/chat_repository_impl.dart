@@ -20,9 +20,82 @@ class ChatRepositoryImpl implements ChatRepository {
     });
   }
 
+  static const String _sharedDownloadDir = '/storage/emulated/0/Download/Gemma';
+  static const String _sharedDocumentsDir = '/storage/emulated/0/Documents/Gemma';
+  static const List<String> _modelFilenames = [
+    'gemma.litertlm',
+    'gemma-4-E2B-it.litertlm',
+    'gemma.bin',
+  ];
+
+  Future<File?> _resolveModelFile() async {
+    // 1. Check shared Download/Gemma directory
+    for (final filename in _modelFilenames) {
+      final file = File('$_sharedDownloadDir/$filename');
+      if (await _isValidModel(file)) {
+        dev.log("Gemma model resolved from shared Download: ${file.path}", name: 'CHAT_REPO_IMPL');
+        return file;
+      }
+    }
+
+    // 2. Check shared Documents/Gemma directory
+    for (final filename in _modelFilenames) {
+      final file = File('$_sharedDocumentsDir/$filename');
+      if (await _isValidModel(file)) {
+        dev.log("Gemma model resolved from shared Documents: ${file.path}", name: 'CHAT_REPO_IMPL');
+        return file;
+      }
+    }
+
+    // 3. Check local app documents directory
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      for (final filename in _modelFilenames) {
+        final file = File('${directory.path}/$filename');
+        if (await _isValidModel(file)) {
+          dev.log("Gemma model resolved from app documents: ${file.path}", name: 'CHAT_REPO_IMPL');
+          return file;
+        }
+      }
+    } catch (_) {}
+
+    // 4. Candidate fallback locations
+    final candidates = [
+      '/storage/emulated/0/Download/gemmea/gemma.litertlm',
+      '/storage/emulated/0/Download/gemma.litertlm',
+      '/sdcard/Download/Gemma/gemma.litertlm',
+      '/sdcard/Download/gemma.litertlm',
+    ];
+    for (final path in candidates) {
+      final file = File(path);
+      if (await _isValidModel(file)) {
+        dev.log("Gemma model resolved from candidate path: $path", name: 'CHAT_REPO_IMPL');
+        return file;
+      }
+    }
+
+    return null;
+  }
+
+  Future<bool> _isValidModel(File file) async {
+    try {
+      if (!await file.exists()) return false;
+      final len = await file.length();
+      return len > 50 * 1024 * 1024;
+    } catch (_) {
+      return false;
+    }
+  }
+
   @override
   Future<bool> checkModelInstalled() async {
     try {
+      final resolved = await _resolveModelFile();
+      if (resolved != null) {
+        dev.log("Checked model file existence: true (${resolved.path})", name: 'CHAT_REPO_IMPL');
+        return true;
+      }
+
       final directory = await getApplicationDocumentsDirectory();
       final litertlmFile = File('${directory.path}/gemma.litertlm');
       final binFile = File('${directory.path}/gemma.bin');
@@ -32,14 +105,13 @@ class ChatRepositoryImpl implements ChatRepository {
         try {
           await binFile.rename(litertlmFile.path);
           dev.log("Auto-migrated old gemma.bin to gemma.litertlm successfully.", name: 'CHAT_REPO_IMPL');
+          return await _isValidModel(litertlmFile);
         } catch (e, stack) {
           dev.log("Error migrating old gemma.bin to gemma.litertlm", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
         }
       }
       
-      final exists = await litertlmFile.exists();
-      dev.log("Checked model file existence: $exists", name: 'CHAT_REPO_IMPL');
-      return exists;
+      return false;
     } catch (e, stack) {
       dev.log("Error checking model installed state", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
       return false;
@@ -52,11 +124,25 @@ class ChatRepositoryImpl implements ChatRepository {
       try {
         await GemmaEngineManager.ensureInitialized();
         
-        final directory = await getApplicationDocumentsDirectory();
-        final modelFile = File('${directory.path}/gemma.litertlm');
-        final tempModelFile = File('${directory.path}/gemma.litertlm.tmp');
+        File? targetFile = await _resolveModelFile();
         
-        if (!await modelFile.exists()) {
+        if (targetFile == null) {
+          File destinationFile;
+          File tempModelFile;
+
+          try {
+            final sharedDir = Directory(_sharedDownloadDir);
+            if (!await sharedDir.exists()) {
+              await sharedDir.create(recursive: true);
+            }
+            destinationFile = File('${sharedDir.path}/gemma.litertlm');
+            tempModelFile = File('${sharedDir.path}/gemma.litertlm.tmp');
+          } catch (_) {
+            final directory = await getApplicationDocumentsDirectory();
+            destinationFile = File('${directory.path}/gemma.litertlm');
+            tempModelFile = File('${directory.path}/gemma.litertlm.tmp');
+          }
+
           // Clean up any stale/incomplete temp files from previous aborted attempts
           if (await tempModelFile.exists()) {
             await tempModelFile.delete();
@@ -77,7 +163,7 @@ class ChatRepositoryImpl implements ChatRepository {
           final client = http.Client();
           
           try {
-            dev.log("Starting model download stream from HuggingFace...", name: 'CHAT_REPO_IMPL');
+            dev.log("Starting model download stream from HuggingFace to ${destinationFile.path}...", name: 'CHAT_REPO_IMPL');
             final request = http.Request('GET', Uri.parse(url));
             final response = await client.send(request);
             
@@ -104,8 +190,9 @@ class ChatRepositoryImpl implements ChatRepository {
 
             // ONLY RENAME TO FINAL BINARY UPON 100% COMPLETE DOWNLOAD
             if (await tempModelFile.exists()) {
-              await tempModelFile.rename(modelFile.path);
-              dev.log("Model file successfully downloaded and placed in Documents", name: 'CHAT_REPO_IMPL');
+              await tempModelFile.rename(destinationFile.path);
+              dev.log("Model file successfully downloaded to ${destinationFile.path}", name: 'CHAT_REPO_IMPL');
+              targetFile = destinationFile;
             }
           } catch (e, stack) {
             dev.log("Download failed or interrupted", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
@@ -119,17 +206,19 @@ class ChatRepositoryImpl implements ChatRepository {
         }
 
         // Register this local file as the active model in FlutterEdgeAi
-        try {
-          dev.log("Installing Gemma model in FlutterEdgeAi plugin...", name: 'CHAT_REPO_IMPL');
-          await FlutterEdgeAi.installModel(
-            modelType: ModelType.gemmaIt,
-            fileType: ModelFileType.litertlm,
-          )
-          .fromFile(modelFile.path)
-          .install();
-          dev.log("Gemma model installation completed successfully", name: 'CHAT_REPO_IMPL');
-        } catch (e, stack) {
-          dev.log("Model install registration note: $e", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
+        if (targetFile != null && await targetFile.exists()) {
+          try {
+            dev.log("Installing Gemma model from ${targetFile.path} in FlutterEdgeAi plugin...", name: 'CHAT_REPO_IMPL');
+            await FlutterEdgeAi.installModel(
+              modelType: ModelType.gemmaIt,
+              fileType: ModelFileType.litertlm,
+            )
+            .fromFile(targetFile.path)
+            .install();
+            dev.log("Gemma model installation completed successfully", name: 'CHAT_REPO_IMPL');
+          } catch (e, stack) {
+            dev.log("Model install registration note: $e", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
+          }
         }
       } catch (e, stack) {
         dev.log("Error in initializeGemma", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
@@ -189,10 +278,9 @@ class ChatRepositoryImpl implements ChatRepository {
     yield* GemmaEngineManager.runStreamWithLock(() async* {
       await GemmaEngineManager.ensureInitialized();
 
-      final directory = await getApplicationDocumentsDirectory();
-      final modelFile = File('${directory.path}/gemma.litertlm');
+      final modelFile = await _resolveModelFile();
 
-      if (!await modelFile.exists()) {
+      if (modelFile == null || !await modelFile.exists()) {
         dev.log("Model file not found locally", name: 'CHAT_REPO_IMPL');
         throw Exception("Le fichier de modèle local 'gemma.litertlm' est introuvable. Veuillez télécharger le modèle Gemma 4 pour lancer l'inférence locale.");
       }
