@@ -7,7 +7,7 @@
 
 **Gemmea** est une application mobile d'aide à la décision agronomique conçue pour fonctionner **100% hors ligne, sans aucune connexion internet**. Son nom réunit **"Mmea"** (*plante* ou *culture* en swahili, langue parlée en RDC et en Afrique de l'Est) et **Gemma** (la famille de modèles d'intelligence artificielle ouverts de Google).
 
-L'application associe la vision multimodale et la génération de texte de **Google Gemma 4** (`gemma-4-E2B-it.litertlm`) exécuté localement sur le téléphone avec une architecture **RAG (Retrieval-Augmented Generation) ancrée sur une base de données SQLite FTS5** contenant les guides agronomiques officiels de la **FAO** et de l'**IITA**.
+L'application associe une architecture **collaborative à 2 passes** (**`SautiLM-Nuru-Agri`** `1.074 Mo` en TFLite INT8 pour le triage visuel des pixels + rejet `non_plant` à `< 0.55`, suivi de **`SautiLM-Jua-Agri`** `283.48 Mo` en LiteRT-LM INT8) exécutée localement sur le téléphone avec une architecture **RAG (Retrieval-Augmented Generation) ancrée sur une base de données SQLite FTS5** ([`gemmea_eac_agri.sqlite`](assets/data/gemmea_eac_agri.sqlite), `150` fiches officielles NARS couvrant `CD, UG, RW, BI, KE, TZ` — INERA, NARO, RAB, ISABU, KALRO, TARI, FAO & IITA).
 
 ---
 

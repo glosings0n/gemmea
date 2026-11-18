@@ -1,0 +1,24 @@
+{
+  "model_name": "SautiLM-Nuru-Agri",
+  "format": "tflite_int8_weights",
+  "input_dtype": "float32",
+  "output_dtype": "float32",
+  "size_mb": 1.074,
+  "input_shape": [
+    224,
+    224,
+    3
+  ],
+  "labels": [
+    "non_plant",
+    "healthy_leaf",
+    "cassava_cmd",
+    "cassava_cbsd",
+    "maize_rust",
+    "maize_faw",
+    "banana_bxw",
+    "bean_anthracnose",
+    "tomato_blight"
+  ],
+  "abstention_threshold": 0.55
+}

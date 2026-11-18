@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:gemmea/core/core.dart';
+import 'package:gemmea/domain/entities/eac_country_profile.dart';
 import 'package:gemmea/presentation/bloc/bloc.dart';
 import 'package:gemmea/presentation/pages/pages.dart';
 
@@ -13,6 +14,68 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  Widget _buildEacCountrySelector(BuildContext context, String activeCode) {
+    final activeProfile = EacCountryProfile.byCode(activeCode);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSize.p16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: 32,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: EacCountryProfile.supportedCountries.length,
+              separatorBuilder: (c, idx) => const SizedBox(width: 6),
+              itemBuilder: (context, idx) {
+                final country = EacCountryProfile.supportedCountries[idx];
+                final isSelected = country.code == activeProfile.code;
+                return GestureDetector(
+                  onTap: () =>
+                      context.read<HomeCubit>().setEacCountry(country.code),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primaryForestGreen
+                          : AppColors.primaryForestGreen.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      '${country.shortName} · ${country.narsInstitute}',
+                      style: TextStyle(
+                        fontFamily: 'Fredoka',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected
+                            ? Colors.white
+                            : AppColors.primaryForestGreen,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${activeProfile.fullNameFr} (${activeProfile.narsInstitute}) : ${activeProfile.rainfallRegimeSummary}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontFamily: 'Fredoka',
+              fontSize: 11,
+              color: AppColors.textGrey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _formatSlashDate(String dateStr) {
     try {
       final dt = DateTime.parse(dateStr);
@@ -201,6 +264,9 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                   ),
+
+                  // EAC & DRC 6-Country Agronomic Selector Strip
+                  _buildEacCountrySelector(context, state.selectedCountryCode),
 
                   // Fixed Non-scrollable Metrics Grid
                   Padding(

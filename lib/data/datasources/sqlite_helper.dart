@@ -1,12 +1,29 @@
 import 'dart:developer' as dev;
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart';
+import 'package:sautilm_sdk/sautilm_sdk.dart';
 import 'package:sqflite/sqflite.dart';
 
 class SQLiteHelper {
   static final SQLiteHelper instance = SQLiteHelper._init();
+  static const String eacAgriDbAsset = 'assets/data/gemmea_eac_agri.sqlite';
   static Database? _database;
+  static Database? _eacDatabase;
+  static SqlRawQueryRunner? _testEacRunner;
+  static String _cachedCountryCode = 'CD';
+
+  /// Active EAC/DRC country code synchronously readable across repositories.
+  static String get currentCountryCode => _cachedCountryCode;
 
   SQLiteHelper._init();
+
+  /// Allows unit tests to inject a deterministic query runner for `gemmea_eac_agri.sqlite`.
+  @visibleForTesting
+  void setTestEacRunner(SqlRawQueryRunner? runner) {
+    _testEacRunner = runner;
+  }
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -21,7 +38,7 @@ class SQLiteHelper {
 
       final db = await openDatabase(
         path,
-        version: 3,
+        version: 4,
         onCreate: _createDB,
         onUpgrade: _upgradeDB,
       );
@@ -59,6 +76,9 @@ class SQLiteHelper {
         dev.log("Migration v3 note: $e", name: 'SQLITE_HELPER', error: e, stackTrace: stack);
       }
       await _createFAOTables(db);
+    }
+    if (oldVersion < 4) {
+      await _createSettingsTable(db);
     }
   }
 
@@ -101,6 +121,7 @@ class SQLiteHelper {
       ''');
 
       await _createFAOTables(db);
+      await _createSettingsTable(db);
 
       // Seed initial values for water schedule on first creation
       await db.insert('calendar', {
@@ -424,9 +445,125 @@ class SQLiteHelper {
     'plante', 'plantes', 'feuille', 'feuilles', 'faire', 'fait', 'plus'
   };
 
-  // --- Helpers for FAO Knowledge Base (RAG) ---
-  Future<List<Map<String, dynamic>>> searchFAOKnowledge(String query) async {
+  Future<void> _createSettingsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS app_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      )
+    ''');
+  }
+
+  Future<String> getSelectedCountryCode() async {
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      return _cachedCountryCode;
+    }
     try {
+      final db = await database;
+      final rows = await db.query(
+        'app_settings',
+        where: 'key = ?',
+        whereArgs: ['selected_eac_country'],
+        limit: 1,
+      );
+      if (rows.isNotEmpty) {
+        final val = (rows.first['value'] ?? 'CD').toString().trim().toUpperCase();
+        if (val.isNotEmpty) {
+          _cachedCountryCode = val;
+          return val;
+        }
+      }
+    } catch (_) {}
+    return _cachedCountryCode;
+  }
+
+  Future<void> setSelectedCountryCode(String code) async {
+    final normalized = code.trim().toUpperCase();
+    if (normalized.isEmpty) return;
+    _cachedCountryCode = normalized;
+    if (Platform.environment.containsKey('FLUTTER_TEST')) return;
+    try {
+      final db = await database;
+      await _createSettingsTable(db);
+      await db.insert(
+        'app_settings',
+        {'key': 'selected_eac_country', 'value': normalized},
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } catch (e) {
+      dev.log('Country save note: $e', name: 'SQLITE_HELPER');
+    }
+  }
+
+  Future<SqlRawQueryRunner?> _getEacRunner() async {
+    if (_testEacRunner != null) return _testEacRunner;
+    if (Platform.environment.containsKey('FLUTTER_TEST')) return null;
+    if (_eacDatabase != null && _eacDatabase!.isOpen) {
+      return SqliteFts5RagEngine.fromDatabase(_eacDatabase!);
+    }
+    try {
+      final dbDir = await getDatabasesPath();
+      final dbPath = join(dbDir, 'gemmea_eac_agri.sqlite');
+      final file = File(dbPath);
+      final data = await rootBundle.load(eacAgriDbAsset);
+      if (!await file.exists() || await file.length() != data.lengthInBytes) {
+        await file.parent.create(recursive: true);
+        await file.writeAsBytes(
+          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+          flush: true,
+        );
+      }
+      _eacDatabase = await openDatabase(dbPath, readOnly: true);
+      return SqliteFts5RagEngine.fromDatabase(_eacDatabase!);
+    } catch (e) {
+      dev.log('EAC SQLite DB unavailable: $e', name: 'SQLITE_HELPER');
+      return null;
+    }
+  }
+
+  // --- Helpers for FAO Knowledge Base (RAG) ---
+  Future<List<Map<String, dynamic>>> searchFAOKnowledge(
+    String query, {
+    String? countryCode,
+  }) async {
+    try {
+      final activeCountry =
+          (countryCode ?? await getSelectedCountryCode()).trim().toUpperCase();
+      final eacRunner = await _getEacRunner();
+      if (eacRunner != null) {
+        final passages = await SqliteFts5RagEngine.queryTable(
+          queryRunner: eacRunner,
+          ftsTable: 'agri_fts',
+          contentTable: 'agri_knowledge',
+          query: query,
+          searchColumns: const [
+            'country_code',
+            'region',
+            'crop_name',
+            'topic',
+            'keywords',
+            'content',
+            'organic_remedy',
+          ],
+          limit: 8,
+        );
+        if (passages.isNotEmpty) {
+          final rows = passages.map((pItem) {
+            final m = Map<String, dynamic>.from(pItem.metadata);
+            m['source_citation'] ??= pItem.sourceCitation;
+            return m;
+          }).toList();
+          int countryRank(Map<String, dynamic> r) {
+            final cc = '${r['country_code'] ?? ''}'.toUpperCase();
+            if (cc == activeCountry) return 0;
+            if (cc == 'EAC_ALL') return 1;
+            return 2;
+          }
+          rows.sort((a, b) => countryRank(a).compareTo(countryRank(b)));
+          return rows.take(4).toList();
+        }
+      }
+
       final db = await database;
 
       // 1. Clean, strip accents & normalize query
@@ -514,7 +651,13 @@ class SQLiteHelper {
 
   Future<void> close() async {
     try {
+      final eacDb = _eacDatabase;
+      _eacDatabase = null;
+      if (eacDb != null) {
+        await eacDb.close();
+      }
       final db = _database;
+      _database = null;
       if (db != null) {
         await db.close();
       }

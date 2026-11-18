@@ -14,9 +14,31 @@ import java.io.File
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.gemmea.app/media_scanner"
+    private val NURU_CHANNEL = "com.gemmea.app/nuru_vision"
+    private var nuruInterpreter: NuruVisionInterpreter? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, NURU_CHANNEL).setMethodCallHandler { call, result ->
+            if (call.method == "classifyCrop") {
+                val bytes = call.argument<ByteArray>("imageBytes")
+                if (bytes == null || bytes.isEmpty()) {
+                    result.error("BAD_ARGS", "Missing imageBytes", null)
+                    return@setMethodCallHandler
+                }
+                try {
+                    val runner = nuruInterpreter ?: NuruVisionInterpreter(applicationContext).also {
+                        nuruInterpreter = it
+                    }
+                    val probs = runner.classify(bytes)
+                    result.success(probs)
+                } catch (e: Exception) {
+                    result.success(null)
+                }
+            } else {
+                result.notImplemented()
+            }
+        }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             if (call.method == "scanFile") {
                 val path = call.argument<String>("path")

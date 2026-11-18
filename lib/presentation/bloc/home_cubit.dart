@@ -1,5 +1,6 @@
 import 'dart:developer' as dev;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gemmea/data/datasources/sqlite_helper.dart';
 import 'package:gemmea/domain/entities/calendar_event.dart';
 import 'package:gemmea/domain/entities/diagnostic_result.dart';
 import 'package:gemmea/domain/usecases/calendar_usecases.dart';
@@ -15,6 +16,7 @@ class HomeLoaded extends HomeState {
   final List<CalendarEvent> calendarEvents;
   final String waterScheduleStatus;
   final List<String> soilReminders;
+  final String selectedCountryCode;
 
   HomeLoaded({
     this.lastDiagnostic,
@@ -22,6 +24,7 @@ class HomeLoaded extends HomeState {
     required this.calendarEvents,
     required this.waterScheduleStatus,
     required this.soilReminders,
+    this.selectedCountryCode = 'CD',
   });
 }
 
@@ -92,12 +95,15 @@ class HomeCubit extends Cubit<HomeState> {
         reminders.add("Alerte sol sec. Surveillez le niveau d'humidité du maïs.");
       }
 
+      final countryCode = await SQLiteHelper.instance.getSelectedCountryCode();
+
       emit(HomeLoaded(
         lastDiagnostic: lastDiagnostic,
         diagnosticsHistory: diagnostics,
         calendarEvents: calendar,
         waterScheduleStatus: waterStatus,
         soilReminders: reminders,
+        selectedCountryCode: countryCode,
       ));
     } catch (e, stack) {
       dev.log("Error loading dashboard", name: 'HOME_CUBIT', error: e, stackTrace: stack);
@@ -115,6 +121,23 @@ class HomeCubit extends Cubit<HomeState> {
     } catch (e, stack) {
       dev.log("scanCrop error passed to UI layer", name: 'HOME_CUBIT', error: e, stackTrace: stack);
       rethrow;
+    }
+  }
+
+  Future<void> setEacCountry(String countryCode) async {
+    final normalized = countryCode.trim().toUpperCase();
+    if (normalized.isEmpty) return;
+    await SQLiteHelper.instance.setSelectedCountryCode(normalized);
+    if (state is HomeLoaded) {
+      final current = state as HomeLoaded;
+      emit(HomeLoaded(
+        lastDiagnostic: current.lastDiagnostic,
+        diagnosticsHistory: current.diagnosticsHistory,
+        calendarEvents: current.calendarEvents,
+        waterScheduleStatus: current.waterScheduleStatus,
+        soilReminders: current.soilReminders,
+        selectedCountryCode: normalized,
+      ));
     }
   }
 
@@ -159,6 +182,7 @@ class HomeCubit extends Cubit<HomeState> {
           calendarEvents: updatedCalendar,
           waterScheduleStatus: waterStatus,
           soilReminders: reminders,
+          selectedCountryCode: currentState.selectedCountryCode,
         ));
       }
 
@@ -189,6 +213,7 @@ class HomeCubit extends Cubit<HomeState> {
           calendarEvents: currentState.calendarEvents,
           waterScheduleStatus: currentState.waterScheduleStatus,
           soilReminders: currentState.soilReminders,
+          selectedCountryCode: currentState.selectedCountryCode,
         ));
       }
 

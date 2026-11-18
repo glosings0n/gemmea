@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_edge_ai/flutter_edge_ai.dart';
 import 'package:http/http.dart' as http;
 import 'package:gemmea/core/services/gemma_engine_manager.dart';
 import 'package:gemmea/core/utils/text_sanitizer.dart';
 import 'package:gemmea/data/datasources/sqlite_helper.dart';
+import 'package:gemmea/domain/entities/eac_country_profile.dart';
 import 'package:gemmea/domain/repositories/chat_repository.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sautilm_sdk/sautilm_sdk.dart';
 
 class ChatRepositoryImpl implements ChatRepository {
   final SQLiteHelper dbHelper = SQLiteHelper.instance;
@@ -273,6 +276,71 @@ class ChatRepositoryImpl implements ChatRepository {
     return greetings.contains(clean) || (clean.split(' ').length <= 2 && greetings.any((g) => clean.startsWith(g)));
   }
 
+  /// Builds deterministic EAC/DRC zone context + plot calculations via `sautilm_sdk`.
+  @visibleForTesting
+  static String buildDeterministicAgronomySupplement(
+    String query, {
+    String? countryCode,
+  }) {
+    final profile = EacCountryProfile.byCode(
+      countryCode ?? SQLiteHelper.currentCountryCode,
+    );
+    final lines = <String>[
+      'ZONE AGRONOMIQUE ACTIVE : ${profile.fullNameFr} (${profile.code}) | '
+          'Institut NARS : ${profile.narsInstitute} | '
+          'Régime pluviométrique : ${profile.rainfallRegimeSummary}',
+    ];
+
+    final normalized = query.replaceAll(',', '.');
+    final lower = normalized.toLowerCase();
+
+    final dimMatch = RegExp(
+      r'(\d+(?:\.\d+)?)\s*m\s*(?:x|×|\*|sur)\s*(\d+(?:\.\d+)?)\s*m',
+      caseSensitive: false,
+    ).firstMatch(normalized);
+    if (dimMatch != null &&
+        (lower.contains('manioc') ||
+            lower.contains('cassava') ||
+            lower.contains('bouture') ||
+            lower.contains('plant'))) {
+      final lengthM = double.tryParse(dimMatch.group(1)!);
+      final widthM = double.tryParse(dimMatch.group(2)!);
+      if (lengthM != null && widthM != null && lengthM > 0 && widthM > 0) {
+        final exactCuttings = AgronomyPlotCalculator.cassavaCuttings1mBy1m(
+          lengthMeters: lengthM,
+          widthMeters: widthM,
+        );
+        final withReserve = AgronomyPlotCalculator.cassavaCuttings1mBy1m(
+          lengthMeters: lengthM,
+          widthMeters: widthM,
+          reservePct: 0.10,
+        );
+        lines.add(
+          'CALCUL EXACT MANIOC (${lengthM}m x ${widthM}m à 1m x 1m) : '
+          '$exactCuttings boutures exactes ($withReserve avec +10% de réserve de regarnissage).',
+        );
+      }
+    }
+
+    final neemAreaMatch = RegExp(
+      r'(\d+(?:\.\d+)?)\s*(?:m2|m²)',
+      caseSensitive: false,
+    ).firstMatch(normalized);
+    if (neemAreaMatch != null && lower.contains('neem')) {
+      final area = double.tryParse(neemAreaMatch.group(1)!);
+      if (area != null && area > 0) {
+        final liters = AgronomyPlotCalculator.neemBiopesticideLiters(
+          areaSqMeters: area,
+        );
+        lines.add(
+          'CALCUL EXACT BIOPESTICIDE NEEM ($area m²) : $liters litres de solution foliaire prêts à pulvériser.',
+        );
+      }
+    }
+
+    return lines.join('\n');
+  }
+
   @override
   Stream<ModelResponse> getGemmaResponseStream(String text, [List<Message>? history]) async* {
     yield* GemmaEngineManager.runStreamWithLock(() async* {
@@ -288,14 +356,16 @@ class ChatRepositoryImpl implements ChatRepository {
       // Fetch dynamic RAG context for the specific user query only if it's a technical query (not a simple greeting)
       String faoContext = "";
       if (!_isSimpleGreeting(text)) {
+        final supplement = buildDeterministicAgronomySupplement(text);
         final faoDocs = await dbHelper.searchFAOKnowledge(text);
-        if (faoDocs.isNotEmpty) {
-          faoContext = faoDocs.map((d) {
-            final content = (d['content'] ?? '').toString();
-            final trimmedContent = content.length > 400 ? "${content.substring(0, 400)}..." : content;
-            return "- ${d['topic']}: $trimmedContent Remède/Action: ${d['organic_remedy']} (Source: ${d['source_citation']})";
-          }).join("\n");
-        }
+        final docsBlock = faoDocs.isNotEmpty
+            ? faoDocs.map((d) {
+                final content = (d['content'] ?? '').toString();
+                final trimmedContent = content.length > 400 ? "${content.substring(0, 400)}..." : content;
+                return "- ${d['topic']}: $trimmedContent Remède/Action: ${d['organic_remedy']} (Source: ${d['source_citation']})";
+              }).join("\n")
+            : "";
+        faoContext = docsBlock.isNotEmpty ? "$supplement\n$docsBlock" : supplement;
       }
 
       String historyFormatted = "";
@@ -308,18 +378,19 @@ class ChatRepositoryImpl implements ChatRepository {
       }
 
       final systemPrompt = '''
-Tu es Gemmea, l'expert agronome IA de terrain pour l'Afrique de l'Est et la région des Grands Lacs (RDC/Kivu, Rwanda, Burundi, Ouganda).
+Tu es Gemmea, l'assistant agronome IA hors-ligne pour la RDC (Kivu, Ituri) et l'Afrique de l'Est (Rwanda, Burundi, Ouganda, Kenya, Tanzanie).
 
-RÈGLE ABSOLUE ANTI-AVERTISSEMENT :
-INTERDICTION STRICTE d'utiliser des phrases vagues, d'esquiver les questions ou d'ajouter des clauses de non-responsabilité du type "Vérifiez auprès d'un expert local" ou "Consultez les recommandations spécifiques de votre zone". Tu ES l'expert agronomique de référence ! Donne TOUJOURS des réponses affirmatives, concrètes, datées, dosées et directement applicables sur le terrain par le fermier.
+RÈGLE DE RIGUEUR SCIENTIFIQUE ET DE VÉRACITÉ :
+1. Appuie-toi en priorité sur les [DONNÉES OFFICIELLES FAO DE RÉFÉRENCE] ci-dessous lorsque des fiches locales sont fournies, en citant leur source exacte.
+2. N'invente JAMAIS un chiffre, un dosage de pesticide de synthèse, une date de semis locale ou une référence FAO absente des documents vérifiés.
+3. Si une culture, une maladie rare, une posologie phytosanitaire ou une zone agro-écologique précise dépasse les fiches disponibles hors ligne, dis-le honnêtement et recommande une confirmation auprès d'un agronome de terrain ou des instituts nationaux (INERA, NARO, RAB, ISABU, KALRO, TARI).
 
-CONNAISSANCES RÉGIONALES INTÉGRÉES (AFRIQUE DE L'EST / GRANDS LACS) :
-- Climat : Tropical d'altitude / équatorial à 2 saisons des pluies principales :
-  * Saison A (grandes pluies) : Semis du Maïs et du Haricot de mi-septembre à début octobre aux premières pluies. Récolte en janvier/février.
-  * Saison B (petites pluies) : Semis de mars à début avril. Récolte en juin/juillet.
-  * Manioc & Bananier : Boutures saines plantées en début de saison A (septembre) ou saison B (mars). Récolte du manioc après 12 à 18 mois.
-- Densités & Écartements : Maïs (75cm x 25cm, 1 graine/poquet), Haricot (40cm x 10cm), Manioc (1m x 1m en quinconce).
-- Sol : Sols argilo-volcaniques fertiles mais sensibles à l'érosion. Préconiser le paillage, le compost bio et la culture associée Maïs-Haricot.
+REPÈRES AGRO-CLIMATIQUES (NE PAS GÉNÉRALISER SANS PRÉCISER LA ZONE) :
+- Grands Lacs bimodaux (Nord/Sud-Kivu, Ituri Sud, Rwanda, Burundi, Ouganda Ouest) :
+  * Saison A (grandes pluies) : semis généralement entre septembre et novembre selon l'altitude ; récolte janvier/février.
+  * Saison B (petites pluies) : semis généralement entre mars et avril ; récolte juin/juillet.
+  * Note Afrique de l'Est : au Kenya/Tanzanie/Nord-Ouganda, les régimes varient (Long Rains mars–mai, Short Rains oct–déc, ou zones unimodales du centre/sud de la Tanzanie). Demandez ou précisez la zone si non fournie.
+- Pratiques culture associées fréquentes (Grands Lacs, à adapter selon variété et pente) : paillage, compost organique, boutures saines de manioc certifiées (ex: TME 419), protection antiérosive sur collines.
 
 RÈGLES D'EXPRESSION CONVERSATIONNELLE :
 1. Réponds STRICTEMENT et DIRECTEMENT à la question posée sans tourner autour du pot.
@@ -359,7 +430,8 @@ ${faoContext.isNotEmpty ? '\n\nDONNÉES OFFICIELLES FAO DE RÉFÉRENCE :\n$faoCo
         
         await for (final chunk in _chat!.generateChatResponseAsync()) {
           if (chunk is TextResponse) {
-            yield TextResponse(TextSanitizer.cleanLatexAndFormatting(chunk.token, preserveWhitespace: true));
+            final solved = DeterministicMathSolver.solveCalcTags(chunk.token);
+            yield TextResponse(TextSanitizer.cleanLatexAndFormatting(solved, preserveWhitespace: true));
           } else {
             yield chunk;
           }

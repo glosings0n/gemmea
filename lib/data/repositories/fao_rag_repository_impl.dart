@@ -11,12 +11,31 @@ class FAORagRepositoryImpl implements FAORagRepository {
 
   @override
   Future<List<FAOGuideline>> searchGuidelines(String query) async {
+    return searchGuidelinesByCountry(query);
+  }
+
+  @override
+  Future<List<FAOGuideline>> searchGuidelinesByCountry(
+    String query, {
+    String? countryCode,
+  }) async {
     try {
-      dev.log("Searching FAO guidelines RAG query: $query", name: 'FAO_RAG_REPO');
-      final rawResults = await sqliteHelper.searchFAOKnowledge(query);
+      dev.log(
+        "Searching FAO guidelines RAG query ($countryCode): $query",
+        name: 'FAO_RAG_REPO',
+      );
+      final rawResults = await sqliteHelper.searchFAOKnowledge(
+        query,
+        countryCode: countryCode,
+      );
       return rawResults.map((map) => FAOGuideline.fromMap(map)).toList();
     } catch (e, stack) {
-      dev.log("Error searching FAO guidelines", name: 'FAO_RAG_REPO', error: e, stackTrace: stack);
+      dev.log(
+        "Error searching FAO guidelines",
+        name: 'FAO_RAG_REPO',
+        error: e,
+        stackTrace: stack,
+      );
       return [];
     }
   }

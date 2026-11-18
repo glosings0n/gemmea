@@ -32,6 +32,16 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    packaging {
+        jniLibs {
+            pickFirsts += listOf("lib/**/libtensorflowlite_jni.so")
+        }
+    }
+}
+
+dependencies {
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
 }
 
 kotlin {
