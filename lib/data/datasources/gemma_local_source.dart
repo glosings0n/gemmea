@@ -161,8 +161,8 @@ class NuruTfliteDecoder {
     'cassava_cbsd',
     'maize_rust',
     'maize_faw',
-    'banana_bxw',
-    'bean_anthracnose',
+    'banana_sigatoka',
+    'bean_angular_leaf_spot',
     'tomato_blight',
   ];
 
@@ -192,15 +192,15 @@ class NuruTfliteDecoder {
       disease: 'Chenille Légionnaire d\'Automne (FAW)',
       obs: 'Dégâts foliaires et perforations en fenêtres détectés par SautiLM-Nuru-Agri.',
     ),
-    'banana_bxw': (
+    'banana_sigatoka': (
       crop: 'Banane',
-      disease: 'Flétrissement Bactérien du Bananier (BXW)',
-      obs: 'Jaunissement progressif et flétrissement foliaire détectés par SautiLM-Nuru-Agri.',
+      disease: 'Cercosporiose Noire du Bananier (Black Sigatoka)',
+      obs: 'Stries brun-noir et nécroses foliaires caractéristiques détectées par SautiLM-Nuru-Agri.',
     ),
-    'bean_anthracnose': (
+    'bean_angular_leaf_spot': (
       crop: 'Haricot',
-      disease: 'Anthracnose du Haricot',
-      obs: 'Lésions brun-noir le long des nervures détectées par SautiLM-Nuru-Agri.',
+      disease: 'Tache Angulaire du Haricot (Pseudocercospora griseola)',
+      obs: 'Taches anguleuses brunes délimitées par les nervures détectées par SautiLM-Nuru-Agri.',
     ),
     'tomato_blight': (
       crop: 'Tomate',

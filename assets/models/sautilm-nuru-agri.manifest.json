@@ -1,5 +1,6 @@
 {
   "model_name": "SautiLM-Nuru-Agri",
+  "version": "v2-certified-real-datasets",
   "format": "tflite_int8_weights",
   "input_dtype": "float32",
   "output_dtype": "float32",
@@ -16,9 +17,42 @@
     "cassava_cbsd",
     "maize_rust",
     "maize_faw",
-    "banana_bxw",
-    "bean_anthracnose",
+    "banana_sigatoka",
+    "bean_angular_leaf_spot",
     "tomato_blight"
   ],
-  "abstention_threshold": 0.55
+  "abstention_threshold": 0.55,
+  "synthetic_images_count": 0,
+  "class_counts": {
+    "non_plant": 450,
+    "healthy_leaf": 450,
+    "cassava_cmd": 450,
+    "cassava_cbsd": 450,
+    "maize_rust": 450,
+    "maize_faw": 450,
+    "banana_sigatoka": 450,
+    "bean_angular_leaf_spot": 432,
+    "tomato_blight": 450
+  },
+  "source_provenance": {
+    "ibeans:bean_angular_leaf_spot": 432,
+    "ibeans:bean_healthy": 95,
+    "armyworm-and-affected-plants:normal_leaves": 40,
+    "armyworm-and-affected-plants:worm_affected_maize_leaves": 450,
+    "corn-or-maize-leaf-disease-dataset:Common_Rust": 450,
+    "corn-or-maize-leaf-disease-dataset:Healthy": 95,
+    "intel-image-classification:buildings": 90,
+    "intel-image-classification:glacier": 90,
+    "intel-image-classification:mountain": 90,
+    "intel-image-classification:sea": 90,
+    "intel-image-classification:street": 90,
+    "bananalsd:healthy": 90,
+    "bananalsd:sigatoka": 450,
+    "datasets:Cassava___brown_streak_disease": 450,
+    "datasets:Cassava___healthy": 95,
+    "datasets:Cassava___mosaic_disease": 450,
+    "datasets:Tomato_Early_blight": 225,
+    "datasets:Tomato_Late_blight": 225,
+    "datasets:Tomato_healthy": 35
+  }
 }

@@ -7,7 +7,7 @@
 
 **Gemmea** est une application mobile d'aide à la décision agronomique conçue pour fonctionner **100% hors ligne, sans aucune connexion internet**. Son nom réunit **"Mmea"** (*plante* ou *culture* en swahili, langue parlée en RDC et en Afrique de l'Est) et **Gemma** (la famille de modèles d'intelligence artificielle ouverts de Google).
 
-L'application associe une architecture **collaborative à 2 passes** (**`SautiLM-Nuru-Agri`** `1.074 Mo` en TFLite INT8 pour le triage visuel des pixels + rejet `non_plant` à `< 0.55`, suivi de **`SautiLM-Jua-Agri`** `283.48 Mo` en LiteRT-LM INT8) exécutée localement sur le téléphone avec une architecture **RAG (Retrieval-Augmented Generation) ancrée sur une base de données SQLite FTS5** ([`gemmea_eac_agri.sqlite`](assets/data/gemmea_eac_agri.sqlite), `150` fiches officielles NARS couvrant `CD, UG, RW, BI, KE, TZ` — INERA, NARO, RAB, ISABU, KALRO, TARI, FAO & IITA).
+L'application associe une architecture **collaborative a 2 passes** (**`SautiLM-Nuru-Agri`** `1.074 Mo` en TFLite INT8, `92.06%` de precision de validation et `92.31%` Macro-F1 sur `4 032` photos reelles sans aucune image synthetique, avec rejet `non_plant` a `100%` F1 / seuil `< 0.55`, suivi de **`SautiLM-Jua-Agri`** `283.48 Mo` en LiteRT-LM INT8) executee localement sur le telephone avec une architecture **RAG (Retrieval-Augmented Generation) ancree sur une base de donnees SQLite FTS5** ([`gemmea_eac_agri.sqlite`](assets/data/gemmea_eac_agri.sqlite), `1 287` entrees reelles : `8` manuels terrain open-access CGIAR / IITA / CIMMYT / PABRA / TARI / KALRO et `22` fiches NARS curees couvrant `CD, UG, RW, BI, KE, TZ`, zero contenu Wikipedia).
 
 ---
 

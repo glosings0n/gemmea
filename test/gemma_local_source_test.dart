@@ -177,6 +177,19 @@ SYMPTOMS: pustules brun-rougeâtres le long des feuilles
       expect(cbsd.cropLabel, 'Manioc');
       expect(cbsd.diseaseHint, contains('CBSD'));
 
+      // Verify Sigatoka (index 6) and Bean Angular Leaf Spot (index 7) match certified manifest
+      expect(NuruTfliteDecoder.labels[6], 'banana_sigatoka');
+      expect(NuruTfliteDecoder.labels[7], 'bean_angular_leaf_spot');
+      final bananaSigatoka = NuruTfliteDecoder.fromOutputProbabilities([0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.91, 0.02, 0.01]);
+      expect(bananaSigatoka.isPlantLeaf, isTrue);
+      expect(bananaSigatoka.cropLabel, 'Banane');
+      expect(bananaSigatoka.diseaseHint, contains('Sigatoka'));
+
+      final beanAls = NuruTfliteDecoder.fromOutputProbabilities([0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.02, 0.91, 0.01]);
+      expect(beanAls.isPlantLeaf, isTrue);
+      expect(beanAls.cropLabel, 'Haricot');
+      expect(beanAls.diseaseHint, contains('Tache Angulaire'));
+
       final classifier = TfliteNuruVisionClassifier(
         nativeInvokeOverride: (_) async => [0.01, 0.01, 0.88, 0.02, 0.02, 0.02, 0.02, 0.01, 0.01],
         fallback: _FakeVisionClassifier(const NuruVisionClassification(isPlantLeaf: false, cropLabel: 'non_plant')),
