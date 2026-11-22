@@ -94,26 +94,17 @@ void main() {
       expect(rows, isNotEmpty, reason: 'SQLite FTS5 returned 0 rows for: $q');
     }
 
-    // 4. Full End-to-End Pass-1 (TFLite) -> Pass-2 (Deterministic CGIAR/NARS report) on Pixel 7
+    // 4. Full End-to-End Production evaluateCropImage() on Pixel 7 (Pass-1 TFLite -> Ranked FTS4 -> Deterministic Card)
+    final tmpImg = File('${Directory.systemTemp.path}/pixel7_cassava_live.png');
+    await tmpImg.writeAsBytes(assetBytes['assets/images/cassava_mosaic.png']!, flush: true);
     final e2eSw = Stopwatch()..start();
-    final cassProbs = (await nuruChannel.invokeMethod<List<dynamic>>(
-      'classifyCrop',
-      {'imageBytes': assetBytes['assets/images/cassava_mosaic.png']!},
-    ))!
-        .map((e) => (e as num).toDouble())
-        .toList();
-    final cls = NuruTfliteDecoder.fromOutputProbabilities(cassProbs);
-    final ragRows = await SQLiteHelper.instance.searchFAOKnowledge(
-      cls.buildRagQuery('Diagnostic manioc complet'),
-    );
-    final faoCtx = ragRows
-        .map((r) => '- [${r['source_citation'] ?? r['citation'] ?? 'CGIAR/NARS'}] ${r['topic'] ?? ''}: ${r['content'] ?? ''}')
-        .join('\n');
-    final report = GemmaLocalSourceImpl.buildDeterministicAgronomyReport(
-      classification: cls,
-      faoContext: faoCtx,
-    );
+    final prodSource = GemmaLocalSourceImpl();
+    final report = await prodSource.evaluateCropImage(tmpImg, 'Diagnostic manioc complet');
     e2eSw.stop();
+    if (await tmpImg.exists()) {
+      await tmpImg.delete();
+    }
+    expect(report, contains('DIAGNOSTIC PRINCIPAL'));
     expect(report, contains('Manioc'));
     expect(report.length, greaterThan(150));
 
