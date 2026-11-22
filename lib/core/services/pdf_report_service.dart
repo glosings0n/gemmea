@@ -463,60 +463,26 @@ class PDFReportService {
       );
 
       final filename = 'Rapport_Agronomique_Juamea_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      List<String> savedPaths = [];
+      // Play Store / Scoped Storage compliant: write to app-private storage, then publish
+      // a copy into Android MediaStore (`Documents/Juamea`) via `scanFile` with 0 storage permissions.
+      Directory? targetDir;
+      try {
+        targetDir = await getDownloadsDirectory();
+      } catch (_) {}
+      targetDir ??= await getApplicationDocumentsDirectory();
 
-      if (Platform.isAndroid) {
-        final publicDirs = [
-          Directory('/storage/emulated/0/Documents/Juamea'),
-          Directory('/storage/emulated/0/Documents'),
-          Directory('/storage/emulated/0/Download'),
-        ];
+      final file = File('${targetDir.path}/$filename');
+      await file.writeAsBytes(pdfBytes);
 
-        for (final dir in publicDirs) {
-          try {
-            if (!await dir.exists()) {
-              await dir.create(recursive: true);
-            }
-            final file = File('${dir.path}/$filename');
-            await file.writeAsBytes(pdfBytes);
-            savedPaths.add(file.path);
-            dev.log("PDF saved to public directory: ${file.path}", name: 'PDF_REPORT_SERVICE');
-
-            // Notify Android MediaScanner & MediaStore indexing immediately
-            try {
-              const channel = MethodChannel('com.musantek.juamea/media_scanner');
-              await channel.invokeMethod('scanFile', {'path': file.path});
-              dev.log("Notified Android MediaScanner for ${file.path}", name: 'PDF_REPORT_SERVICE');
-            } catch (scanErr) {
-              dev.log("MediaScanner notification note: $scanErr", name: 'PDF_REPORT_SERVICE');
-            }
-          } catch (e) {
-            dev.log("Could not write to ${dir.path}: $e", name: 'PDF_REPORT_SERVICE');
-          }
+      try {
+        if (Platform.isAndroid) {
+          const channel = MethodChannel('com.musantek.juamea/media_scanner');
+          await channel.invokeMethod('scanFile', {'path': file.path});
         }
-      }
+      } catch (_) {}
 
-      if (savedPaths.isEmpty) {
-        Directory? targetDir;
-        try {
-          targetDir = await getDownloadsDirectory();
-        } catch (_) {}
-        targetDir ??= await getApplicationDocumentsDirectory();
-
-        final file = File('${targetDir.path}/$filename');
-        await file.writeAsBytes(pdfBytes);
-        savedPaths.add(file.path);
-
-        try {
-          if (Platform.isAndroid) {
-            const channel = MethodChannel('com.musantek.juamea/media_scanner');
-            await channel.invokeMethod('scanFile', {'path': file.path});
-          }
-        } catch (_) {}
-      }
-
-      dev.log("PDF downloaded successfully to ${savedPaths.first}", name: 'PDF_REPORT_SERVICE');
-      return savedPaths.first;
+      dev.log("PDF downloaded successfully to ${file.path}", name: 'PDF_REPORT_SERVICE');
+      return file.path;
     } catch (e, stack) {
       dev.log("Error downloading PDF report", name: 'PDF_REPORT_SERVICE', error: e, stackTrace: stack);
       rethrow;
@@ -774,52 +740,23 @@ class PDFReportService {
 
       final crop = _extractCropName(diagnostic);
       final filename = 'Diagnostic_${crop}_Juamea_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      List<String> savedPaths = [];
+      Directory? targetDir;
+      try {
+        targetDir = await getDownloadsDirectory();
+      } catch (_) {}
+      targetDir ??= await getApplicationDocumentsDirectory();
 
-      if (Platform.isAndroid) {
-        final publicDirs = [
-          Directory('/storage/emulated/0/Documents/Juamea'),
-          Directory('/storage/emulated/0/Documents'),
-          Directory('/storage/emulated/0/Download'),
-        ];
+      final file = File('${targetDir.path}/$filename');
+      await file.writeAsBytes(pdfBytes);
 
-        for (final dir in publicDirs) {
-          try {
-            if (!await dir.exists()) {
-              await dir.create(recursive: true);
-            }
-            final file = File('${dir.path}/$filename');
-            await file.writeAsBytes(pdfBytes);
-            savedPaths.add(file.path);
-
-            try {
-              const channel = MethodChannel('com.musantek.juamea/media_scanner');
-              await channel.invokeMethod('scanFile', {'path': file.path});
-            } catch (_) {}
-          } catch (_) {}
+      try {
+        if (Platform.isAndroid) {
+          const channel = MethodChannel('com.musantek.juamea/media_scanner');
+          await channel.invokeMethod('scanFile', {'path': file.path});
         }
-      }
+      } catch (_) {}
 
-      if (savedPaths.isEmpty) {
-        Directory? targetDir;
-        try {
-          targetDir = await getDownloadsDirectory();
-        } catch (_) {}
-        targetDir ??= await getApplicationDocumentsDirectory();
-
-        final file = File('${targetDir.path}/$filename');
-        await file.writeAsBytes(pdfBytes);
-        savedPaths.add(file.path);
-
-        try {
-          if (Platform.isAndroid) {
-            const channel = MethodChannel('com.musantek.juamea/media_scanner');
-            await channel.invokeMethod('scanFile', {'path': file.path});
-          }
-        } catch (_) {}
-      }
-
-      return savedPaths.first;
+      return file.path;
     } catch (e, stack) {
       dev.log("Error downloading single PDF report", name: 'PDF_REPORT_SERVICE', error: e, stackTrace: stack);
       rethrow;

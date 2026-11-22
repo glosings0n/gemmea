@@ -1,17 +1,27 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+
+    <!-- Optional hardware features so tablets and entry-level devices stay Play Store eligible -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+
+    <!--
+      Google Play Store Compliant Storage Architecture:
+      - SautiLM-Nuru-Agri (1.07 MB) + FAO/NARS SQLite (2,369 records) are bundled inside the app.
+      - Optional SautiLM-Jua-Agri (283 MB) chat weights are stored exclusively inside app-private
+        storage (`ApplicationSupport/sautilm_models/`) with ZERO external storage permissions,
+        and are 100% automatically deleted by Android when the user uninstalls Juamea.
+    -->
 
     <application
         android:label="Juamea"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon"
-        android:requestLegacyExternalStorage="true">
+        android:allowBackup="false">
         <activity
             android:name=".MainActivity"
             android:exported="true"

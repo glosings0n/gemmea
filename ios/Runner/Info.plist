@@ -24,6 +24,18 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>Juamea utilise la caméra pour photographier les feuilles de vos cultures et les diagnostiquer 100 % hors ligne avec SautiLM-Nuru-Agri.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Juamea accède à votre galerie uniquement lorsque vous choisissez une photo de culture à diagnostiquer hors ligne.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Juamea utilise le microphone pour vous permettre de poser vos questions agronomiques à la voix.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Juamea transcrit vos questions vocales en texte pour interroger l'assistant agronome hors ligne.</string>
+	<key>UIFileSharingEnabled</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

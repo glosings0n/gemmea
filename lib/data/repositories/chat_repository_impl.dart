@@ -3,13 +3,12 @@ import 'dart:developer' as dev;
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_edge_ai/flutter_edge_ai.dart';
-import 'package:http/http.dart' as http;
 import 'package:juamea/core/services/gemma_engine_manager.dart';
+import 'package:juamea/core/services/juamea_model_manager.dart';
 import 'package:juamea/core/utils/text_sanitizer.dart';
 import 'package:juamea/data/datasources/sqlite_helper.dart';
 import 'package:juamea/domain/entities/eac_country_profile.dart';
 import 'package:juamea/domain/repositories/chat_repository.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sautilm_sdk/sautilm_sdk.dart';
 
 class ChatRepositoryImpl implements ChatRepository {
@@ -23,100 +22,16 @@ class ChatRepositoryImpl implements ChatRepository {
     });
   }
 
-  static const String _sharedDownloadDir = '/storage/emulated/0/Download/SautiLM';
-  static const List<String> _sharedDirs = [
-    '/storage/emulated/0/Download/SautiLM',
-    '/storage/emulated/0/Download/Juamea',
-    '/storage/emulated/0/Download/Gemma',
-    '/storage/emulated/0/Download',
-    '/storage/emulated/0/Documents/SautiLM',
-    '/storage/emulated/0/Documents/Juamea',
-    '/storage/emulated/0/Documents/Gemma',
-  ];
-  static const List<String> _modelFilenames = [
-    'sautilm-jua-agri.litertlm',
-    'sautilm-jua.litertlm',
-    'gemma.litertlm',
-    'gemma.bin',
-  ];
-
-  Future<File?> _resolveModelFile() async {
-    // 1. Check shared SautiLM / Juamea / Download directories
-    for (final dir in _sharedDirs) {
-      for (final filename in _modelFilenames) {
-        final file = File('$dir/$filename');
-        if (await _isValidModel(file)) {
-          dev.log("SautiLM/Juamea model resolved from shared storage: ${file.path}", name: 'CHAT_REPO_IMPL');
-          return file;
-        }
-      }
-    }
-
-    // 2. Check local app documents directory
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      for (final filename in _modelFilenames) {
-        final file = File('${directory.path}/$filename');
-        if (await _isValidModel(file)) {
-          dev.log("SautiLM/Juamea model resolved from app documents: ${file.path}", name: 'CHAT_REPO_IMPL');
-          return file;
-        }
-      }
-    } catch (_) {}
-
-    // 3. Legacy fallback locations
-    final candidates = [
-      '/storage/emulated/0/Download/juamea/sautilm-jua-agri.litertlm',
-      '/storage/emulated/0/Download/gemmea/gemma.litertlm',
-      '/storage/emulated/0/Download/gemma.litertlm',
-      '/sdcard/Download/SautiLM/sautilm-jua.litertlm',
-      '/sdcard/Download/Gemma/gemma.litertlm',
-    ];
-    for (final path in candidates) {
-      final file = File(path);
-      if (await _isValidModel(file)) {
-        dev.log("SautiLM/Juamea model resolved from candidate path: $path", name: 'CHAT_REPO_IMPL');
-        return file;
-      }
-    }
-
-    return null;
-  }
-
-  Future<bool> _isValidModel(File file) async {
-    try {
-      if (!await file.exists()) return false;
-      final len = await file.length();
-      return len > 50 * 1024 * 1024;
-    } catch (_) {
-      return false;
-    }
-  }
+  Future<File?> _resolveModelFile() => JuameaModelManager.resolveInstalledModelFile();
 
   @override
   Future<bool> checkModelInstalled() async {
     try {
       final resolved = await _resolveModelFile();
       if (resolved != null) {
-        dev.log("Checked model file existence: true (${resolved.path})", name: 'CHAT_REPO_IMPL');
+        dev.log("Checked private vault model existence: true (${resolved.path})", name: 'CHAT_REPO_IMPL');
         return true;
       }
-
-      final directory = await getApplicationDocumentsDirectory();
-      final litertlmFile = File('${directory.path}/gemma.litertlm');
-      final binFile = File('${directory.path}/gemma.bin');
-      
-      // Auto-migrate old gemma.bin to gemma.litertlm if it exists on the user's device
-      if (await binFile.exists() && !await litertlmFile.exists()) {
-        try {
-          await binFile.rename(litertlmFile.path);
-          dev.log("Auto-migrated old gemma.bin to gemma.litertlm successfully.", name: 'CHAT_REPO_IMPL');
-          return await _isValidModel(litertlmFile);
-        } catch (e, stack) {
-          dev.log("Error migrating old gemma.bin to gemma.litertlm", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
-        }
-      }
-      
       return false;
     } catch (e, stack) {
       dev.log("Error checking model installed state", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
@@ -125,103 +40,45 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Future<void> initializeGemma(Function(double) onProgress) async {
+  Future<void> initializeGemma(Function(double) onProgress, {bool force = false}) async {
     return GemmaEngineManager.runWithLock(() async {
       try {
         await GemmaEngineManager.ensureInitialized();
-        
-        File? targetFile = await _resolveModelFile();
-        
+
+        File? targetFile = force ? null : await _resolveModelFile();
+
         if (targetFile == null) {
-          File destinationFile;
-          File tempModelFile;
-
+          // Verify connectivity before starting ~283 MB Hugging Face download
           try {
-            final sharedDir = Directory(_sharedDownloadDir);
-            if (!await sharedDir.exists()) {
-              await sharedDir.create(recursive: true);
-            }
-            destinationFile = File('${sharedDir.path}/sautilm-jua-agri.litertlm');
-            tempModelFile = File('${sharedDir.path}/sautilm-jua-agri.litertlm.tmp');
-          } catch (_) {
-            final directory = await getApplicationDocumentsDirectory();
-            destinationFile = File('${directory.path}/sautilm-jua-agri.litertlm');
-            tempModelFile = File('${directory.path}/sautilm-jua-agri.litertlm.tmp');
-          }
-
-          // Clean up any stale/incomplete temp files from previous aborted attempts
-          if (await tempModelFile.exists()) {
-            await tempModelFile.delete();
-          }
-
-          // Check internet connectivity first using lightweight DNS lookup
-          try {
-            final result = await InternetAddress.lookup('google.com').timeout(const Duration(seconds: 4));
+            final result = await InternetAddress.lookup('huggingface.co').timeout(const Duration(seconds: 5));
             if (result.isEmpty || result.first.rawAddress.isEmpty) {
               throw const SocketException('No internet connection available');
             }
           } catch (e, stack) {
-            dev.log("No internet connection for first-time download", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
-            throw const SocketException('Internet connection is required for the first-time model download. Please connect to the internet and try again.');
+            dev.log("No internet connection for model download", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
+            throw const SocketException(
+              'Une connexion Internet est nécessaire pour télécharger SautiLM-Jua-Agri (283 Mo). '
+              'Le scan foliaire SautiLM-Nuru-Agri et les 2 369 fiches FAO restent disponibles 100 % hors ligne.',
+            );
           }
 
-          final url = 'https://huggingface.co/sautilm/SautiLM-Jua-Agri/resolve/main/sautilm-jua-agri.litertlm';
-          final client = http.Client();
-          
-          try {
-            dev.log("Starting model download stream from HuggingFace to ${destinationFile.path}...", name: 'CHAT_REPO_IMPL');
-            final request = http.Request('GET', Uri.parse(url));
-            final response = await client.send(request);
-            
-            if (response.statusCode != 200) {
-              throw HttpException('Failed to download model file (Status: ${response.statusCode})');
-            }
-            
-            final contentLength = response.contentLength ?? 0;
-            int downloadedBytes = 0;
-            
-            // Write to temporary file first
-            final IOSink sink = tempModelFile.openWrite();
-            
-            await response.stream.forEach((chunk) {
-              downloadedBytes += chunk.length;
-              sink.add(chunk);
-              
-              if (contentLength > 0) {
-                onProgress(downloadedBytes / contentLength);
-              }
-            });
-            
-            await sink.close();
-
-            // ONLY RENAME TO FINAL BINARY UPON 100% COMPLETE DOWNLOAD
-            if (await tempModelFile.exists()) {
-              await tempModelFile.rename(destinationFile.path);
-              dev.log("Model file successfully downloaded to ${destinationFile.path}", name: 'CHAT_REPO_IMPL');
-              targetFile = destinationFile;
-            }
-          } catch (e, stack) {
-            dev.log("Download failed or interrupted", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
-            if (await tempModelFile.exists()) {
-              await tempModelFile.delete();
-            }
-            rethrow;
-          } finally {
-            client.close();
-          }
+          targetFile = await JuameaModelManager.downloadOrUpdateModel(
+            onProgress: onProgress,
+            force: force,
+          );
         }
 
-        // Register this local file as the active model in FlutterEdgeAi
-        if (targetFile != null && await targetFile.exists()) {
+        // Register this local private-vault file as the active model in FlutterEdgeAi
+        if (await targetFile.exists()) {
           try {
-            dev.log("Installing Gemma model from ${targetFile.path} in FlutterEdgeAi plugin...", name: 'CHAT_REPO_IMPL');
+            dev.log("Installing SautiLM-Jua-Agri model from ${targetFile.path} in FlutterEdgeAi...", name: 'CHAT_REPO_IMPL');
             await FlutterEdgeAi.installModel(
               modelType: ModelType.gemmaIt,
               fileType: ModelFileType.litertlm,
             )
             .fromFile(targetFile.path)
             .install();
-            dev.log("Gemma model installation completed successfully", name: 'CHAT_REPO_IMPL');
+            dev.log("SautiLM-Jua-Agri installation completed successfully", name: 'CHAT_REPO_IMPL');
           } catch (e, stack) {
             dev.log("Model install registration note: $e", name: 'CHAT_REPO_IMPL', error: e, stackTrace: stack);
           }
@@ -352,8 +209,8 @@ class ChatRepositoryImpl implements ChatRepository {
       final modelFile = await _resolveModelFile();
 
       if (modelFile == null || !await modelFile.exists()) {
-        dev.log("Model file not found locally", name: 'CHAT_REPO_IMPL');
-        throw Exception("Le fichier de modèle local 'gemma.litertlm' est introuvable. Veuillez télécharger le modèle Gemma 4 pour lancer l'inférence locale.");
+        dev.log("Model file not found locally in private vault", name: 'CHAT_REPO_IMPL');
+        throw Exception("Le modèle local SautiLM-Jua-Agri (283 Mo) n'est pas encore téléchargé. Ouvrez « Moteurs IA & Stockage » pour le télécharger dans le coffre privé.");
       }
 
       // Fetch dynamic RAG context for the specific user query only if it's a technical query (not a simple greeting)

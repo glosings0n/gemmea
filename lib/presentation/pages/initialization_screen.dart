@@ -156,12 +156,14 @@ class _InitializationScreenState extends State<InitializationScreen> {
                             const Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  "Initialisation du modèle IA Gemma",
-                                  style: TextStyle(
-                                    fontFamily: 'Figtree',
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textCharcoal,
+                                Expanded(
+                                  child: Text(
+                                    "SautiLM-Jua-Agri (Chat IA hors ligne)",
+                                    style: TextStyle(
+                                      fontFamily: 'Figtree',
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textCharcoal,
+                                    ),
                                   ),
                                 ),
                                 SizedBox(
@@ -174,28 +176,28 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: AppSize.p12),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(AppSize.r8),
-                              child: LinearProgressIndicator(
-                                value: 0.0,
-                                minHeight: 8,
-                                valueColor: const AlwaysStoppedAnimation<Color>(
-                                  AppColors.primaryForestGreen,
+                              const SizedBox(height: AppSize.p12),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(AppSize.r8),
+                                child: LinearProgressIndicator(
+                                  value: 0.0,
+                                  minHeight: 8,
+                                  valueColor: const AlwaysStoppedAnimation<Color>(
+                                    AppColors.primaryForestGreen,
+                                  ),
+                                  backgroundColor: AppColors.primaryForestGreen.withValues(alpha: 0.12),
                                 ),
-                                backgroundColor: AppColors.primaryForestGreen.withValues(alpha: 0.12),
                               ),
-                            ),
-                            const SizedBox(height: AppSize.p16),
-                            const Text(
-                              "Vérification de la connexion de téléchargement. Placez le fichier Gemma 4 au format LiteRT dans le dossier Documents pour un fonctionnement 100% hors ligne.",
-                              style: TextStyle(
-                                fontFamily: 'Figtree',
-                                fontSize: 12,
-                                color: AppColors.textGrey,
-                                height: 1.4,
+                              const SizedBox(height: AppSize.p16),
+                              const Text(
+                                "Connexion au dépôt sécurisé Hugging Face. Les poids (~283 Mo) sont stockés dans le coffre privé de Juamea et supprimés automatiquement si vous désinstallez l'application.",
+                                style: TextStyle(
+                                  fontFamily: 'Figtree',
+                                  fontSize: 12,
+                                  color: AppColors.textGrey,
+                                  height: 1.4,
+                                ),
                               ),
-                            ),
                             const SizedBox(height: AppSize.p16),
                             SizedBox(
                               width: double.infinity,
@@ -246,12 +248,14 @@ class _InitializationScreenState extends State<InitializationScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
-                                  "Initialisation du modèle IA Gemma",
-                                  style: TextStyle(
-                                    fontFamily: 'Figtree',
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textCharcoal,
+                                const Expanded(
+                                  child: Text(
+                                    "SautiLM-Jua-Agri (Chat IA hors ligne)",
+                                    style: TextStyle(
+                                      fontFamily: 'Figtree',
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textCharcoal,
+                                    ),
                                   ),
                                 ),
                                 Text(
@@ -278,7 +282,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                             ),
                             const SizedBox(height: AppSize.p16),
                             const Text(
-                              "Recherche du point de contrôle local. Placez le fichier Gemma 4 au format LiteRT dans le dossier Documents pour un fonctionnement 100% hors ligne.",
+                              "Téléchargement optionnel (~283 Mo) dans le coffre privé Juamea (auto-nettoyé à la désinstallation). Le scan foliaire SautiLM-Nuru-Agri et les 2 369 fiches FAO sont déjà intégrés hors ligne.",
                               style: TextStyle(
                                 fontFamily: 'Figtree',
                                 fontSize: 12,
@@ -314,7 +318,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                               ),
                               const SizedBox(height: AppSize.p16),
                             ],
-                            if (state.progress == 0.0)
+                            if (state.progress == 0.0) ...[
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(
@@ -329,11 +333,36 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                     ),
                                   ),
                                   child: const Text(
-                                    "Télécharger & Initialiser le Modèle",
+                                    "Télécharger SautiLM-Jua-Agri (283 Mo)",
                                     style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ),
+                              const SizedBox(height: AppSize.p8),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pushReplacement(
+                                      MaterialPageRoute(builder: (_) => const MainNavigationHolder()),
+                                    );
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.primaryForestGreen,
+                                    side: BorderSide(
+                                      color: AppColors.primaryForestGreen.withValues(alpha: 0.4),
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(AppSize.r12),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    "Continuer sans chat IA (Scan & Fiches 0 Mo)",
+                                    style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.w600, fontSize: 13),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -409,6 +438,30 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                 child: const Text(
                                   "Reprendre le téléchargement",
                                   style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: AppSize.p8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton(
+                                onPressed: () {
+                                  Navigator.of(context).pushReplacement(
+                                    MaterialPageRoute(builder: (_) => const MainNavigationHolder()),
+                                  );
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.primaryForestGreen,
+                                  side: BorderSide(
+                                    color: AppColors.primaryForestGreen.withValues(alpha: 0.4),
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(AppSize.r12),
+                                  ),
+                                ),
+                                child: const Text(
+                                  "Continuer sans chat IA (Scan & Fiches 0 Mo)",
+                                  style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.w600, fontSize: 13),
                                 ),
                               ),
                             ),

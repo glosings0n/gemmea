@@ -1,0 +1,7 @@
+# Copy this file to android/key.properties (ignored by Git) and fill in your Google Play upload keystore details.
+# Generate a new keystore once with:
+#   keytool -genkey -v -keystore android/app/juamea-upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias juamea-upload
+storePassword=CHANGE_ME_STORE_PASSWORD
+keyPassword=CHANGE_ME_KEY_PASSWORD
+keyAlias=juamea-upload
+storeFile=juamea-upload-keystore.jks

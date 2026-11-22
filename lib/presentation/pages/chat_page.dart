@@ -5,6 +5,7 @@ import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:juamea/core/core.dart';
 import 'package:juamea/presentation/bloc/bloc.dart';
+import 'package:juamea/presentation/widgets/widgets.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -216,16 +217,33 @@ class _ChatPageState extends State<ChatPage> {
                       ),
                     ],
                   ),
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: _showClearConfirmationDialog,
-                    icon: const HugeIcon(
-                      icon: AppIcons.delete,
-                      color: AppColors.primaryForestGreen,
-                      size: AppSize.iconMd,
-                    ),
-                    tooltip: "Effacer les discussions",
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () => JuameaModelModal.show(context),
+                        icon: const HugeIcon(
+                          icon: AppIcons.download,
+                          color: AppColors.primaryForestGreen,
+                          size: AppSize.iconMd,
+                        ),
+                        tooltip: "Moteurs IA & Stockage Privé",
+                      ),
+                      const SizedBox(width: 14),
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: _showClearConfirmationDialog,
+                        icon: const HugeIcon(
+                          icon: AppIcons.delete,
+                          color: AppColors.primaryForestGreen,
+                          size: AppSize.iconMd,
+                        ),
+                        tooltip: "Effacer les discussions",
+                      ),
+                    ],
                   ),
                 ],
               ),

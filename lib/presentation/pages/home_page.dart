@@ -5,6 +5,7 @@ import 'package:juamea/core/core.dart';
 import 'package:juamea/domain/entities/eac_country_profile.dart';
 import 'package:juamea/presentation/bloc/bloc.dart';
 import 'package:juamea/presentation/pages/pages.dart';
+import 'package:juamea/presentation/widgets/widgets.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -191,6 +192,30 @@ class _HomePageState extends State<HomePage> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () => JuameaModelModal.show(context),
+                                borderRadius: BorderRadius.circular(10),
+                                child: Tooltip(
+                                  message: 'Moteurs IA & Stockage Privé',
+                                  child: Container(
+                                    padding: const EdgeInsets.all(7),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryForestGreen
+                                          .withValues(alpha: 0.08),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const HugeIcon(
+                                      icon: AppIcons.download,
+                                      color: AppColors.primaryForestGreen,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
                             Material(
                               color: Colors.transparent,
                               child: InkWell(
