@@ -107,7 +107,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                 const Text(
                   "Sélectionner la source du scan",
                   style: TextStyle(
-                    fontFamily: 'Fredoka',
+                    fontFamily: 'Figtree',
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primaryForestGreen,
@@ -117,7 +117,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                 const Text(
                   "Effectuez un vrai scan hors ligne avec votre appareil photo ou sélectionnez l'un de nos fichiers de simulation intégrés pour un test immédiat.",
                   style: TextStyle(
-                    fontFamily: 'Fredoka',
+                    fontFamily: 'Figtree',
                     fontSize: 13,
                     color: AppColors.textGrey,
                   ),
@@ -192,7 +192,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
       title: Text(
         title,
         style: const TextStyle(
-          fontFamily: 'Fredoka',
+          fontFamily: 'Figtree',
           fontWeight: FontWeight.bold,
           color: AppColors.primaryForestGreen,
           fontSize: 14,
@@ -201,7 +201,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
       subtitle: Text(
         subtitle,
         style: const TextStyle(
-          fontFamily: 'Fredoka',
+          fontFamily: 'Figtree',
           fontSize: 12,
           color: AppColors.textGrey,
         ),
@@ -235,7 +235,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                     child: Text(
                       "Analyse terminée ! Un nouveau diagnostic est disponible dans Accueil.",
                       style: TextStyle(
-                        fontFamily: 'Fredoka',
+                        fontFamily: 'Figtree',
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -314,7 +314,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                           const Text(
                             "Accueil",
                             style: TextStyle(
-                              fontFamily: 'Fredoka',
+                              fontFamily: 'Figtree',
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: AppColors.primaryForestGreen,
@@ -421,9 +421,10 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                           const Text(
                             "Juamea",
                             style: TextStyle(
-                              fontFamily: 'Fredoka',
+                              fontFamily: 'Urbanist',
                               fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
                               color: AppColors.primaryForestGreen,
                             ),
                           ),

@@ -183,12 +183,12 @@ class PDFReportService {
       pw.Font? fontBold;
 
       try {
-        final fontDataRegular = await rootBundle.load('assets/fonts/Fredoka-Regular.ttf');
-        final fontDataBold = await rootBundle.load('assets/fonts/Fredoka-Bold.ttf');
+        final fontDataRegular = await rootBundle.load('assets/fonts/Figtree-Regular.ttf');
+        final fontDataBold = await rootBundle.load('assets/fonts/Figtree-Bold.ttf');
         fontRegular = pw.Font.ttf(fontDataRegular);
         fontBold = pw.Font.ttf(fontDataBold);
       } catch (e) {
-        dev.log("Fredoka font load note, falling back to Georgia: $e", name: 'PDF_REPORT_SERVICE');
+        dev.log("Figtree font load note, falling back to Georgia: $e", name: 'PDF_REPORT_SERVICE');
         fontRegular = pw.Font.helvetica();
         fontBold = pw.Font.helveticaBold();
       }
@@ -570,8 +570,8 @@ class PDFReportService {
       pw.Font? fontBold;
 
       try {
-        final fontDataRegular = await rootBundle.load('assets/fonts/Fredoka-Regular.ttf');
-        final fontDataBold = await rootBundle.load('assets/fonts/Fredoka-Bold.ttf');
+        final fontDataRegular = await rootBundle.load('assets/fonts/Figtree-Regular.ttf');
+        final fontDataBold = await rootBundle.load('assets/fonts/Figtree-Bold.ttf');
         fontRegular = pw.Font.ttf(fontDataRegular);
         fontBold = pw.Font.ttf(fontDataBold);
       } catch (e) {

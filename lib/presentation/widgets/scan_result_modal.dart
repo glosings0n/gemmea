@@ -26,13 +26,24 @@ class ScanResultModal extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "Analyse de Culture Juamea",
-                style: TextStyle(
-                  fontFamily: 'Fredoka',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: AppColors.primaryForestGreen,
+              const Text.rich(
+                TextSpan(
+                  style: TextStyle(
+                    fontFamily: 'Figtree',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: AppColors.primaryForestGreen,
+                  ),
+                  children: [
+                    TextSpan(text: "Analyse de Culture "),
+                    TextSpan(
+                      text: "Juamea",
+                      style: TextStyle(
+                        fontFamily: 'Urbanist',
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               IconButton(
@@ -88,7 +99,7 @@ class ScanResultModal extends StatelessWidget {
                                   "Gemma analyse l'image de la feuille hors ligne...",
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    fontFamily: 'Fredoka',
+                                    fontFamily: 'Figtree',
                                     color: AppColors.textGrey,
                                     fontSize: 13,
                                   ),
@@ -98,7 +109,7 @@ class ScanResultModal extends StatelessWidget {
                                   "Vous pouvez fermer cet écran pour continuer d'utiliser l'application.",
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    fontFamily: 'Fredoka',
+                                    fontFamily: 'Figtree',
                                     color: AppColors.primaryForestGreen,
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
@@ -116,7 +127,7 @@ class ScanResultModal extends StatelessWidget {
                             const Text(
                               "Diagnostic et Remède Local :",
                               style: TextStyle(
-                                fontFamily: 'Fredoka',
+                                fontFamily: 'Figtree',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
                                 color: AppColors.primaryForestGreen,
@@ -133,47 +144,47 @@ class ScanResultModal extends StatelessWidget {
                                 data: state.diagnosis,
                                 styleSheet: MarkdownStyleSheet(
                                   h1: const TextStyle(
-                                    fontFamily: 'Fredoka',
+                                    fontFamily: 'Figtree',
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
                                     color: AppColors.primaryForestGreen,
                                   ),
                                   h2: const TextStyle(
-                                    fontFamily: 'Fredoka',
+                                    fontFamily: 'Figtree',
                                     fontWeight: FontWeight.bold,
                                     fontSize: 15,
                                     color: AppColors.primaryForestGreen,
                                   ),
                                   h3: const TextStyle(
-                                    fontFamily: 'Fredoka',
+                                    fontFamily: 'Figtree',
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14,
                                     color: AppColors.primaryForestGreen,
                                   ),
                                   h4: const TextStyle(
-                                    fontFamily: 'Fredoka',
+                                    fontFamily: 'Figtree',
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13.5,
                                     color: AppColors.primaryForestGreen,
                                   ),
                                   p: const TextStyle(
-                                    fontFamily: 'Fredoka',
+                                    fontFamily: 'Figtree',
                                     fontSize: 13.5,
                                     color: AppColors.textCharcoal,
                                     height: 1.45,
                                   ),
                                   strong: const TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontFamily: 'Fredoka',
+                                    fontFamily: 'Figtree',
                                     color: AppColors.textCharcoal,
                                   ),
                                   em: const TextStyle(
                                     fontStyle: FontStyle.italic,
-                                    fontFamily: 'Fredoka',
+                                    fontFamily: 'Figtree',
                                     color: AppColors.textCharcoal,
                                   ),
                                   listBullet: const TextStyle(
-                                    fontFamily: 'Fredoka',
+                                    fontFamily: 'Figtree',
                                     color: AppColors.primaryForestGreen,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -220,7 +231,7 @@ class ScanResultModal extends StatelessWidget {
                                     child: Text(
                                       state.title,
                                       style: TextStyle(
-                                        fontFamily: 'Fredoka',
+                                        fontFamily: 'Figtree',
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
                                         color: titleColor,
@@ -233,7 +244,7 @@ class ScanResultModal extends StatelessWidget {
                               Text(
                                 state.userMessage,
                                 style: const TextStyle(
-                                  fontFamily: 'Fredoka',
+                                  fontFamily: 'Figtree',
                                   fontSize: 13.5,
                                   color: AppColors.textCharcoal,
                                   height: 1.4,
@@ -252,7 +263,7 @@ class ScanResultModal extends StatelessWidget {
                                   label: Text(
                                     isNotLeaf ? "Reprendre la photo" : "Fermer & Réessayer",
                                     style: TextStyle(
-                                      fontFamily: 'Fredoka',
+                                      fontFamily: 'Figtree',
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13.5,
                                       color: titleColor,

@@ -108,7 +108,7 @@ class _ChatPageState extends State<ChatPage> {
               Text(
                 "Supprimer la discussion ?",
                 style: TextStyle(
-                  fontFamily: 'Fredoka',
+                  fontFamily: 'Figtree',
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
                   color: AppColors.textCharcoal,
@@ -119,7 +119,7 @@ class _ChatPageState extends State<ChatPage> {
           content: const Text(
             "Êtes-vous sûr de vouloir effacer tout l'historique de cette conversation ? Cette action est irréversible.",
             style: TextStyle(
-              fontFamily: 'Fredoka',
+              fontFamily: 'Figtree',
               fontSize: 14,
               color: AppColors.textGrey,
               height: 1.4,
@@ -135,7 +135,7 @@ class _ChatPageState extends State<ChatPage> {
               child: const Text(
                 "Annuler",
                 style: TextStyle(
-                  fontFamily: 'Fredoka',
+                  fontFamily: 'Figtree',
                   fontWeight: FontWeight.bold,
                   color: AppColors.textGrey,
                 ),
@@ -157,7 +157,7 @@ class _ChatPageState extends State<ChatPage> {
               child: const Text(
                 "Supprimer",
                 style: TextStyle(
-                  fontFamily: 'Fredoka',
+                  fontFamily: 'Figtree',
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -207,8 +207,9 @@ class _ChatPageState extends State<ChatPage> {
                       const Text(
                         "Juamea",
                         style: TextStyle(
-                          fontFamily: 'Fredoka',
-                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Urbanist',
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.4,
                           fontSize: 24,
                           color: AppColors.primaryForestGreen,
                         ),
@@ -399,12 +400,12 @@ class _ChatPageState extends State<ChatPage> {
                     color: Colors.white,
                     fontSize: 15.0,
                     height: 1.4,
-                    fontFamily: 'Fredoka',
+                    fontFamily: 'Figtree',
                   ),
                   strong: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
-                    fontFamily: 'Fredoka',
+                    fontFamily: 'Figtree',
                   ),
                   em: const TextStyle(fontStyle: FontStyle.italic),
                   listBullet: const TextStyle(color: Colors.white70),
@@ -452,7 +453,7 @@ class _ChatPageState extends State<ChatPage> {
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.primaryForestGreen,
-                                      fontFamily: 'Fredoka',
+                                      fontFamily: 'Figtree',
                                     ),
                                   ),
                                 ],
@@ -492,7 +493,7 @@ class _ChatPageState extends State<ChatPage> {
                                               fontSize: 11,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.redAccent,
-                                              fontFamily: 'Fredoka',
+                                              fontFamily: 'Figtree',
                                             ),
                                           ),
                                         ],
@@ -528,7 +529,7 @@ class _ChatPageState extends State<ChatPage> {
                                               fontWeight: FontWeight.bold,
                                               color:
                                                   AppColors.primaryForestGreen,
-                                              fontFamily: 'Fredoka',
+                                              fontFamily: 'Figtree',
                                             ),
                                           ),
                                         ],
@@ -542,25 +543,25 @@ class _ChatPageState extends State<ChatPage> {
                           data: message.text,
                           styleSheet: MarkdownStyleSheet(
                             h1: const TextStyle(
-                              fontFamily: 'Fredoka',
+                              fontFamily: 'Figtree',
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                               color: AppColors.primaryForestGreen,
                             ),
                             h2: const TextStyle(
-                              fontFamily: 'Fredoka',
+                              fontFamily: 'Figtree',
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
                               color: AppColors.primaryForestGreen,
                             ),
                             h3: const TextStyle(
-                              fontFamily: 'Fredoka',
+                              fontFamily: 'Figtree',
                               fontWeight: FontWeight.bold,
                               fontSize: 14.5,
                               color: AppColors.primaryForestGreen,
                             ),
                             h4: const TextStyle(
-                              fontFamily: 'Fredoka',
+                              fontFamily: 'Figtree',
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                               color: AppColors.primaryForestGreen,
@@ -569,20 +570,20 @@ class _ChatPageState extends State<ChatPage> {
                               color: AppColors.textCharcoal,
                               fontSize: 14.5,
                               height: 1.45,
-                              fontFamily: 'Fredoka',
+                              fontFamily: 'Figtree',
                             ),
                             strong: const TextStyle(
                               fontWeight: FontWeight.bold,
                               color: AppColors.textCharcoal,
-                              fontFamily: 'Fredoka',
+                              fontFamily: 'Figtree',
                             ),
                             em: const TextStyle(
                               fontStyle: FontStyle.italic,
-                              fontFamily: 'Fredoka',
+                              fontFamily: 'Figtree',
                             ),
                             listBullet: const TextStyle(
                               color: AppColors.primaryForestGreen,
-                              fontFamily: 'Fredoka',
+                              fontFamily: 'Figtree',
                               fontWeight: FontWeight.bold,
                             ),
                           ),

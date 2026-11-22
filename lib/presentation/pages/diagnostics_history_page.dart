@@ -58,7 +58,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
               Text(
                 "Supprimer ?",
                 style: TextStyle(
-                  fontFamily: 'Fredoka',
+                  fontFamily: 'Figtree',
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
                   color: AppColors.textCharcoal,
@@ -69,7 +69,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
           content: Text(
             "Êtes-vous sûr de vouloir supprimer ce diagnostic du ${_formatFrenchDate(log.timestamp.toString())} ? Cette action est irréversible.",
             style: const TextStyle(
-              fontFamily: 'Fredoka',
+              fontFamily: 'Figtree',
               fontSize: 14,
               color: AppColors.textGrey,
               height: 1.4,
@@ -82,7 +82,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
               child: const Text(
                 "Annuler",
                 style: TextStyle(
-                  fontFamily: 'Fredoka',
+                  fontFamily: 'Figtree',
                   fontWeight: FontWeight.bold,
                   color: AppColors.textGrey,
                 ),
@@ -101,7 +101,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
               child: const Text(
                 "Supprimer",
                 style: TextStyle(
-                  fontFamily: 'Fredoka',
+                  fontFamily: 'Figtree',
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -120,7 +120,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
             SnackBar(
               content: const Text(
                 "Diagnostic supprimé avec succès.",
-                style: TextStyle(fontFamily: 'Fredoka'),
+                style: TextStyle(fontFamily: 'Figtree'),
               ),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -166,7 +166,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
               Text(
                 "Exporter Diagnostic PDF (${diagMap['crop_name'] ?? 'Plante'})",
                 style: const TextStyle(
-                  fontFamily: 'Fredoka',
+                  fontFamily: 'Figtree',
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textCharcoal,
@@ -176,7 +176,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
               const Text(
                 "Choisissez une option pour sauvegarder ou partager ce diagnostic.",
                 style: TextStyle(
-                  fontFamily: 'Fredoka',
+                  fontFamily: 'Figtree',
                   fontSize: 13,
                   color: AppColors.textGrey,
                 ),
@@ -207,7 +207,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                               Expanded(
                                 child: Text(
                                   "Diagnostic PDF enregistré dans vos Documents :\n$filename",
-                                  style: const TextStyle(fontFamily: 'Fredoka', fontSize: 12),
+                                  style: const TextStyle(fontFamily: 'Figtree', fontSize: 12),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -226,7 +226,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                   child: const Text(
                                     "Ouvrir",
                                     style: TextStyle(
-                                      fontFamily: 'Fredoka',
+                                      fontFamily: 'Figtree',
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.primaryForestGreen,
@@ -286,7 +286,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                             Text(
                               "Télécharger le PDF",
                               style: TextStyle(
-                                fontFamily: 'Fredoka',
+                                fontFamily: 'Figtree',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
                                 color: AppColors.textCharcoal,
@@ -296,7 +296,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                             Text(
                               "Enregistre le document dans le dossier Documents",
                               style: TextStyle(
-                                fontFamily: 'Fredoka',
+                                fontFamily: 'Figtree',
                                 fontSize: 12,
                                 color: AppColors.textGrey,
                               ),
@@ -362,7 +362,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                             Text(
                               "Partager ou Imprimer le PDF",
                               style: TextStyle(
-                                fontFamily: 'Fredoka',
+                                fontFamily: 'Figtree',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
                                 color: AppColors.textCharcoal,
@@ -372,7 +372,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                             Text(
                               "Envoyer via WhatsApp, Email ou imprimer directement",
                               style: TextStyle(
-                                fontFamily: 'Fredoka',
+                                fontFamily: 'Figtree',
                                 fontSize: 12,
                                 color: AppColors.textGrey,
                               ),
@@ -404,7 +404,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
         title: const Text(
           "Historique des Diagnostics",
           style: TextStyle(
-            fontFamily: 'Fredoka',
+            fontFamily: 'Figtree',
             fontWeight: FontWeight.bold,
             color: AppColors.primaryForestGreen,
           ),
@@ -432,12 +432,12 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                     Text(
                       "Error: ${state.error}",
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontFamily: 'Fredoka', color: AppColors.textCharcoal),
+                      style: const TextStyle(fontFamily: 'Figtree', color: AppColors.textCharcoal),
                     ),
                     const SizedBox(height: AppSize.p16),
                     ElevatedButton(
                       onPressed: () => context.read<HomeCubit>().loadDashboard(),
-                      child: const Text("Réessayer", style: TextStyle(fontFamily: 'Fredoka')),
+                      child: const Text("Réessayer", style: TextStyle(fontFamily: 'Figtree')),
                     ),
                   ],
                 ),
@@ -463,7 +463,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                       const Text(
                         "Aucun diagnostic de plante",
                         style: TextStyle(
-                          fontFamily: 'Fredoka',
+                          fontFamily: 'Figtree',
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textCharcoal,
@@ -474,7 +474,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                         "Utilisez l'icône appareil photo pour scanner les feuilles de maïs ou de manioc. Vos diagnostics apparaîtront ici.",
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontFamily: 'Fredoka',
+                          fontFamily: 'Figtree',
                           fontSize: 14,
                           color: AppColors.textGrey,
                         ),
@@ -550,7 +550,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                               child: Text(
                                 log.disease,
                                 style: const TextStyle(
-                                  fontFamily: 'Fredoka',
+                                  fontFamily: 'Figtree',
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.textCharcoal,
                                 ),
@@ -567,7 +567,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                 child: const Text(
                                   "NOUVEAU",
                                   style: TextStyle(
-                                    fontFamily: 'Fredoka',
+                                    fontFamily: 'Figtree',
                                     fontSize: 9,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
@@ -576,12 +576,26 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                               ),
                           ],
                         ),
-                        subtitle: Text(
-                          "Culture : ${log.cropName} • ${(log.confidence * 100).toInt()}% de confiance",
-                          style: const TextStyle(
-                            fontFamily: 'Fredoka',
-                            fontSize: 12,
-                            color: AppColors.textGrey,
+                        subtitle: Text.rich(
+                          TextSpan(
+                            style: const TextStyle(
+                              fontFamily: 'Figtree',
+                              fontSize: 12,
+                              color: AppColors.textGrey,
+                            ),
+                            children: [
+                              TextSpan(text: "Culture : ${log.cropName} • "),
+                              TextSpan(
+                                text: "${(log.confidence * 100).toInt()}%",
+                                style: const TextStyle(
+                                  fontFamily: 'JetBrainsMono',
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12,
+                                  color: AppColors.primaryForestGreen,
+                                ),
+                              ),
+                              const TextSpan(text: " de confiance"),
+                            ],
                           ),
                         ),
                         children: [
@@ -633,7 +647,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                               const Text(
                                                 "Estimation d'Impact Économique & Perte Evitée",
                                                 style: TextStyle(
-                                                  fontFamily: 'Fredoka',
+                                                  fontFamily: 'Figtree',
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.bold,
                                                   color: AppColors.textCharcoal,
@@ -643,7 +657,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                               Text(
                                                 "Risque de perte non traité : ~40% à 70% du rendement par hectare.\nGain estimé après application du traitement FAO : +120\$ à +350\$/ha.",
                                                 style: TextStyle(
-                                                  fontFamily: 'Fredoka',
+                                                  fontFamily: 'Figtree',
                                                   fontSize: 11,
                                                   color: Colors.brown.shade800,
                                                 ),
@@ -659,7 +673,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                 const Text(
                                   "Actions correctives recommandées (IITA) :",
                                   style: TextStyle(
-                                    fontFamily: 'Fredoka',
+                                    fontFamily: 'Figtree',
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.primaryForestGreen,
                                     fontSize: 14,
@@ -670,47 +684,47 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                   data: log.remedy,
                                   styleSheet: MarkdownStyleSheet(
                                     h1: const TextStyle(
-                                      fontFamily: 'Fredoka',
+                                      fontFamily: 'Figtree',
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
                                       color: AppColors.primaryForestGreen,
                                     ),
                                     h2: const TextStyle(
-                                      fontFamily: 'Fredoka',
+                                      fontFamily: 'Figtree',
                                       fontWeight: FontWeight.bold,
                                       fontSize: 15,
                                       color: AppColors.primaryForestGreen,
                                     ),
                                     h3: const TextStyle(
-                                      fontFamily: 'Fredoka',
+                                      fontFamily: 'Figtree',
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
                                       color: AppColors.primaryForestGreen,
                                     ),
                                     h4: const TextStyle(
-                                      fontFamily: 'Fredoka',
+                                      fontFamily: 'Figtree',
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13.5,
                                       color: AppColors.primaryForestGreen,
                                     ),
                                     p: const TextStyle(
-                                      fontFamily: 'Fredoka',
+                                      fontFamily: 'Figtree',
                                       height: 1.45,
                                       color: AppColors.textCharcoal,
                                       fontSize: 13.5,
                                     ),
                                     strong: const TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontFamily: 'Fredoka',
+                                      fontFamily: 'Figtree',
                                       color: AppColors.textCharcoal,
                                     ),
                                     em: const TextStyle(
                                       fontStyle: FontStyle.italic,
-                                      fontFamily: 'Fredoka',
+                                      fontFamily: 'Figtree',
                                       color: AppColors.textCharcoal,
                                     ),
                                     listBullet: const TextStyle(
-                                      fontFamily: 'Fredoka',
+                                      fontFamily: 'Figtree',
                                       color: AppColors.primaryForestGreen,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -730,7 +744,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                        label: const Text(
                                          "Exporter PDF",
                                          style: TextStyle(
-                                           fontFamily: 'Fredoka',
+                                           fontFamily: 'Figtree',
                                            fontSize: 12,
                                            color: AppColors.primaryForestGreen,
                                            fontWeight: FontWeight.bold,
@@ -745,7 +759,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                      Text(
                                        _formatFrenchDate(log.timestamp.toString()),
                                        style: const TextStyle(
-                                         fontFamily: 'Fredoka',
+                                         fontFamily: 'JetBrainsMono',
                                          fontSize: 11,
                                          color: AppColors.textGrey,
                                        ),
@@ -760,7 +774,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                        label: const Text(
                                          "Supprimer",
                                          style: TextStyle(
-                                           fontFamily: 'Fredoka',
+                                           fontFamily: 'Figtree',
                                            fontSize: 12,
                                            color: Colors.redAccent,
                                            fontWeight: FontWeight.bold,

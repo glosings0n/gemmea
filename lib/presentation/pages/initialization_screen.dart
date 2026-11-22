@@ -56,13 +56,13 @@ class _InitializationScreenState extends State<InitializationScreen> {
                     SizedBox(width: 10),
                     Text(
                       "Statut de la connexion",
-                      style: TextStyle(fontFamily: 'Fredoka', fontWeight: FontWeight.bold, fontSize: 18),
+                      style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.bold, fontSize: 18),
                     ),
                   ],
                 ),
                 content: Text(
                   _getFriendlyErrorMessage(state.error),
-                  style: const TextStyle(fontFamily: 'Fredoka', fontSize: 14, height: 1.4),
+                  style: const TextStyle(fontFamily: 'Figtree', fontSize: 14, height: 1.4),
                 ),
                 actions: [
                   TextButton(
@@ -70,7 +70,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                     child: const Text(
                       "OK",
                       style: TextStyle(
-                        fontFamily: 'Fredoka',
+                        fontFamily: 'Figtree',
                         color: AppColors.primaryForestGreen,
                         fontWeight: FontWeight.bold,
                       ),
@@ -113,9 +113,10 @@ class _InitializationScreenState extends State<InitializationScreen> {
                   const Text(
                     "Juamea",
                     style: TextStyle(
-                      fontFamily: 'Fredoka',
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Urbanist',
+                      fontSize: 30,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.4,
                       color: AppColors.textCharcoal,
                     ),
                   ),
@@ -124,7 +125,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                     "Agronome IA 100% hors ligne pour l'Est de la RDC",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontFamily: 'Fredoka',
+                      fontFamily: 'Figtree',
                       fontSize: 14,
                       color: AppColors.textGrey,
                     ),
@@ -138,7 +139,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                     const SizedBox(height: AppSize.p24),
                     const Text(
                       "Vérification des ressources d'intelligence locale...",
-                      style: TextStyle(fontFamily: 'Fredoka', color: AppColors.textGrey),
+                      style: TextStyle(fontFamily: 'Figtree', color: AppColors.textGrey),
                     ),
                   ] else if (state is InitializationCheckingConnection) ...[
                     // Custom Card for Connection Check Phase with Button showing Loading
@@ -158,7 +159,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                 Text(
                                   "Initialisation du modèle IA Gemma",
                                   style: TextStyle(
-                                    fontFamily: 'Fredoka',
+                                    fontFamily: 'Figtree',
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textCharcoal,
                                   ),
@@ -189,7 +190,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                             const Text(
                               "Vérification de la connexion de téléchargement. Placez le fichier Gemma 4 au format LiteRT dans le dossier Documents pour un fonctionnement 100% hors ligne.",
                               style: TextStyle(
-                                fontFamily: 'Fredoka',
+                                fontFamily: 'Figtree',
                                 fontSize: 12,
                                 color: AppColors.textGrey,
                                 height: 1.4,
@@ -220,7 +221,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                     SizedBox(width: 10),
                                     Text(
                                       "Vérification de la connexion...",
-                                      style: TextStyle(fontFamily: 'Fredoka', fontWeight: FontWeight.bold, color: Colors.white),
+                                      style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.bold, color: Colors.white),
                                     ),
                                   ],
                                 ),
@@ -248,7 +249,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                 const Text(
                                   "Initialisation du modèle IA Gemma",
                                   style: TextStyle(
-                                    fontFamily: 'Fredoka',
+                                    fontFamily: 'Figtree',
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textCharcoal,
                                   ),
@@ -256,7 +257,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                 Text(
                                   "${(state.progress * 100).toInt()}%",
                                   style: const TextStyle(
-                                    fontFamily: 'Fredoka',
+                                    fontFamily: 'JetBrainsMono',
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.primaryForestGreen,
                                   ),
@@ -279,7 +280,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                             const Text(
                               "Recherche du point de contrôle local. Placez le fichier Gemma 4 au format LiteRT dans le dossier Documents pour un fonctionnement 100% hors ligne.",
                               style: TextStyle(
-                                fontFamily: 'Fredoka',
+                                fontFamily: 'Figtree',
                                 fontSize: 12,
                                 color: AppColors.textGrey,
                                 height: 1.4,
@@ -301,7 +302,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                       child: Text(
                                         "Veuillez garder l'application ouverte et active jusqu'à la fin du téléchargement.",
                                         style: TextStyle(
-                                          fontFamily: 'Fredoka',
+                                          fontFamily: 'Figtree',
                                           fontSize: 12,
                                           fontWeight: FontWeight.w500,
                                           color: AppColors.primaryForestGreen,
@@ -329,7 +330,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                   ),
                                   child: const Text(
                                     "Télécharger & Initialiser le Modèle",
-                                    style: TextStyle(fontFamily: 'Fredoka', fontWeight: FontWeight.bold),
+                                    style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ),
@@ -354,7 +355,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                 Text(
                                   "Configuration du modèle en pause",
                                   style: TextStyle(
-                                    fontFamily: 'Fredoka',
+                                    fontFamily: 'Figtree',
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textCharcoal,
                                   ),
@@ -362,7 +363,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                 Text(
                                   "Interrompu",
                                   style: TextStyle(
-                                    fontFamily: 'Fredoka',
+                                    fontFamily: 'Figtree',
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textGrey,
                                   ),
@@ -385,7 +386,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                             const Text(
                               "La configuration a été interrompue. Assurez-vous que votre connexion Internet est active, puis appuyez sur Reprendre pour continuer là où vous vous étiez arrêté.",
                               style: TextStyle(
-                                fontFamily: 'Fredoka',
+                                fontFamily: 'Figtree',
                                 fontSize: 12,
                                 color: AppColors.textGrey,
                                 height: 1.4,
@@ -407,7 +408,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                 ),
                                 child: const Text(
                                   "Reprendre le téléchargement",
-                                  style: TextStyle(fontFamily: 'Fredoka', fontWeight: FontWeight.bold),
+                                  style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ),

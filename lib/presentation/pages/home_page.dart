@@ -47,7 +47,7 @@ class _HomePageState extends State<HomePage> {
                     child: Text(
                       '${country.shortName} · ${country.narsInstitute}',
                       style: TextStyle(
-                        fontFamily: 'Fredoka',
+                        fontFamily: 'Figtree',
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: isSelected
@@ -66,7 +66,7 @@ class _HomePageState extends State<HomePage> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontFamily: 'Fredoka',
+              fontFamily: 'Figtree',
               fontSize: 11,
               color: AppColors.textGrey,
             ),
@@ -157,9 +157,19 @@ class _HomePageState extends State<HomePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
+                                "Juamea",
+                                style: TextStyle(
+                                  fontFamily: 'Urbanist',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.6,
+                                  color: AppColors.primaryForestGreen,
+                                ),
+                              ),
+                              const Text(
                                 "Jambo ! 👋🏾",
                                 style: TextStyle(
-                                  fontFamily: 'Fredoka',
+                                  fontFamily: 'Figtree',
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.textCharcoal,
@@ -169,7 +179,7 @@ class _HomePageState extends State<HomePage> {
                               const Text(
                                 "Votre ferme est entièrement protégée hors ligne.",
                                 style: TextStyle(
-                                  fontFamily: 'Fredoka',
+                                  fontFamily: 'Figtree',
                                   fontSize: 12,
                                   color: AppColors.textGrey,
                                 ),
@@ -332,7 +342,7 @@ class _HomePageState extends State<HomePage> {
                           const Text(
                             "Rappels du Sol",
                             style: TextStyle(
-                              fontFamily: 'Fredoka',
+                              fontFamily: 'Figtree',
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textCharcoal,
@@ -361,7 +371,7 @@ class _HomePageState extends State<HomePage> {
                                           child: Text(
                                             reminder,
                                             style: const TextStyle(
-                                              fontFamily: 'Fredoka',
+                                              fontFamily: 'Figtree',
                                               color: AppColors.textCharcoal,
                                               fontSize: 14,
                                               height: 1.4,
@@ -384,7 +394,7 @@ class _HomePageState extends State<HomePage> {
                               const Text(
                                 "Calendrier d'Irrigation",
                                 style: TextStyle(
-                                  fontFamily: 'Fredoka',
+                                  fontFamily: 'Figtree',
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.textCharcoal,
@@ -393,7 +403,7 @@ class _HomePageState extends State<HomePage> {
                               const Text(
                                 "Ajustement autonome actif",
                                 style: TextStyle(
-                                  fontFamily: 'Fredoka',
+                                  fontFamily: 'Figtree',
                                   fontSize: 12,
                                   color: AppColors.secondaryMint,
                                 ),
@@ -411,7 +421,7 @@ class _HomePageState extends State<HomePage> {
                                   title: Text(
                                     event.title,
                                     style: const TextStyle(
-                                      fontFamily: 'Fredoka',
+                                      fontFamily: 'Figtree',
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -422,16 +432,29 @@ class _HomePageState extends State<HomePage> {
                                       Text(
                                         event.description,
                                         style: const TextStyle(
-                                          fontFamily: 'Fredoka',
+                                          fontFamily: 'Figtree',
                                         ),
                                       ),
                                       const SizedBox(height: 4),
-                                      Text(
-                                        "Date: ${_formatSlashDate(event.eventDate)}",
-                                        style: const TextStyle(
-                                          fontFamily: 'Fredoka',
-                                          fontWeight: FontWeight.w500,
-                                          color: AppColors.textGrey,
+                                      Text.rich(
+                                        TextSpan(
+                                          style: const TextStyle(
+                                            fontFamily: 'Figtree',
+                                            fontWeight: FontWeight.w500,
+                                            color: AppColors.textGrey,
+                                          ),
+                                          children: [
+                                            const TextSpan(text: "Date : "),
+                                            TextSpan(
+                                              text: _formatSlashDate(event.eventDate),
+                                              style: const TextStyle(
+                                                fontFamily: 'JetBrainsMono',
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 12,
+                                                color: AppColors.textCharcoal,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
@@ -442,7 +465,7 @@ class _HomePageState extends State<HomePage> {
                                       const Text(
                                         "Pluie ",
                                         style: TextStyle(
-                                          fontFamily: 'Fredoka',
+                                          fontFamily: 'Figtree',
                                           fontSize: 12,
                                         ),
                                       ),
@@ -572,7 +595,7 @@ class _HomePageState extends State<HomePage> {
               const Text(
                 "Rapport de Productivité (PDF)",
                 style: TextStyle(
-                  fontFamily: 'Fredoka',
+                  fontFamily: 'Figtree',
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textCharcoal,
@@ -582,7 +605,7 @@ class _HomePageState extends State<HomePage> {
               const Text(
                 "Choisissez une option pour exporter votre rapport agronomique.",
                 style: TextStyle(
-                  fontFamily: 'Fredoka',
+                  fontFamily: 'Figtree',
                   fontSize: 13,
                   color: AppColors.textGrey,
                 ),
@@ -616,7 +639,7 @@ class _HomePageState extends State<HomePage> {
                                 child: Text(
                                   "Rapport PDF enregistré dans vos Documents :\n$filename",
                                   style: const TextStyle(
-                                    fontFamily: 'Fredoka',
+                                    fontFamily: 'Figtree',
                                     fontSize: 12,
                                   ),
                                 ),
@@ -642,7 +665,7 @@ class _HomePageState extends State<HomePage> {
                                   child: const Text(
                                     "Ouvrir",
                                     style: TextStyle(
-                                      fontFamily: 'Fredoka',
+                                      fontFamily: 'Figtree',
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.primaryForestGreen,
@@ -708,7 +731,7 @@ class _HomePageState extends State<HomePage> {
                             Text(
                               "Télécharger le PDF",
                               style: TextStyle(
-                                fontFamily: 'Fredoka',
+                                fontFamily: 'Figtree',
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textCharcoal,
@@ -718,7 +741,7 @@ class _HomePageState extends State<HomePage> {
                             Text(
                               "Enregistrer dans le dossier Documents du téléphone",
                               style: TextStyle(
-                                fontFamily: 'Fredoka',
+                                fontFamily: 'Figtree',
                                 fontSize: 12,
                                 color: AppColors.textGrey,
                               ),
@@ -794,7 +817,7 @@ class _HomePageState extends State<HomePage> {
                             Text(
                               "Partager le PDF",
                               style: TextStyle(
-                                fontFamily: 'Fredoka',
+                                fontFamily: 'Figtree',
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textCharcoal,
@@ -804,7 +827,7 @@ class _HomePageState extends State<HomePage> {
                             Text(
                               "Envoyer via WhatsApp, Email, Drive ou Bluetooth",
                               style: TextStyle(
-                                fontFamily: 'Fredoka',
+                                fontFamily: 'Figtree',
                                 fontSize: 12,
                                 color: AppColors.textGrey,
                               ),
