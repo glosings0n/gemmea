@@ -214,5 +214,39 @@ SYMPTOMS: pustules brun-rougeâtres le long des feuilles
         equals(kNonLeafRejectionMessage),
       );
     });
+
+    test('Production evaluateCropImage defaults to deterministic SQLite card with 0 VLM calls', () async {
+      final leafFile = File('${tempDir.path}/IMG_FIELD_CMD.jpg');
+      await leafFile.writeAsBytes(Uint8List.fromList([7, 7, 7, 7]));
+
+      final source = GemmaLocalSourceImpl(
+        visionClassifier: _FakeVisionClassifier(
+          const NuruVisionClassification(
+            isPlantLeaf: true,
+            cropLabel: 'Manioc',
+            diseaseHint: 'Mosaïque du Manioc (CMD)',
+            visualObservations: 'marbrures jaunes typiques CMD',
+            confidence: 0.92,
+          ),
+        ),
+        ragSearch: (_) async => [
+          {
+            'topic': 'Mosaïque du Manioc (CMD)',
+            'crop_name': 'Manioc',
+            'source_citation': 'IITA Cassava Manual (2024)',
+            'content': 'Transmission par mouche blanche Bemisia tabaci.',
+            'organic_remedy': 'Arrachage précoce et boutures saines certifiées.',
+            'estimated_loss_pct': null,
+          }
+        ],
+        // NOTE: synthesisGenerator intentionally omitted (production default!)
+      );
+
+      final report = await source.evaluateCropImage(leafFile, 'Analyser cette feuille');
+      expect(report, contains('DIAGNOSTIC PRINCIPAL (SautiLM-Nuru-Agri + SQLite FTS5)'));
+      expect(report, contains('IITA Cassava Manual (2024)'));
+      expect(report, contains('Non quantifiée (manuel CGIAR/NARS)'));
+      expect(report, isNot(contains('-1.0%')));
+    });
   });
 }

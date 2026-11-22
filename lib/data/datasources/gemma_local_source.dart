@@ -395,14 +395,32 @@ class GemmaLocalSourceImpl implements GemmaLocalSource {
         // PASS 2A (Grounded Retrieval): Query SQLite FAO/IITA/NARS knowledge ONLY from visual classification.
         final faoContext = await _fetchRagContextFromClassification(classification, prompt);
 
-        // PASS 2B (Expert Synthesis): Grounded agronomic report on SautiLM-Jua-Agri / VLM.
-        final synthesizer = _customSynthesisGenerator ?? _runDefaultVlmSynthesis;
-        final response = await synthesizer(
-          imageBytes: imageBytes,
-          classification: classification,
-          faoContext: faoContext,
-          userPrompt: prompt,
-        );
+        // PASS 2B (Expert Synthesis): Deterministic zero-hallucination agronomy card by default when
+        // verified CGIAR/IITA/NARS SQLite records exist; fall back to custom test hook or VLM only otherwise.
+        final hasVerifiedSqliteRecords =
+            faoContext.contains('[EXTRAITS FACTUELS RETROUVÉS VIA RAG SQLITE LOCAL');
+        final customSynth = _customSynthesisGenerator;
+        final String response;
+        if (customSynth != null) {
+          response = await customSynth(
+            imageBytes: imageBytes,
+            classification: classification,
+            faoContext: faoContext,
+            userPrompt: prompt,
+          );
+        } else if (hasVerifiedSqliteRecords) {
+          response = buildDeterministicAgronomyReport(
+            classification: classification,
+            faoContext: faoContext,
+          );
+        } else {
+          response = await _runDefaultVlmSynthesis(
+            imageBytes: imageBytes,
+            classification: classification,
+            faoContext: faoContext,
+            userPrompt: prompt,
+          );
+        }
 
         if (response.trim().isNotEmpty) {
           return TextSanitizer.cleanLatexAndFormatting(response);
@@ -553,7 +571,11 @@ Consigne utilisateur : $userPrompt
         buffer.writeln("- Citation Officielle: ${r['source_citation']}");
         buffer.writeln("- Description & Agent Pathogène: ${r['content']}");
         buffer.writeln("- Recette & Remède Organique: ${r['organic_remedy']}");
-        buffer.writeln("- Perte Estimée: ${r['estimated_loss_pct']}%");
+        final rawLoss = r['estimated_loss_pct'];
+        final lossLabel = (rawLoss is num && rawLoss >= 0)
+            ? '${rawLoss.toStringAsFixed(0)}%'
+            : 'Non quantifiée (manuel CGIAR/NARS)';
+        buffer.writeln("- Perte Estimée: $lossLabel");
         buffer.writeln("");
       }
       return buffer.toString();

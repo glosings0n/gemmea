@@ -5,9 +5,9 @@
 [![SQLite RAG](https://img.shields.io/badge/SQLite-FTS5_RAG-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/fts5.html)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**Juamea** est une application mobile d'aide à la décision agronomique conçue pour fonctionner **100% hors ligne, sans aucune connexion internet**. Son nom réunit **"Mmea"** (*plante* ou *culture* en swahili, langue parlée en RDC et en Afrique de l'Est) et **Gemma** (la famille de modèles ouverts de Google).
+**Juamea** (`com.musantek.juamea`, développé par **MusanTek Research**) est une application mobile d'aide à la décision agronomique conçue pour fonctionner **100% hors ligne, sans aucune connexion internet**. Son nom réunit **"Jua"** (*soleil / savoir* en kiswahili, gamme mobile `SautiLM-Jua`) et **"Mmea"** (*plante / culture* en kiswahili, parlée en RDC et en Afrique de l'Est).
 
-L'application associe une architecture **collaborative à 2 passes** (**`SautiLM-Nuru-Agri`** `1.074 Mo` en TFLite INT8, `92.06 %` de précision de validation et `92.31 %` Macro-F1 sur `4 032` photos réelles sans aucune image synthétique, avec rejet `non_plant` à `100 %` F1 / seuil `< 0.55`, suivi d'une fiche agronomique structurée déterministe ancrée sur SQLite et d'une synthèse optionnelle LiteRT-LM) exécutée localement sur le téléphone avec une **base de données SQLite FTS5** ([`gemmea_eac_agri.sqlite`](assets/data/gemmea_eac_agri.sqlite) compilée depuis de vrais manuels terrain open-access CGIAR / IITA / CIMMYT / PABRA / TARI / KALRO / INERA / RAB / ISABU couvrant `CD, UG, RW, BI, KE, TZ`, zéro contenu Wikipedia).
+L'application associe une architecture **collaborative à 2 passes** (**`SautiLM-Nuru-Agri`** `1.074 Mo` en LiteRT/TFLite INT8, mesuré à **`49.73 ms/image`** et **`110 ms`** E2E sur **Google Pixel 7**) exécutée localement sur le téléphone avec une **base de données SQLite FTS5/FTS4** ([`gemmea_eac_agri.sqlite`](assets/data/gemmea_eac_agri.sqlite), `2 369` fiches compilées depuis de vrais manuels terrain open-access CGIAR / IITA / CIMMYT / PABRA / TARI / KALRO / INERA / RAB / ISABU couvrant `CD, UG, RW, BI, KE, TZ`, zéro contenu Wikipedia). Par défaut en production, `evaluateCropImage()` rend la **fiche agronomique déterministe vérifiée** (`buildDeterministicAgronomyReport`) directement depuis SQLite afin d'éliminer toute hallucination de pesticide ou de maladie.
 
 ---
 
@@ -86,8 +86,8 @@ Développée à Bukavu (Sud-Kivu, Est de la République Démocratique du Congo),
    * Modèle texte LiteRT-LM optionnel (`sautilm-jua-agri.litertlm` `283.48 Mo` en synthèse contrainte uniquement, ou tier `Kuu 1B` INT4 `<= 650 Mo`).
 
 ```bash
-git clone https://github.com/glosings0n/gemmea.git
-cd gemmea
+git clone https://github.com/musantekk/juamea.git
+cd juamea
 flutter pub get
 flutter test
 flutter run --release
@@ -95,16 +95,16 @@ flutter run --release
 
 ---
 
-## Limitations Scientifiques & Transparence
+## Limitations Scientifiques & Transparence (Audit Terrain v5.1)
 
-1. **Validation terrain *cross-dataset* en cours** : `SautiLM-Nuru-Agri` atteint `92.31 %` Macro-F1 sur un corpus multi-sources (`Makerere Cassava`, `iBeans`, `BananaLSD`, `Corn Rust`, `FAW`, `PlantVillage Tomato`, `Intel non-plant`), mais une campagne de validation *out-of-distribution* sur photos prises au champ en RDC/EAC reste requise avant toute certification phytosanitaire officielle.
-2. **Rôle strict des petits LLM `270M`** : Les modèles `270M` ne doivent jamais prescrire de traitements libres hors extraits vérifiés ; Gemmea s'appuie prioritairement sur les fiches `gemmea_eac_agri.sqlite` (CGIAR/IITA/NARS).
+1. **Benchmarks OOD *cross-dataset* (`467` photos terrain indépendantes)** : Si `SautiLM-Nuru-Agri v2` atteint `92.31 %` Macro-F1 sur sa validation multi-sources (`4 032` photos), l'évaluation aveugle hors-distribution sur `227` photos *PlantDoc test* + Wikimedia (`467` photos au total) mesure **`61.7 %`** brut et **`80.3 %`** sélectif (`conf >= 0.55`, `coverage 67.4 %`), avec un *domain shift* documenté sur `tomato_blight` (`14.1 %`), `banana_sigatoka` (`20.0 %`) et `non_plant` sauvage (`59.1 %`). Un ré-entraînement `v3` multi-domaines (`PlantDoc + FGVC + field crops`) et une campagne de validation terrain en RDC/EAC sont requis avant toute certification phytosanitaire officielle.
+2. **Rôle strict des petits LLM `270M`** : Les modèles `270M` ne prescrivent jamais de traitements libres hors extraits vérifiés ; **Juamea** rend par défaut la fiche déterministe `buildDeterministicAgronomyReport()` ancrée sur `gemmea_eac_agri.sqlite` (CGIAR/IITA/NARS, indexation native FTS5/FTS4 Android).
 3. **Confidentialité & Souveraineté** : **0 % de requêtes réseau** en usage terrain ; toutes les photos, analyses et bilans PDF restent localement sur le téléphone.
 
 ---
 
 ### À propos de l'Auteur
 
-* **Développeur :** Georges Byona (SautiLM / LosingTek Research)
+* **Développeur :** Georges Byona (SautiLM / MusanTek Research)
 * **Bio :** [https://linktr.ee/glosings0n](https://linktr.ee/glosings0n)
 * **Vidéo démo :** [https://youtu.be/dPMXgOpZFEc](https://youtu.be/dPMXgOpZFEc)

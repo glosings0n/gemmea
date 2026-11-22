@@ -27,8 +27,8 @@ These rules are mandatory across all code, UI, documentation, slides, and codela
 ## 3. Brand Identity & Typography
 - **Brand Name:** Always write `glosings0n` (strictly NO trailing dot: never write `glosings0n.`).
 - **Author & Organization Identity:**
-  - **Georges Byona** (`@glosings0n`), Software Engineer, Edge-AI Researcher, Founder @ **LosingTek**, Initiator of **FlutterFire Summer Camp**.
+  - **Georges Byona** (`@glosings0n`), Software Engineer, Edge-AI Researcher, Founder @ **MusanTek**, Initiator of **FlutterFire Summer Camp**.
 - **Typography System (Web & Codelabs):**
   - **UI & Body Text:** `'Figtree'`
   - **Code, Numbers/Digits (`0-9`, `+`), Technical Metrics & `@glosings0n` Handle:** `'JetBrains Mono'`
-  - **LosingTek Brand Wordmark:** `'Urbanist'` (`<span class="losingtek-font"><span class="brand-bold">Losing</span>Tek</span>` with bold `Losing` and regular `Tek`).
+  - **MusanTek Brand Wordmark:** `'Urbanist'` (`<span class="musantek-font"><span class="brand-bold">Losing</span>Tek</span>` with bold `Losing` and regular `Tek`).
