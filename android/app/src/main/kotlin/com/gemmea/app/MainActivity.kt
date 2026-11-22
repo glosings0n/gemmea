@@ -33,6 +33,7 @@ class MainActivity : FlutterActivity() {
                     val probs = runner.classify(bytes)
                     result.success(probs)
                 } catch (e: Exception) {
+                    android.util.Log.e("GemmeaNuru", "classifyCrop failed: ${e.javaClass.name}: ${e.message}", e)
                     result.success(null)
                 }
             } else {

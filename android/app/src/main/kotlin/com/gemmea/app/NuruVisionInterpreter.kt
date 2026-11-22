@@ -37,17 +37,31 @@ class NuruVisionInterpreter(private val context: Context) {
         }
         return try {
             val lookupKey = FlutterInjector.instance().flutterLoader().getLookupKeyForAsset(ASSET_KEY)
-            val afd = context.assets.openFd(lookupKey)
-            FileInputStream(afd.fileDescriptor).use { fis ->
-                val channel = fis.channel
-                val mapped: MappedByteBuffer = channel.map(
-                    FileChannel.MapMode.READ_ONLY,
-                    afd.startOffset,
-                    afd.declaredLength
-                )
-                mapped
+            try {
+                val afd = context.assets.openFd(lookupKey)
+                FileInputStream(afd.fileDescriptor).use { fis ->
+                    val channel = fis.channel
+                    val mapped: MappedByteBuffer = channel.map(
+                        FileChannel.MapMode.READ_ONLY,
+                        afd.startOffset,
+                        afd.declaredLength
+                    )
+                    mapped
+                }
+            } catch (_: Exception) {
+                // Fallback if APK packaging compressed the asset: load directly into native ByteBuffer
+                context.assets.open(lookupKey).use { input ->
+                    val bytes = input.readBytes()
+                    ByteBuffer.allocateDirect(bytes.size)
+                        .order(ByteOrder.nativeOrder())
+                        .apply {
+                            put(bytes)
+                            rewind()
+                        }
+                }
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            android.util.Log.e("NuruVisionInterpreter", "Failed to load $ASSET_KEY", e)
             null
         }
     }

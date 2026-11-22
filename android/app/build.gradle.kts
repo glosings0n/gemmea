@@ -33,6 +33,10 @@ android {
         }
     }
 
+    androidResources {
+        noCompress += listOf("tflite", "lite")
+    }
+
     packaging {
         jniLibs {
             pickFirsts += listOf("lib/**/libtensorflowlite_jni.so")
@@ -41,7 +45,7 @@ android {
 }
 
 dependencies {
-    implementation("org.tensorflow:tensorflow-lite:2.16.1")
+    implementation("com.google.ai.edge.litert:litert:1.4.2")
 }
 
 kotlin {
