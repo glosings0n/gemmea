@@ -333,7 +333,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                     ),
                                   ),
                                   child: const Text(
-                                    "Télécharger SautiLM-Jua-Agri (283 Mo)",
+                                    "Télécharger l'IA",
                                     style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.bold),
                                   ),
                                 ),
@@ -357,7 +357,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                     ),
                                   ),
                                   child: const Text(
-                                    "Continuer sans chat IA (Scan & Fiches 0 Mo)",
+                                    "Continuer sans IA",
                                     style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.w600, fontSize: 13),
                                   ),
                                 ),
@@ -436,7 +436,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                   ),
                                 ),
                                 child: const Text(
-                                  "Reprendre le téléchargement",
+                                  "Reprendre",
                                   style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.bold),
                                 ),
                               ),
@@ -460,7 +460,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                                   ),
                                 ),
                                 child: const Text(
-                                  "Continuer sans chat IA (Scan & Fiches 0 Mo)",
+                                  "Continuer sans IA",
                                   style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.w600, fontSize: 13),
                                 ),
                               ),

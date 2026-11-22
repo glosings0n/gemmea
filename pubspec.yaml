@@ -25,6 +25,7 @@ dependencies:
   printing: ^5.14.3
   speech_to_text: ^7.3.0
   flutter_tts: ^4.2.3
+  shorebird_code_push: ^2.0.7
 
 dev_dependencies:
   flutter_test:
@@ -46,6 +47,7 @@ flutter:
     - assets/images/cassava_mosaic.png
     - assets/images/maize_rust.png
     - assets/images/healthy_leaf.png
+    - shorebird.yaml
   fonts:
     - family: Figtree
       fonts:

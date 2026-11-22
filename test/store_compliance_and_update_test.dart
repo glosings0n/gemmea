@@ -14,17 +14,28 @@ void main() {
       expect(manifest, isNot(contains('WRITE_EXTERNAL_STORAGE')));
       expect(manifest, isNot(contains('requestLegacyExternalStorage')));
       expect(manifest, contains('android:allowBackup="false"'));
+      expect(manifest, contains('android:screenOrientation="portrait"'));
       expect(manifest, contains('android.hardware.camera'));
       expect(manifest, contains('android:required="false"'));
     });
 
-    test('iOS Info.plist declares export compliance and all required privacy descriptions', () {
+    test('Shorebird OTA release & patch configuration is present', () {
+      final shorebirdYaml = File('shorebird.yaml').readAsStringSync();
+      final pubspec = File('pubspec.yaml').readAsStringSync();
+      expect(shorebirdYaml, contains('app_id:'));
+      expect(pubspec, contains('shorebird_code_push:'));
+      expect(pubspec, contains('- shorebird.yaml'));
+    });
+
+    test('iOS Info.plist declares export compliance, portrait lock and all required privacy descriptions', () {
       final plist = File('ios/Runner/Info.plist').readAsStringSync();
       expect(plist, contains('ITSAppUsesNonExemptEncryption'));
       expect(plist, contains('NSCameraUsageDescription'));
       expect(plist, contains('NSPhotoLibraryUsageDescription'));
       expect(plist, contains('NSMicrophoneUsageDescription'));
       expect(plist, contains('NSSpeechRecognitionUsageDescription'));
+      expect(plist, isNot(contains('UIInterfaceOrientationLandscapeLeft')));
+      expect(plist, isNot(contains('UIInterfaceOrientationLandscapeRight')));
     });
 
     test('checkForModelUpdate parses HF 302 X-Linked-ETag SHA-256 and detects same-size updates', () async {

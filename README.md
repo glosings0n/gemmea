@@ -5,7 +5,7 @@
 [![SQLite RAG](https://img.shields.io/badge/SQLite-FTS5_RAG-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/fts5.html)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**Juamea** (`com.musantek.juamea`, développé par **MusanTek Research**) est une application mobile d'aide à la décision agronomique conçue pour fonctionner **100% hors ligne, sans aucune connexion internet**. Son nom réunit **"Jua"** (*soleil / savoir* en kiswahili, gamme mobile `SautiLM-Jua`) et **"Mmea"** (*plante / culture* en kiswahili, parlée en RDC et en Afrique de l'Est).
+**Juamea** (`com.musantek.juamea`, développé par **SautiLM Research**) est une application mobile d'aide à la décision agronomique conçue pour fonctionner **100% hors ligne, sans aucune connexion internet**. Son nom réunit **"Jua"** (*soleil / savoir* en kiswahili, gamme mobile `SautiLM-Jua`) et **"Mmea"** (*plante / culture* en kiswahili, parlée en RDC et en Afrique de l'Est).
 
 L'application associe une architecture **collaborative à 2 passes** (**`SautiLM-Nuru-Agri`** `1.074 Mo` en LiteRT/TFLite INT8, mesuré à **`49.73 ms/image`** et **`110 ms`** E2E sur **Google Pixel 7**) exécutée localement sur le téléphone avec une **base de données SQLite FTS5/FTS4** ([`gemmea_eac_agri.sqlite`](assets/data/gemmea_eac_agri.sqlite), `2 369` fiches compilées depuis de vrais manuels terrain open-access CGIAR / IITA / CIMMYT / PABRA / TARI / KALRO / INERA / RAB / ISABU couvrant `CD, UG, RW, BI, KE, TZ`, zéro contenu Wikipedia). Par défaut en production, `evaluateCropImage()` rend la **fiche agronomique déterministe vérifiée** (`buildDeterministicAgronomyReport`) directement depuis SQLite afin d'éliminer toute hallucination de pesticide ou de maladie.
 
@@ -105,6 +105,6 @@ flutter run --release
 
 ### À propos de l'Auteur
 
-* **Développeur :** Georges Byona (SautiLM / MusanTek Research)
+* **Développeur :** Georges Byona (SautiLM Research)
 * **Bio :** [https://linktr.ee/glosings0n](https://linktr.ee/glosings0n)
 * **Vidéo démo :** [https://youtu.be/dPMXgOpZFEc](https://youtu.be/dPMXgOpZFEc)

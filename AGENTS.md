@@ -32,3 +32,8 @@ These rules are mandatory across all code, UI, documentation, slides, and codela
   - **UI & Body Text:** `'Figtree'`
   - **Code, Numbers/Digits (`0-9`, `+`), Technical Metrics & `@glosings0n` Handle:** `'JetBrains Mono'`
   - **MusanTek Brand Wordmark:** `'Urbanist'` (`<span class="musantek-font"><span class="brand-bold">Losing</span>Tek</span>` with bold `Losing` and regular `Tek`).
+
+## Institutional Identity & Brand Rule (Strict — Mandatory for All AI Agents)
+
+* **Official Institution Name:** Always use **`SautiLM Research`** (or **`SautiLM`**, Bunia, Ituri, Democratic Republic of the Congo — `https://sautilm.com`) as the sole research institution, publisher, and model creator across all papers, system prompts, model cards, `CITATION.cff`, and UI strings.
+* **Partner Role of MusanTek:** Never write `"MusanTek Research"` or `"by MusanTek"`. **MusanTek** (`https://musantek.com`) is strictly an engineering and incubation **partner** supporting SautiLM (note: existing Android technical package identifiers `com.musantek.*` must remain unchanged for APK compatibility).

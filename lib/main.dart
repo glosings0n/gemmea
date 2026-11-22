@@ -18,6 +18,9 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
+  // Non-blocking Shorebird OTA patch check for production releases
+  ShorebirdService().checkForUpdatesAndDownload();
+
   // Create repository instances
   final chatRepo = ChatRepositoryImpl();
   final diagnosticRepo = DiagnosticRepositoryImpl();

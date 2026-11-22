@@ -374,7 +374,7 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
                                     ),
                                   ),
                                   child: const Text(
-                                    'Télécharger SautiLM-Jua-Agri (283 Mo)',
+                                    'Télécharger le modèle',
                                     style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.bold),
                                   ),
                                 ),
@@ -407,10 +407,10 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
                                         )
                                       : Text(
                                           _updateResult?.hasUpdate == true
-                                              ? 'Installer la mise à jour (${_updateResult!.remoteSizeFormatted})'
+                                              ? 'Mettre à jour'
                                               : (_updateResult?.status == JuameaModelUpdateStatus.upToDate
-                                                  ? 'À jour (SHA-256 vérifié)'
-                                                  : 'Vérifier mise à jour (Hugging Face)'),
+                                                  ? 'Modèle à jour'
+                                                  : 'Vérifier mise à jour'),
                                           style: const TextStyle(
                                             fontFamily: 'Figtree',
                                             fontWeight: FontWeight.bold,
@@ -423,9 +423,9 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
                                   onPressed: _isDeleting ? null : _confirmDelete,
-                                  child: Text(
-                                    'Supprimer le modèle chat (${_localStatus.sizeFormatted})',
-                                    style: const TextStyle(
+                                  child: const Text(
+                                    'Supprimer le modèle',
+                                    style: TextStyle(
                                       fontFamily: 'Figtree',
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
