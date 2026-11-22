@@ -59,7 +59,7 @@ Développée à Bukavu (Sud-Kivu, Est de la République Démocratique du Congo),
 
 ### 2. Exécution Collaborative sur l'Appareil (`SautiLM-Nuru-Agri` + `LiteRT-LM`)
 * **Pass-1 Vision TFLite Natif (`SautiLM-Nuru-Agri`)** : MobileNetV3-Small quantifié INT8 (`1.074 Mo`, pont natif Kotlin [`NuruVisionInterpreter.kt`](android/app/src/main/kotlin/com/musantek/juamea/NuruVisionInterpreter.kt)), entraîné sur `4 032` vraies photos agricoles (`0` image synthétique, `92.06 %` val acc, `92.31 %` Macro-F1, `87.5 %` précision quantifiée INT8 réelle).
-* **Court-circuit immédiat (`non_plant` F1 = `1.000`)** : Rejet immédiat avant toute requête RAG/LLM si l'objet photographié n'est pas un végétal ou si la confiance est `< 0.55`.
+* **Court-circuit immédiat (`non_plant` F1 = `1.000` en validation interne ; `59.1 %` brut / `82.0 %` sélectif en OOD sauvage)** : Rejet immédiat avant toute requête RAG/LLM si l'objet photographié n'est pas un végétal ou si la confiance est `< 0.55`.
 * **Gestionnaire Mémoire (`GemmaEngineManager`)** : Verrou d'exécution thread-safe ([`gemma_engine_manager.dart`](lib/core/services/gemma_engine_manager.dart)) sur `flutter_edge_ai` (**LiteRT-LM**).
 
 ---
