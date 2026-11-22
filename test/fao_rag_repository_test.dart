@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:gemmea/data/datasources/sqlite_helper.dart';
-import 'package:gemmea/data/repositories/fao_rag_repository_impl.dart';
-import 'package:gemmea/domain/entities/fao_guideline.dart';
+import 'package:juamea/data/datasources/sqlite_helper.dart';
+import 'package:juamea/data/repositories/fao_rag_repository_impl.dart';
+import 'package:juamea/domain/entities/fao_guideline.dart';
 
 class MockSQLiteHelper extends Mock implements SQLiteHelper {}
 
@@ -70,7 +70,7 @@ void main() {
     test('buildGroundedSystemPrompt returns default prompt when guidelines empty', () {
       final prompt = repository.buildGroundedSystemPrompt([]);
 
-      expect(prompt, contains('GEMMEA ASSISTANT AGRONOMIQUE HORS LIGNE'));
+      expect(prompt, contains('JUAMEA ASSISTANT AGRONOMIQUE HORS LIGNE'));
       expect(prompt, isNot(contains('DOCUMENTS OFFICIELS FAO')));
     });
   });

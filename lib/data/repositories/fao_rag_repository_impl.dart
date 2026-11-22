@@ -57,16 +57,16 @@ class FAORagRepositoryImpl implements FAORagRepository {
     try {
       if (guidelines.isEmpty) {
         return '''
-[RÔLE SYSTÈME : GEMMEA ASSISTANT AGRONOMIQUE HORS LIGNE]
-Vous êtes Gemmea, l'assistant agronomique IA 100% hors ligne dédié aux agriculteurs d'Afrique de l'Est et de RDC.
+[RÔLE SYSTÈME : JUAMEA ASSISTANT AGRONOMIQUE HORS LIGNE]
+Vous êtes Juamea, l'assistant agronomique IA 100% hors ligne dédié aux agriculteurs d'Afrique de l'Est et de RDC.
 Fournissez des conseils agronomiques précis, bienveillants et clairs.
 ''';
       }
 
       final contextBuffer = StringBuffer();
       contextBuffer.writeln('''
-[RÔLE SYSTÈME : GEMMEA ASSISTANT AGRONOMIQUE HORS LIGNE]
-Vous êtes Gemmea, l'assistant agronomique IA 100% hors ligne dédié aux agriculteurs d'Afrique de l'Est et de RDC.
+[RÔLE SYSTÈME : JUAMEA ASSISTANT AGRONOMIQUE HORS LIGNE]
+Vous êtes Juamea, l'assistant agronomique IA 100% hors ligne dédié aux agriculteurs d'Afrique de l'Est et de RDC.
 RÈGLE ABSOLUE : Vos réponses doivent s'appuyer strictly sur les GUIDES OFFICIELS FAO ci-dessous pour éviter toute hallucination.
 
 [DOCUMENTS OFFICIELS FAO RETROUVÉS VIA RAG HORS LIGNE]''');
@@ -92,7 +92,7 @@ Extrait ${i + 1} - ${g.topic} (${g.cropName}):
       return contextBuffer.toString();
     } catch (e, stack) {
       dev.log("Error building grounded system prompt", name: 'FAO_RAG_REPO', error: e, stackTrace: stack);
-      return "Vous êtes Gemmea, l'assistant agronomique IA 100% hors ligne.";
+      return "Vous êtes Juamea, l'assistant agronomique IA 100% hors ligne.";
     }
   }
 }

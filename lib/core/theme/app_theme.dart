@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gemmea/core/constants/app_colors.dart';
+import 'package:juamea/core/constants/app_colors.dart';
 
 class AppTheme {
   static const Color primaryForestGreen = AppColors.primaryForestGreen;

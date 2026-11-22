@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_edge_ai/flutter_edge_ai.dart';
-import 'package:gemmea/core/services/gemma_engine_manager.dart';
+import 'package:juamea/core/services/gemma_engine_manager.dart';
 
 void main() {
   group('FlutterEdgeAi Migration & Engine Invariants', () {
@@ -11,8 +11,8 @@ void main() {
     });
 
     test('FlutterEdgeAi models and message structures maintain contract parity', () {
-      final userMessage = Message.text(text: 'Habari Gemmea', isUser: true);
-      expect(userMessage.text, equals('Habari Gemmea'));
+      final userMessage = Message.text(text: 'Habari Juamea', isUser: true);
+      expect(userMessage.text, equals('Habari Juamea'));
       expect(userMessage.isUser, isTrue);
 
       final modelMessage = Message.text(text: 'Jambo fermier', isUser: false);

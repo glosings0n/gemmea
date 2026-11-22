@@ -1,4 +1,4 @@
-package com.gemmea.app
+package com.musantek.juamea
 
 import android.content.ContentValues
 import android.content.Intent
@@ -13,8 +13,8 @@ import io.flutter.plugin.common.MethodChannel
 import java.io.File
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.gemmea.app/media_scanner"
-    private val NURU_CHANNEL = "com.gemmea.app/nuru_vision"
+    private val CHANNEL = "com.musantek.juamea/media_scanner"
+    private val NURU_CHANNEL = "com.musantek.juamea/nuru_vision"
     private var nuruInterpreter: NuruVisionInterpreter? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -33,7 +33,7 @@ class MainActivity : FlutterActivity() {
                     val probs = runner.classify(bytes)
                     result.success(probs)
                 } catch (e: Exception) {
-                    android.util.Log.e("GemmeaNuru", "classifyCrop failed: ${e.javaClass.name}: ${e.message}", e)
+                    android.util.Log.e("JuameaNuru", "classifyCrop failed: ${e.javaClass.name}: ${e.message}", e)
                     result.success(null)
                 }
             } else {
@@ -59,7 +59,7 @@ class MainActivity : FlutterActivity() {
                                 val contentValues = ContentValues().apply {
                                     put(MediaStore.MediaColumns.DISPLAY_NAME, file.name)
                                     put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
-                                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOCUMENTS + "/Gemmea")
+                                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOCUMENTS + "/Juamea")
                                 }
                                 val uri = contentResolver.insert(MediaStore.Files.getContentUri("external"), contentValues)
                                 uri?.let { u ->

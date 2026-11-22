@@ -4,11 +4,11 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_edge_ai/flutter_edge_ai.dart';
 import 'package:http/http.dart' as http;
-import 'package:gemmea/core/services/gemma_engine_manager.dart';
-import 'package:gemmea/core/utils/text_sanitizer.dart';
-import 'package:gemmea/data/datasources/sqlite_helper.dart';
-import 'package:gemmea/domain/entities/eac_country_profile.dart';
-import 'package:gemmea/domain/repositories/chat_repository.dart';
+import 'package:juamea/core/services/gemma_engine_manager.dart';
+import 'package:juamea/core/utils/text_sanitizer.dart';
+import 'package:juamea/data/datasources/sqlite_helper.dart';
+import 'package:juamea/domain/entities/eac_country_profile.dart';
+import 'package:juamea/domain/repositories/chat_repository.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sautilm_sdk/sautilm_sdk.dart';
 
@@ -23,56 +23,59 @@ class ChatRepositoryImpl implements ChatRepository {
     });
   }
 
-  static const String _sharedDownloadDir = '/storage/emulated/0/Download/Gemma';
-  static const String _sharedDocumentsDir = '/storage/emulated/0/Documents/Gemma';
+  static const String _sharedDownloadDir = '/storage/emulated/0/Download/SautiLM';
+  static const List<String> _sharedDirs = [
+    '/storage/emulated/0/Download/SautiLM',
+    '/storage/emulated/0/Download/Juamea',
+    '/storage/emulated/0/Download/Gemma',
+    '/storage/emulated/0/Download',
+    '/storage/emulated/0/Documents/SautiLM',
+    '/storage/emulated/0/Documents/Juamea',
+    '/storage/emulated/0/Documents/Gemma',
+  ];
   static const List<String> _modelFilenames = [
+    'sautilm-jua-agri.litertlm',
+    'sautilm-jua.litertlm',
     'gemma.litertlm',
-    'gemma-4-E2B-it.litertlm',
     'gemma.bin',
   ];
 
   Future<File?> _resolveModelFile() async {
-    // 1. Check shared Download/Gemma directory
-    for (final filename in _modelFilenames) {
-      final file = File('$_sharedDownloadDir/$filename');
-      if (await _isValidModel(file)) {
-        dev.log("Gemma model resolved from shared Download: ${file.path}", name: 'CHAT_REPO_IMPL');
-        return file;
+    // 1. Check shared SautiLM / Juamea / Download directories
+    for (final dir in _sharedDirs) {
+      for (final filename in _modelFilenames) {
+        final file = File('$dir/$filename');
+        if (await _isValidModel(file)) {
+          dev.log("SautiLM/Juamea model resolved from shared storage: ${file.path}", name: 'CHAT_REPO_IMPL');
+          return file;
+        }
       }
     }
 
-    // 2. Check shared Documents/Gemma directory
-    for (final filename in _modelFilenames) {
-      final file = File('$_sharedDocumentsDir/$filename');
-      if (await _isValidModel(file)) {
-        dev.log("Gemma model resolved from shared Documents: ${file.path}", name: 'CHAT_REPO_IMPL');
-        return file;
-      }
-    }
-
-    // 3. Check local app documents directory
+    // 2. Check local app documents directory
     try {
       final directory = await getApplicationDocumentsDirectory();
       for (final filename in _modelFilenames) {
         final file = File('${directory.path}/$filename');
         if (await _isValidModel(file)) {
-          dev.log("Gemma model resolved from app documents: ${file.path}", name: 'CHAT_REPO_IMPL');
+          dev.log("SautiLM/Juamea model resolved from app documents: ${file.path}", name: 'CHAT_REPO_IMPL');
           return file;
         }
       }
     } catch (_) {}
 
-    // 4. Candidate fallback locations
+    // 3. Legacy fallback locations
     final candidates = [
+      '/storage/emulated/0/Download/juamea/sautilm-jua-agri.litertlm',
       '/storage/emulated/0/Download/gemmea/gemma.litertlm',
       '/storage/emulated/0/Download/gemma.litertlm',
+      '/sdcard/Download/SautiLM/sautilm-jua.litertlm',
       '/sdcard/Download/Gemma/gemma.litertlm',
-      '/sdcard/Download/gemma.litertlm',
     ];
     for (final path in candidates) {
       final file = File(path);
       if (await _isValidModel(file)) {
-        dev.log("Gemma model resolved from candidate path: $path", name: 'CHAT_REPO_IMPL');
+        dev.log("SautiLM/Juamea model resolved from candidate path: $path", name: 'CHAT_REPO_IMPL');
         return file;
       }
     }
@@ -138,12 +141,12 @@ class ChatRepositoryImpl implements ChatRepository {
             if (!await sharedDir.exists()) {
               await sharedDir.create(recursive: true);
             }
-            destinationFile = File('${sharedDir.path}/gemma.litertlm');
-            tempModelFile = File('${sharedDir.path}/gemma.litertlm.tmp');
+            destinationFile = File('${sharedDir.path}/sautilm-jua-agri.litertlm');
+            tempModelFile = File('${sharedDir.path}/sautilm-jua-agri.litertlm.tmp');
           } catch (_) {
             final directory = await getApplicationDocumentsDirectory();
-            destinationFile = File('${directory.path}/gemma.litertlm');
-            tempModelFile = File('${directory.path}/gemma.litertlm.tmp');
+            destinationFile = File('${directory.path}/sautilm-jua-agri.litertlm');
+            tempModelFile = File('${directory.path}/sautilm-jua-agri.litertlm.tmp');
           }
 
           // Clean up any stale/incomplete temp files from previous aborted attempts
@@ -162,7 +165,7 @@ class ChatRepositoryImpl implements ChatRepository {
             throw const SocketException('Internet connection is required for the first-time model download. Please connect to the internet and try again.');
           }
 
-          final url = 'https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/resolve/main/gemma-4-E2B-it.litertlm';
+          final url = 'https://huggingface.co/sautilm/SautiLM-Jua-Agri/resolve/main/sautilm-jua-agri.litertlm';
           final client = http.Client();
           
           try {
@@ -372,13 +375,13 @@ class ChatRepositoryImpl implements ChatRepository {
       if (history != null && history.length > 1) {
         final recentHistory = _getRecentHistoryWindow(history);
         if (recentHistory.isNotEmpty) {
-          final formattedHistoryItems = recentHistory.map((m) => "- ${m.isUser ? 'Utilisateur' : 'Gemmea'}: ${m.text}").join("\n");
+          final formattedHistoryItems = recentHistory.map((m) => "- ${m.isUser ? 'Utilisateur' : 'Juamea'}: ${m.text}").join("\n");
           historyFormatted = "\n\nHISTORIQUE DES 5 DERNIERS MESSAGES :\n$formattedHistoryItems";
         }
       }
 
       final systemPrompt = '''
-Tu es Gemmea, l'assistant agronome IA hors-ligne pour la RDC (Kivu, Ituri) et l'Afrique de l'Est (Rwanda, Burundi, Ouganda, Kenya, Tanzanie).
+Tu es Juamea, l'assistant agronome IA hors-ligne pour la RDC (Kivu, Ituri) et l'Afrique de l'Est (Rwanda, Burundi, Ouganda, Kenya, Tanzanie).
 
 RÈGLE DE RIGUEUR SCIENTIFIQUE ET DE VÉRACITÉ :
 1. Appuie-toi en priorité sur les [DONNÉES OFFICIELLES FAO DE RÉFÉRENCE] ci-dessous lorsque des fiches locales sont fournies, en citant leur source exacte.

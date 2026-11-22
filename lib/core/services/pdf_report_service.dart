@@ -1,7 +1,7 @@
 import 'dart:developer' as dev;
 import 'dart:io';
 import 'package:flutter/services.dart';
-import 'package:gemmea/core/utils/text_sanitizer.dart';
+import 'package:juamea/core/utils/text_sanitizer.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -223,7 +223,7 @@ class PDFReportService {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text(
-                          'Gemmea - Rapport de Productivité Agricole',
+                          'Juamea - Rapport de Productivité Agricole',
                           style: pw.TextStyle(
                             color: PdfColors.white,
                             fontSize: 15,
@@ -416,7 +416,7 @@ class PDFReportService {
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text('Ancré dans les guides officiels FAO & IITA East Africa', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
-                  pw.Text('Propulsé par Gemmea', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: primaryColor)),
+                  pw.Text('Propulsé par Juamea', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: primaryColor)),
                 ],
               ),
             ];
@@ -462,12 +462,12 @@ class PDFReportService {
         farmerLocation: farmerLocation,
       );
 
-      final filename = 'Rapport_Agronomique_Gemmea_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final filename = 'Rapport_Agronomique_Juamea_${DateTime.now().millisecondsSinceEpoch}.pdf';
       List<String> savedPaths = [];
 
       if (Platform.isAndroid) {
         final publicDirs = [
-          Directory('/storage/emulated/0/Documents/Gemmea'),
+          Directory('/storage/emulated/0/Documents/Juamea'),
           Directory('/storage/emulated/0/Documents'),
           Directory('/storage/emulated/0/Download'),
         ];
@@ -484,7 +484,7 @@ class PDFReportService {
 
             // Notify Android MediaScanner & MediaStore indexing immediately
             try {
-              const channel = MethodChannel('com.gemmea.app/media_scanner');
+              const channel = MethodChannel('com.musantek.juamea/media_scanner');
               await channel.invokeMethod('scanFile', {'path': file.path});
               dev.log("Notified Android MediaScanner for ${file.path}", name: 'PDF_REPORT_SERVICE');
             } catch (scanErr) {
@@ -509,7 +509,7 @@ class PDFReportService {
 
         try {
           if (Platform.isAndroid) {
-            const channel = MethodChannel('com.gemmea.app/media_scanner');
+            const channel = MethodChannel('com.musantek.juamea/media_scanner');
             await channel.invokeMethod('scanFile', {'path': file.path});
           }
         } catch (_) {}
@@ -538,7 +538,7 @@ class PDFReportService {
 
       await Printing.sharePdf(
         bytes: pdfBytes,
-        filename: 'Rapport_Agronomique_Gemmea_${DateTime.now().millisecondsSinceEpoch}.pdf',
+        filename: 'Rapport_Agronomique_Juamea_${DateTime.now().millisecondsSinceEpoch}.pdf',
       );
     } catch (e, stack) {
       dev.log("Error sharing PDF report", name: 'PDF_REPORT_SERVICE', error: e, stackTrace: stack);
@@ -616,7 +616,7 @@ class PDFReportService {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text(
-                          'Gemmea - Diagnostic Agronomique Individuel',
+                          'Juamea - Diagnostic Agronomique Individuel',
                           style: pw.TextStyle(
                             color: PdfColors.white,
                             fontSize: 15,
@@ -745,7 +745,7 @@ class PDFReportService {
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text('Ancré dans les guides officiels FAO & IITA East Africa', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
-                  pw.Text('Propulsé par Gemmea', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: primaryColor)),
+                  pw.Text('Propulsé par Juamea', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: primaryColor)),
                 ],
               ),
             ];
@@ -773,12 +773,12 @@ class PDFReportService {
       );
 
       final crop = _extractCropName(diagnostic);
-      final filename = 'Diagnostic_${crop}_Gemmea_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final filename = 'Diagnostic_${crop}_Juamea_${DateTime.now().millisecondsSinceEpoch}.pdf';
       List<String> savedPaths = [];
 
       if (Platform.isAndroid) {
         final publicDirs = [
-          Directory('/storage/emulated/0/Documents/Gemmea'),
+          Directory('/storage/emulated/0/Documents/Juamea'),
           Directory('/storage/emulated/0/Documents'),
           Directory('/storage/emulated/0/Download'),
         ];
@@ -793,7 +793,7 @@ class PDFReportService {
             savedPaths.add(file.path);
 
             try {
-              const channel = MethodChannel('com.gemmea.app/media_scanner');
+              const channel = MethodChannel('com.musantek.juamea/media_scanner');
               await channel.invokeMethod('scanFile', {'path': file.path});
             } catch (_) {}
           } catch (_) {}
@@ -813,7 +813,7 @@ class PDFReportService {
 
         try {
           if (Platform.isAndroid) {
-            const channel = MethodChannel('com.gemmea.app/media_scanner');
+            const channel = MethodChannel('com.musantek.juamea/media_scanner');
             await channel.invokeMethod('scanFile', {'path': file.path});
           }
         } catch (_) {}
@@ -839,7 +839,7 @@ class PDFReportService {
       final crop = _extractCropName(diagnostic);
       await Printing.sharePdf(
         bytes: pdfBytes,
-        filename: 'Diagnostic_${crop}_Gemmea_${DateTime.now().millisecondsSinceEpoch}.pdf',
+        filename: 'Diagnostic_${crop}_Juamea_${DateTime.now().millisecondsSinceEpoch}.pdf',
       );
     } catch (e, stack) {
       dev.log("Error sharing single PDF report", name: 'PDF_REPORT_SERVICE', error: e, stackTrace: stack);
@@ -851,7 +851,7 @@ class PDFReportService {
     try {
       dev.log("Opening PDF file directly: $filePath", name: 'PDF_REPORT_SERVICE');
       if (Platform.isAndroid) {
-        const channel = MethodChannel('com.gemmea.app/media_scanner');
+        const channel = MethodChannel('com.musantek.juamea/media_scanner');
         await channel.invokeMethod('openFile', {'path': filePath});
       } else {
         final file = File(filePath);

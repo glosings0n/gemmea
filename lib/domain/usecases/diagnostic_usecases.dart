@@ -1,5 +1,5 @@
-import 'package:gemmea/domain/entities/diagnostic_result.dart';
-import 'package:gemmea/domain/repositories/diagnostic_repository.dart';
+import 'package:juamea/domain/entities/diagnostic_result.dart';
+import 'package:juamea/domain/repositories/diagnostic_repository.dart';
 
 class GetDiagnostics {
   final DiagnosticRepository repository;

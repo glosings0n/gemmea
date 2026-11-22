@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:gemmea/core/core.dart';
-import 'package:gemmea/presentation/bloc/bloc.dart';
-import 'package:gemmea/presentation/pages/pages.dart';
+import 'package:juamea/core/core.dart';
+import 'package:juamea/presentation/bloc/bloc.dart';
+import 'package:juamea/presentation/pages/pages.dart';
 
 class InitializationScreen extends StatefulWidget {
   const InitializationScreen({super.key});
@@ -111,7 +111,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
                   ),
                   const SizedBox(height: 32),
                   const Text(
-                    "Gemmea",
+                    "Juamea",
                     style: TextStyle(
                       fontFamily: 'Fredoka',
                       fontSize: 28,

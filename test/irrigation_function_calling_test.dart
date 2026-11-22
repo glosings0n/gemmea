@@ -3,10 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flutter_edge_ai/flutter_edge_ai.dart';
-import 'package:gemmea/domain/entities/calendar_event.dart';
-import 'package:gemmea/domain/usecases/chat_usecases.dart';
-import 'package:gemmea/domain/usecases/calendar_usecases.dart';
-import 'package:gemmea/presentation/bloc/chat_cubit.dart';
+import 'package:juamea/domain/entities/calendar_event.dart';
+import 'package:juamea/domain/usecases/chat_usecases.dart';
+import 'package:juamea/domain/usecases/calendar_usecases.dart';
+import 'package:juamea/presentation/bloc/chat_cubit.dart';
 
 class MockGetChatMessages extends Mock implements GetChatMessages {}
 class MockSaveChatMessage extends Mock implements SaveChatMessage {}

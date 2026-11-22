@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:gemmea/domain/entities/diagnostic_result.dart';
-import 'package:gemmea/domain/entities/calendar_event.dart';
-import 'package:gemmea/domain/usecases/diagnostic_usecases.dart';
-import 'package:gemmea/domain/usecases/calendar_usecases.dart';
-import 'package:gemmea/presentation/bloc/home_cubit.dart';
+import 'package:juamea/domain/entities/diagnostic_result.dart';
+import 'package:juamea/domain/entities/calendar_event.dart';
+import 'package:juamea/domain/usecases/diagnostic_usecases.dart';
+import 'package:juamea/domain/usecases/calendar_usecases.dart';
+import 'package:juamea/presentation/bloc/home_cubit.dart';
 
 class MockGetDiagnostics extends Mock implements GetDiagnostics {}
 class MockGetCalendarEvents extends Mock implements GetCalendarEvents {}

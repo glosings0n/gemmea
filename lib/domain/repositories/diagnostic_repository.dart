@@ -1,4 +1,4 @@
-import 'package:gemmea/domain/entities/diagnostic_result.dart';
+import 'package:juamea/domain/entities/diagnostic_result.dart';
 
 abstract class DiagnosticRepository {
   Future<List<DiagnosticResult>> getDiagnostics();

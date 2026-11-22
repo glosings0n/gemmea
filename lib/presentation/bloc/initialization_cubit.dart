@@ -1,6 +1,6 @@
 import 'dart:developer' as dev;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gemmea/domain/usecases/chat_usecases.dart';
+import 'package:juamea/domain/usecases/chat_usecases.dart';
 
 abstract class InitializationState {}
 

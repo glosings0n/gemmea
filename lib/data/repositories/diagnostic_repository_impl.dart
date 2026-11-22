@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
-import 'package:gemmea/data/datasources/gemma_local_source.dart';
-import 'package:gemmea/data/datasources/sqlite_helper.dart';
-import 'package:gemmea/domain/entities/diagnostic_result.dart';
-import 'package:gemmea/domain/repositories/diagnostic_repository.dart';
+import 'package:juamea/data/datasources/gemma_local_source.dart';
+import 'package:juamea/data/datasources/sqlite_helper.dart';
+import 'package:juamea/domain/entities/diagnostic_result.dart';
+import 'package:juamea/domain/repositories/diagnostic_repository.dart';
 
 class DiagnosticRepositoryImpl implements DiagnosticRepository {
   final SQLiteHelper dbHelper = SQLiteHelper.instance;

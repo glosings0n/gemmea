@@ -1,5 +1,5 @@
-import 'package:gemmea/domain/entities/calendar_event.dart';
-import 'package:gemmea/domain/repositories/calendar_repository.dart';
+import 'package:juamea/domain/entities/calendar_event.dart';
+import 'package:juamea/domain/repositories/calendar_repository.dart';
 
 class GetCalendarEvents {
   final CalendarRepository repository;

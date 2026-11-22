@@ -5,8 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:gemmea/core/core.dart';
-import 'package:gemmea/presentation/presentation.dart';
+import 'package:juamea/core/core.dart';
+import 'package:juamea/presentation/presentation.dart';
 
 class MainNavigationHolder extends StatefulWidget {
   const MainNavigationHolder({super.key});
@@ -419,7 +419,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                         if (_currentIndex == 1) ...[
                           const SizedBox(height: 2),
                           const Text(
-                            "Gemmea",
+                            "Juamea",
                             style: TextStyle(
                               fontFamily: 'Fredoka',
                               fontSize: 12,

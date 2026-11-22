@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemmea/data/datasources/gemma_local_source.dart';
+import 'package:juamea/data/datasources/gemma_local_source.dart';
 
 class _FakeVisionClassifier implements NuruVisionClassifier {
   final NuruVisionClassification result;

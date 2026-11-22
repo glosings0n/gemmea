@@ -1,5 +1,5 @@
 import 'package:flutter_edge_ai/flutter_edge_ai.dart';
-import 'package:gemmea/domain/repositories/chat_repository.dart';
+import 'package:juamea/domain/repositories/chat_repository.dart';
 
 class GetChatMessages {
   final ChatRepository repository;

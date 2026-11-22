@@ -5,8 +5,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart' show databaseFactory;
 import 'package:sqflite/src/factory_impl.dart' show sqfliteDatabaseFactory;
-import 'package:gemmea/data/datasources/gemma_local_source.dart';
-import 'package:gemmea/presentation/bloc/scan_cubit.dart';
+import 'package:juamea/data/datasources/gemma_local_source.dart';
+import 'package:juamea/presentation/bloc/scan_cubit.dart';
 
 class MockGemmaLocalSource extends Mock implements GemmaLocalSource {}
 

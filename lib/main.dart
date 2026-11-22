@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gemmea/core/core.dart';
-import 'package:gemmea/data/data.dart';
-import 'package:gemmea/domain/domain.dart';
-import 'package:gemmea/presentation/presentation.dart';
+import 'package:juamea/core/core.dart';
+import 'package:juamea/data/data.dart';
+import 'package:juamea/domain/domain.dart';
+import 'package:juamea/presentation/presentation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +24,7 @@ void main() async {
   final calendarRepo = CalendarRepositoryImpl();
 
   runApp(
-    GemmeaApp(
+    JuameaApp(
       chatRepo: chatRepo,
       diagnosticRepo: diagnosticRepo,
       calendarRepo: calendarRepo,
@@ -32,12 +32,12 @@ void main() async {
   );
 }
 
-class GemmeaApp extends StatelessWidget {
+class JuameaApp extends StatelessWidget {
   final ChatRepositoryImpl chatRepo;
   final DiagnosticRepositoryImpl diagnosticRepo;
   final CalendarRepositoryImpl calendarRepo;
 
-  const GemmeaApp({
+  const JuameaApp({
     super.key,
     required this.chatRepo,
     required this.diagnosticRepo,
@@ -79,7 +79,7 @@ class GemmeaApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Gemmea',
+        title: 'Juamea',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         home: const InitializationScreen(),

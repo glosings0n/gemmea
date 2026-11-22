@@ -4,9 +4,9 @@ import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
 import 'package:flutter_edge_ai/flutter_edge_ai.dart';
 
-import 'package:gemmea/core/services/gemma_engine_manager.dart';
-import 'package:gemmea/core/utils/text_sanitizer.dart';
-import 'package:gemmea/data/datasources/sqlite_helper.dart';
+import 'package:juamea/core/services/gemma_engine_manager.dart';
+import 'package:juamea/core/utils/text_sanitizer.dart';
+import 'package:juamea/data/datasources/sqlite_helper.dart';
 
 abstract class GemmaLocalSource {
   Future<String> evaluateCropImage(File imageFile, String prompt);
@@ -257,7 +257,7 @@ typedef NativeTfliteClassifyFn = Future<List<double>?> Function(Uint8List imageB
 /// Runs fast SautiLM-Nuru-Agri INT8 TFLite inference on Android when the `.tflite` bundle
 /// is present, falling back seamlessly to `_VlmPixelPassOneClassifier` otherwise.
 class TfliteNuruVisionClassifier implements NuruVisionClassifier {
-  static const MethodChannel _channel = MethodChannel('com.gemmea.app/nuru_vision');
+  static const MethodChannel _channel = MethodChannel('com.musantek.juamea/nuru_vision');
   final NativeTfliteClassifyFn? _nativeInvokeOverride;
   final NuruVisionClassifier _fallback;
 
@@ -462,7 +462,7 @@ Ce bilan repose strictement sur la classification visuelle SautiLM-Nuru-Agri et 
     final model = await _getVisionModel();
     final session = await model.createSession();
     final vlmPrompt = '''
-Vous êtes Gemmea (architecture collaborative SautiLM-Nuru -> SQLite RAG -> SautiLM-Jua-Agri), l'assistant agronome IA d'analyse et de santé des cultures.
+Vous êtes Juamea (architecture collaborative SautiLM-Nuru -> SQLite RAG -> SautiLM-Jua-Agri), l'assistant agronome IA d'analyse et de santé des cultures.
 Examinez attentivement l'image fournie et appuyez-vous UNIQUEMENT sur ce qui est visuellement observable et sur les extraits SQLite vérifiés ci-dessous.
 
 RÈGLE DE RIGUEUR :

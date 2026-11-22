@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:gemmea/core/core.dart';
-import 'package:gemmea/presentation/bloc/bloc.dart';
+import 'package:juamea/core/core.dart';
+import 'package:juamea/presentation/bloc/bloc.dart';
 
 class DiagnosticsHistoryPage extends StatefulWidget {
   const DiagnosticsHistoryPage({super.key});

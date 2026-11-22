@@ -1,8 +1,8 @@
 import 'dart:developer' as dev;
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gemmea/core/utils/text_sanitizer.dart';
-import 'package:gemmea/data/datasources/sqlite_helper.dart';
+import 'package:juamea/core/utils/text_sanitizer.dart';
+import 'package:juamea/data/datasources/sqlite_helper.dart';
 import '../../data/datasources/gemma_local_source.dart';
 
 abstract class ScanState {}

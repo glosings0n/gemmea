@@ -1,10 +1,10 @@
 import 'dart:developer' as dev;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gemmea/data/datasources/sqlite_helper.dart';
-import 'package:gemmea/domain/entities/calendar_event.dart';
-import 'package:gemmea/domain/entities/diagnostic_result.dart';
-import 'package:gemmea/domain/usecases/calendar_usecases.dart';
-import 'package:gemmea/domain/usecases/diagnostic_usecases.dart';
+import 'package:juamea/data/datasources/sqlite_helper.dart';
+import 'package:juamea/domain/entities/calendar_event.dart';
+import 'package:juamea/domain/entities/diagnostic_result.dart';
+import 'package:juamea/domain/usecases/calendar_usecases.dart';
+import 'package:juamea/domain/usecases/diagnostic_usecases.dart';
 
 abstract class HomeState {}
 

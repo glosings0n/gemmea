@@ -1,11 +1,11 @@
-# Gemmea — Assistant agronomique & gestion agricole 100% hors ligne (`SautiLM-Nuru-Agri` + SQLite FTS5 RAG)
+# Juamea — Assistant agronomique & gestion agricole 100% hors ligne (`SautiLM-Nuru-Agri` + SQLite FTS5 RAG)
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.27+-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![SautiLM-Nuru](https://img.shields.io/badge/SautiLM--Nuru--Agri-TFLite_INT8_1.07MB-4285F4?logo=tensorflow&logoColor=white)](https://huggingface.co/sautilm/SautiLM-Nuru-Agri)
 [![SQLite RAG](https://img.shields.io/badge/SQLite-FTS5_RAG-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/fts5.html)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**Gemmea** est une application mobile d'aide à la décision agronomique conçue pour fonctionner **100% hors ligne, sans aucune connexion internet**. Son nom réunit **"Mmea"** (*plante* ou *culture* en swahili, langue parlée en RDC et en Afrique de l'Est) et **Gemma** (la famille de modèles ouverts de Google).
+**Juamea** est une application mobile d'aide à la décision agronomique conçue pour fonctionner **100% hors ligne, sans aucune connexion internet**. Son nom réunit **"Mmea"** (*plante* ou *culture* en swahili, langue parlée en RDC et en Afrique de l'Est) et **Gemma** (la famille de modèles ouverts de Google).
 
 L'application associe une architecture **collaborative à 2 passes** (**`SautiLM-Nuru-Agri`** `1.074 Mo` en TFLite INT8, `92.06 %` de précision de validation et `92.31 %` Macro-F1 sur `4 032` photos réelles sans aucune image synthétique, avec rejet `non_plant` à `100 %` F1 / seuil `< 0.55`, suivi d'une fiche agronomique structurée déterministe ancrée sur SQLite et d'une synthèse optionnelle LiteRT-LM) exécutée localement sur le téléphone avec une **base de données SQLite FTS5** ([`gemmea_eac_agri.sqlite`](assets/data/gemmea_eac_agri.sqlite) compilée depuis de vrais manuels terrain open-access CGIAR / IITA / CIMMYT / PABRA / TARI / KALRO / INERA / RAB / ISABU couvrant `CD, UG, RW, BI, KE, TZ`, zéro contenu Wikipedia).
 
@@ -13,7 +13,7 @@ L'application associe une architecture **collaborative à 2 passes** (**`SautiLM
 
 ## Origine & Impact Terrain
 
-Développée à Bukavu (Sud-Kivu, Est de la République Démocratique du Congo), **Gemmea** répond au manque d'accès internet fiable en zone rurale face aux menaces phytosanitaires majeures d'Afrique de l'Est et des Grands Lacs :
+Développée à Bukavu (Sud-Kivu, Est de la République Démocratique du Congo), **Juamea** répond au manque d'accès internet fiable en zone rurale face aux menaces phytosanitaires majeures d'Afrique de l'Est et des Grands Lacs :
 * **Mosaïque du Manioc** (*CMD*) & **Strie Brune** (*CBSD*)
 * **Rouille Commune du Maïs** (*Puccinia sorghi*) & **Chenille Légionnaire d'Automne** (*FAW*)
 * **Cercosporiose Noire du Bananier** (*Black Sigatoka*) & **Flétrissement Bactérien du Bananier** (*BXW*)
@@ -58,7 +58,7 @@ Développée à Bukavu (Sud-Kivu, Est de la République Démocratique du Congo),
 * **Calendrier Régional 6 Pays EAC/RDC** : `CD` (INERA), `UG` (NARO), `RW` (RAB), `BI` (ISABU), `KE` (KALRO), `TZ` (TARI).
 
 ### 2. Exécution Collaborative sur l'Appareil (`SautiLM-Nuru-Agri` + `LiteRT-LM`)
-* **Pass-1 Vision TFLite Natif (`SautiLM-Nuru-Agri`)** : MobileNetV3-Small quantifié INT8 (`1.074 Mo`, pont natif Kotlin [`NuruVisionInterpreter.kt`](android/app/src/main/kotlin/com/gemmea/app/NuruVisionInterpreter.kt)), entraîné sur `4 032` vraies photos agricoles (`0` image synthétique, `92.06 %` val acc, `92.31 %` Macro-F1, `87.5 %` précision quantifiée INT8 réelle).
+* **Pass-1 Vision TFLite Natif (`SautiLM-Nuru-Agri`)** : MobileNetV3-Small quantifié INT8 (`1.074 Mo`, pont natif Kotlin [`NuruVisionInterpreter.kt`](android/app/src/main/kotlin/com/musantek/juamea/NuruVisionInterpreter.kt)), entraîné sur `4 032` vraies photos agricoles (`0` image synthétique, `92.06 %` val acc, `92.31 %` Macro-F1, `87.5 %` précision quantifiée INT8 réelle).
 * **Court-circuit immédiat (`non_plant` F1 = `1.000`)** : Rejet immédiat avant toute requête RAG/LLM si l'objet photographié n'est pas un végétal ou si la confiance est `< 0.55`.
 * **Gestionnaire Mémoire (`GemmaEngineManager`)** : Verrou d'exécution thread-safe ([`gemma_engine_manager.dart`](lib/core/services/gemma_engine_manager.dart)) sur `flutter_edge_ai` (**LiteRT-LM**).
 
@@ -66,7 +66,7 @@ Développée à Bukavu (Sud-Kivu, Est de la République Démocratique du Congo),
 
 ## Structure du Code & Fichiers Clés
 
-* **Pont Natif Vision TFLite (`SautiLM-Nuru-Agri`)** : [`android/app/src/main/kotlin/com/gemmea/app/NuruVisionInterpreter.kt`](android/app/src/main/kotlin/com/gemmea/app/NuruVisionInterpreter.kt)
+* **Pont Natif Vision TFLite (`SautiLM-Nuru-Agri`)** : [`android/app/src/main/kotlin/com/musantek/juamea/NuruVisionInterpreter.kt`](android/app/src/main/kotlin/com/musantek/juamea/NuruVisionInterpreter.kt)
 * **Moteur et Verrou d'Exécution LiteRT-LM** : [`lib/core/services/gemma_engine_manager.dart`](lib/core/services/gemma_engine_manager.dart)
 * **Base de Données & Moteur RAG SQLite** : [`lib/data/datasources/sqlite_helper.dart`](lib/data/datasources/sqlite_helper.dart)
 * **Pipeline Collaboratif Pass-1 -> RAG -> Pass-2** : [`lib/data/datasources/gemma_local_source.dart`](lib/data/datasources/gemma_local_source.dart)

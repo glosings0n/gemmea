@@ -5,13 +5,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
-import 'package:gemmea/data/datasources/gemma_local_source.dart';
-import 'package:gemmea/data/datasources/sqlite_helper.dart';
+import 'package:juamea/data/datasources/gemma_local_source.dart';
+import 'package:juamea/data/datasources/sqlite_helper.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  const nuruChannel = MethodChannel('com.gemmea.app/nuru_vision');
+  const nuruChannel = MethodChannel('com.musantek.juamea/nuru_vision');
 
   testWidgets('Physical Android Pixel 7: Nuru-Agri TFLite INT8 + SQLite FTS5 RAG stress benchmark', (tester) async {
     // 1. Load real bundled crop photos from assets
@@ -139,6 +139,6 @@ void main() {
     };
     // Emit structured telemetry marker for ADB logcat / flutter test capture
     // ignore: avoid_print
-    print('PIXEL7_GEMMEA_BENCH_JSON=${jsonEncode(summary)}');
+    print('PIXEL7_JUAMEA_BENCH_JSON=${jsonEncode(summary)}');
   });
 }

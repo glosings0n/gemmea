@@ -1,4 +1,4 @@
-import 'package:gemmea/domain/entities/calendar_event.dart';
+import 'package:juamea/domain/entities/calendar_event.dart';
 
 abstract class CalendarRepository {
   Future<List<CalendarEvent>> getCalendarEvents();

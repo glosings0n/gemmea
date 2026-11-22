@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:gemmea/core/core.dart';
-import 'package:gemmea/domain/entities/eac_country_profile.dart';
-import 'package:gemmea/presentation/bloc/bloc.dart';
-import 'package:gemmea/presentation/pages/pages.dart';
+import 'package:juamea/core/core.dart';
+import 'package:juamea/domain/entities/eac_country_profile.dart';
+import 'package:juamea/presentation/bloc/bloc.dart';
+import 'package:juamea/presentation/pages/pages.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

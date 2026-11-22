@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_edge_ai/flutter_edge_ai.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:gemmea/core/core.dart';
-import 'package:gemmea/presentation/bloc/bloc.dart';
+import 'package:juamea/core/core.dart';
+import 'package:juamea/presentation/bloc/bloc.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -205,7 +205,7 @@ class _ChatPageState extends State<ChatPage> {
                       ),
                       const SizedBox(width: AppSize.p8),
                       const Text(
-                        "Gemmea",
+                        "Juamea",
                         style: TextStyle(
                           fontFamily: 'Fredoka',
                           fontWeight: FontWeight.bold,

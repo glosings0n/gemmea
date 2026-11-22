@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemmea/data/datasources/sqlite_helper.dart';
-import 'package:gemmea/data/repositories/chat_repository_impl.dart';
-import 'package:gemmea/domain/entities/eac_country_profile.dart';
+import 'package:juamea/data/datasources/sqlite_helper.dart';
+import 'package:juamea/data/repositories/chat_repository_impl.dart';
+import 'package:juamea/domain/entities/eac_country_profile.dart';
 
 void main() {
   group('Gemmea 6-Country EAC SQLite RAG & Agronomy Calculators', () {

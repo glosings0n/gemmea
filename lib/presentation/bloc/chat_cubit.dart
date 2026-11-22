@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_edge_ai/flutter_edge_ai.dart';
-import 'package:gemmea/core/services/gemma_engine_manager.dart';
-import 'package:gemmea/domain/usecases/calendar_usecases.dart';
-import 'package:gemmea/domain/usecases/chat_usecases.dart';
+import 'package:juamea/core/services/gemma_engine_manager.dart';
+import 'package:juamea/domain/usecases/calendar_usecases.dart';
+import 'package:juamea/domain/usecases/chat_usecases.dart';
 
 abstract class ChatState {}
 
@@ -69,7 +69,7 @@ class ChatCubit extends Cubit<ChatState> {
       final messages = await getChatMessages();
       if (messages.isEmpty) {
         final welcome = Message.text(
-          text: "Jambo 👋🏾 ! Je suis Gemmea, votre assistant agronome 100% hors ligne. Posez-moi vos questions sur le manioc, l'espacement du maïs, les pesticides biologiques à base de neem ou l'état de la pluie pour mettre à jour votre calendrier d'irrigation !",
+          text: "Jambo 👋🏾 ! Je suis Juamea, votre assistant agronome 100% hors ligne. Posez-moi vos questions sur le manioc, l'espacement du maïs, les pesticides biologiques à base de neem ou l'état de la pluie pour mettre à jour votre calendrier d'irrigation !",
           isUser: false,
         );
         emit(ChatLoaded(messages: [welcome], isStreaming: false));
@@ -212,7 +212,7 @@ class ChatCubit extends Cubit<ChatState> {
       dev.log("Clearing chat conversation...", name: 'CHAT_CUBIT');
       await clearChat();
       final welcome = Message.text(
-        text: "Jambo 👋🏾 ! Je suis Gemmea, votre assistant agronome 100% hors ligne. Posez-moi vos questions sur le manioc, l'espacement du maïs, les pesticides biologiques à base de neem ou l'état de la pluie pour mettre à jour votre calendrier d'irrigation !",
+        text: "Jambo 👋🏾 ! Je suis Juamea, votre assistant agronome 100% hors ligne. Posez-moi vos questions sur le manioc, l'espacement du maïs, les pesticides biologiques à base de neem ou l'état de la pluie pour mettre à jour votre calendrier d'irrigation !",
         isUser: false,
       );
       emit(ChatLoaded(messages: [welcome], isStreaming: false));

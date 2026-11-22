@@ -1,7 +1,7 @@
 import 'dart:developer' as dev;
-import 'package:gemmea/data/datasources/sqlite_helper.dart';
-import 'package:gemmea/domain/entities/calendar_event.dart';
-import 'package:gemmea/domain/repositories/calendar_repository.dart';
+import 'package:juamea/data/datasources/sqlite_helper.dart';
+import 'package:juamea/domain/entities/calendar_event.dart';
+import 'package:juamea/domain/repositories/calendar_repository.dart';
 
 class CalendarRepositoryImpl implements CalendarRepository {
   final SQLiteHelper dbHelper = SQLiteHelper.instance;

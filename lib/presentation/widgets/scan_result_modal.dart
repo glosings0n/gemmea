@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:gemmea/core/core.dart';
-import 'package:gemmea/presentation/bloc/bloc.dart';
+import 'package:juamea/core/core.dart';
+import 'package:juamea/presentation/bloc/bloc.dart';
 
 class ScanResultModal extends StatelessWidget {
   final File capturedImage;
@@ -27,7 +27,7 @@ class ScanResultModal extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                "Analyse de Culture Gemmea",
+                "Analyse de Culture Juamea",
                 style: TextStyle(
                   fontFamily: 'Fredoka',
                   fontWeight: FontWeight.bold,

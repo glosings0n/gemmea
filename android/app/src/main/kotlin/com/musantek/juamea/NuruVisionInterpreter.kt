@@ -1,4 +1,4 @@
-package com.gemmea.app
+package com.musantek.juamea
 
 import android.content.Context
 import android.graphics.Bitmap

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemmea/core/services/pdf_report_service.dart';
+import 'package:juamea/core/services/pdf_report_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

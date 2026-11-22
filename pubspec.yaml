@@ -1,5 +1,5 @@
-name: gemmea
-description: "Gemmea: Assistant agronomique IA hors ligne pour les agriculteurs de l'Est de la RDC et de l'Afrique de l'Est."
+name: juamea
+description: "Juamea: Assistant agronomique IA hors ligne pour les agriculteurs de l'Est de la RDC et de l'Afrique de l'Est."
 publish_to: 'none'
 version: 0.1.0+1
 
