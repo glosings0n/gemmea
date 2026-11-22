@@ -424,6 +424,35 @@ class GemmaLocalSourceImpl implements GemmaLocalSource {
     return usesExternalPipeline ? runEvaluation() : GemmaEngineManager.runWithLock(runEvaluation);
   }
 
+  /// Deterministic zero-hallucination structured agronomy card rendered strictly from
+  /// SautiLM-Nuru-Agri visual triage + verified `gemmea_eac_agri.sqlite` CGIAR/IITA/NARS records.
+  /// Used whenever a free-form 270M/VLM pass is unavailable or disabled for safety.
+  static String buildDeterministicAgronomyReport({
+    required NuruVisionClassification classification,
+    required String faoContext,
+  }) {
+    if (!classification.isPlantLeaf) {
+      return kNonLeafRejectionMessage;
+    }
+    final confPct = (classification.confidence * 100).clamp(0, 100).round();
+    final disease = classification.diseaseHint.isEmpty
+        ? 'À confirmer par un agronome local'
+        : classification.diseaseHint;
+    return '''
+### 1. DIAGNOSTIC PRINCIPAL (SautiLM-Nuru-Agri + SQLite FTS5)
+- Culture : ${classification.cropLabel}
+- Maladie : $disease
+- Niveau de confiance (TFLite INT8) : $confPct%
+- Observations visuelles : ${classification.visualObservations}
+
+### 2. PROTOCOLES & REMÈDES VÉRIFIÉS (CGIAR / IITA / NARS)
+$faoContext
+
+### 3. NOTE DE RIGUEUR TERRAIN
+Ce bilan repose strictement sur la classification visuelle SautiLM-Nuru-Agri et la base agronomique hors ligne vérifiée (`gemmea_eac_agri.sqlite`). Aucun dosage chimique n'est inventé hors protocole officiel ; consulter les services NARS (INERA, NARO, RAB, ISABU, KALRO, TARI) en cas de doute.
+'''.trim();
+  }
+
   Future<String> _runDefaultVlmSynthesis({
     required Uint8List imageBytes,
     required NuruVisionClassification classification,

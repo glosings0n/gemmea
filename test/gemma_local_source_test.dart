@@ -198,6 +198,21 @@ SYMPTOMS: pustules brun-rougeâtres le long des feuilles
       expect(detected.isPlantLeaf, isTrue);
       expect(detected.cropLabel, 'Manioc');
       expect(detected.diseaseHint, contains('CMD'));
+
+      final detReport = GemmaLocalSourceImpl.buildDeterministicAgronomyReport(
+        classification: detected,
+        faoContext: 'Extrait #1 - IITA Cassava CMD: utiliser des boutures saines.',
+      );
+      expect(detReport, contains('Manioc'));
+      expect(detReport, contains('CMD'));
+      expect(detReport, contains('IITA Cassava CMD'));
+      expect(
+        GemmaLocalSourceImpl.buildDeterministicAgronomyReport(
+          classification: const NuruVisionClassification(isPlantLeaf: false, cropLabel: 'non_plant'),
+          faoContext: '',
+        ),
+        equals(kNonLeafRejectionMessage),
+      );
     });
   });
 }
