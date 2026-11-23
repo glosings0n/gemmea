@@ -75,6 +75,7 @@ class JuameaApp extends StatelessWidget {
             clearChat: ClearChat(chatRepo),
             addCalendarEvent: AddCalendarEvent(calendarRepo),
             updateRainStatus: UpdateRainStatus(calendarRepo),
+            checkModelInstalled: CheckModelInstalled(chatRepo),
           ),
         ),
         BlocProvider<ScanCubit>(

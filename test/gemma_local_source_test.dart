@@ -165,12 +165,23 @@ SYMPTOMS: pustules brun-rougeâtres le long des feuilles
       expect(capturedFaoContext, contains('AUCUNE FICHE FAO/NARS SPÉCIFIQUE TROUVÉE'));
     });
 
-    test('NuruTfliteDecoder & TfliteNuruVisionClassifier decode INT8 probabilities and enforce abstention', () async {
+    test('NuruTfliteDecoder & TfliteNuruVisionClassifier decode INT8 probabilities and distinguish real leaves from non-plant images', () async {
       final nonPlant = NuruTfliteDecoder.fromOutputProbabilities([0.92, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01]);
       expect(nonPlant.isPlantLeaf, isFalse);
 
-      final lowConf = NuruTfliteDecoder.fromOutputProbabilities([0.10, 0.25, 0.35, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]);
-      expect(lowConf.isPlantLeaf, isFalse);
+      // Ambiguous high non_plant probability (>= 45%) or flat noise (< 30% max) still rejects
+      final ambiguousNonPlant = NuruTfliteDecoder.fromOutputProbabilities([0.48, 0.22, 0.12, 0.05, 0.03, 0.03, 0.03, 0.02, 0.02]);
+      expect(ambiguousNonPlant.isPlantLeaf, isFalse);
+      final flatNoise = NuruTfliteDecoder.fromOutputProbabilities([0.12, 0.12, 0.12, 0.11, 0.11, 0.11, 0.11, 0.10, 0.10]);
+      expect(flatNoise.isPlantLeaf, isFalse);
+
+      // Real leaf with low non_plant (5%) and split disease certainty (42% CMD vs 25% healthy)
+      // MUST NOT falsely say "Feuille non détectée"!
+      final moderateLeaf = NuruTfliteDecoder.fromOutputProbabilities([0.05, 0.25, 0.42, 0.12, 0.05, 0.03, 0.03, 0.03, 0.02]);
+      expect(moderateLeaf.isPlantLeaf, isTrue);
+      expect(moderateLeaf.cropLabel, 'Manioc');
+      expect(moderateLeaf.diseaseHint, contains('à confirmer'));
+      expect(moderateLeaf.confidence, closeTo(0.42, 0.001));
 
       final cbsd = NuruTfliteDecoder.fromOutputProbabilities([0.01, 0.02, 0.03, 0.87, 0.02, 0.02, 0.01, 0.01, 0.01]);
       expect(cbsd.isPlantLeaf, isTrue);

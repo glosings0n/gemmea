@@ -1,10 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:juamea/core/core.dart';
 import 'package:juamea/presentation/presentation.dart';
 
@@ -22,15 +20,6 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
     const HomePage(),
     const ChatPage(),
   ];
-
-  Future<File> _copyAssetToFile(String assetPath) async {
-    final byteData = await rootBundle.load(assetPath);
-    final directory = await getTemporaryDirectory();
-    final fileName = assetPath.split('/').last;
-    final file = File('${directory.path}/$fileName');
-    await file.writeAsBytes(byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
-    return file;
-  }
 
   void _executeCropScan(File imageFile) {
     context.read<ScanCubit>().analyzeCrop(imageFile);
@@ -63,21 +52,21 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
     );
   }
 
-  Future<void> _triggerRealCameraScan() async {
+  Future<void> _pickAndScanImage(ImageSource source) async {
     final picker = ImagePicker();
     XFile? image;
     try {
       image = await picker.pickImage(
-        source: ImageSource.camera,
-        maxWidth: 512,
-        maxHeight: 512,
-        imageQuality: 85,
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 90,
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Erreur appareil photo : $e"),
+          content: Text("Impossible d'ouvrir l'image : $e"),
           backgroundColor: AppColors.errorRed,
         ),
       );
@@ -105,7 +94,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "Sélectionner la source du scan",
+                  "Scanner une feuille",
                   style: TextStyle(
                     fontFamily: 'Figtree',
                     fontSize: 18,
@@ -115,7 +104,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                 ),
                 const SizedBox(height: AppSize.p8),
                 const Text(
-                  "Effectuez un vrai scan hors ligne avec votre appareil photo ou sélectionnez l'un de nos fichiers de simulation intégrés pour un test immédiat.",
+                  "Analysez une photo réelle de votre culture hors ligne avec SautiLM-Nuru-Agri.",
                   style: TextStyle(
                     fontFamily: 'Figtree',
                     fontSize: 13,
@@ -125,44 +114,21 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                 const SizedBox(height: AppSize.p20),
                 _buildSourceTile(
                   icon: AppIcons.scan,
-                  title: "Scan de culture par caméra saine",
-                  subtitle: "Prenez une photo de feuille en temps réel avec votre appareil photo",
+                  title: "Prendre une photo",
+                  subtitle: "Capturer une feuille en direct avec la caméra",
                   onTap: () {
                     Navigator.pop(context);
-                    _triggerRealCameraScan();
+                    _pickAndScanImage(ImageSource.camera);
                   },
                 ),
                 const Divider(height: 1, color: Color(0xFFEEEEEE)),
                 _buildSourceTile(
-                  icon: AppIcons.alert,
-                  title: "Scan de Mosaïque du Manioc",
-                  subtitle: "Simuler une feuille de manioc affectée par la mosaïque",
-                  onTap: () async {
+                  icon: AppIcons.gallery,
+                  title: "Choisir une photo",
+                  subtitle: "Importer une photo réelle depuis votre galerie",
+                  onTap: () {
                     Navigator.pop(context);
-                    final file = await _copyAssetToFile("assets/images/cassava_mosaic.png");
-                    _executeCropScan(file);
-                  },
-                ),
-                const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                _buildSourceTile(
-                  icon: AppIcons.calendar,
-                  title: "Scan de Rouille du Maïs",
-                  subtitle: "Simuler une feuille de maïs affectée par la rouille commune",
-                  onTap: () async {
-                    Navigator.pop(context);
-                    final file = await _copyAssetToFile("assets/images/maize_rust.png");
-                    _executeCropScan(file);
-                  },
-                ),
-                const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                _buildSourceTile(
-                  icon: AppIcons.scan,
-                  title: "Scan de feuille saine",
-                  subtitle: "Simuler une feuille de culture saine et verte",
-                  onTap: () async {
-                    Navigator.pop(context);
-                    final file = await _copyAssetToFile("assets/images/healthy_leaf.png");
-                    _executeCropScan(file);
+                    _pickAndScanImage(ImageSource.gallery);
                   },
                 ),
               ],

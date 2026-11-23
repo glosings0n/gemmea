@@ -174,8 +174,11 @@ class ScanCubit extends Cubit<ScanState> {
         }
       }
 
-      // 4. Extract Confidence Score
-      final confidenceMatch = RegExp(r'(?:confiance|Niveau)\s*:\s*(\d{1,3})\s*%', caseSensitive: false).firstMatch(cleanDiagnostic);
+      // 4. Extract real Confidence Score (supports "Niveau de confiance (TFLite INT8) : 84%" and "Confiance : 84%")
+      final confidenceMatch = RegExp(
+        r'(?:confiance|Niveau)[^:\n]*:\s*(\d{1,3})\s*%',
+        caseSensitive: false,
+      ).firstMatch(cleanDiagnostic);
       if (confidenceMatch != null && confidenceMatch.group(1) != null) {
         final parsed = double.tryParse(confidenceMatch.group(1)!);
         if (parsed != null && parsed > 0 && parsed <= 100) {

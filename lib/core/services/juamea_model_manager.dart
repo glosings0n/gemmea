@@ -6,6 +6,18 @@ import 'package:http/http.dart' as http;
 import 'package:juamea/core/services/gemma_engine_manager.dart';
 import 'package:path_provider/path_provider.dart';
 
+/// Thrown when the optional local chat model (`SautiLM-Jua-Agri`) has not been downloaded yet.
+class ModelNotInstalledException implements Exception {
+  final String message;
+  const ModelNotInstalledException([
+    this.message =
+        "Le modèle IA SautiLM-Jua-Agri n'est pas encore téléchargé sur cet appareil.",
+  ]);
+
+  @override
+  String toString() => message;
+}
+
 enum JuameaModelUpdateStatus {
   upToDate,
   updateAvailable,

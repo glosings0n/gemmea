@@ -96,7 +96,7 @@ class ScanResultModal extends StatelessWidget {
                                 CircularProgressIndicator(color: AppColors.primaryForestGreen),
                                 SizedBox(height: 12),
                                 Text(
-                                  "Gemma analyse l'image de la feuille hors ligne...",
+                                  "SautiLM-Nuru-Agri analyse la feuille hors ligne...",
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontFamily: 'Figtree',

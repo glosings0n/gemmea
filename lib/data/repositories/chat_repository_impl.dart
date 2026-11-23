@@ -210,7 +210,7 @@ class ChatRepositoryImpl implements ChatRepository {
 
       if (modelFile == null || !await modelFile.exists()) {
         dev.log("Model file not found locally in private vault", name: 'CHAT_REPO_IMPL');
-        throw Exception("Le modèle local SautiLM-Jua-Agri (283 Mo) n'est pas encore téléchargé. Ouvrez « Moteurs IA & Stockage » pour le télécharger dans le coffre privé.");
+        throw const ModelNotInstalledException();
       }
 
       // Fetch dynamic RAG context for the specific user query only if it's a technical query (not a simple greeting)

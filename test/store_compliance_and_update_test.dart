@@ -19,6 +19,19 @@ void main() {
       expect(manifest, contains('android:required="false"'));
     });
 
+    test('Zero default demo/mock leaf images remain bundled in Juamea', () {
+      expect(File('assets/images/cassava_mosaic.png').existsSync(), isFalse);
+      expect(File('assets/images/maize_rust.png').existsSync(), isFalse);
+      expect(File('assets/images/healthy_leaf.png').existsSync(), isFalse);
+      final pubspec = File('pubspec.yaml').readAsStringSync();
+      expect(pubspec, isNot(contains('cassava_mosaic.png')));
+      expect(pubspec, isNot(contains('maize_rust.png')));
+      expect(pubspec, isNot(contains('healthy_leaf.png')));
+      final nav = File('lib/presentation/pages/main_navigation_holder.dart').readAsStringSync();
+      expect(nav, isNot(contains('Simuler')));
+      expect(nav, isNot(contains('cassava_mosaic')));
+    });
+
     test('Shorebird OTA release & patch configuration is present', () {
       final shorebirdYaml = File('shorebird.yaml').readAsStringSync();
       final pubspec = File('pubspec.yaml').readAsStringSync();

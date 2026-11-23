@@ -14,6 +14,7 @@ class MockGetGemmaResponseStream extends Mock implements GetGemmaResponseStream 
 class MockClearChat extends Mock implements ClearChat {}
 class MockAddCalendarEvent extends Mock implements AddCalendarEvent {}
 class MockUpdateRainStatus extends Mock implements UpdateRainStatus {}
+class MockCheckModelInstalled extends Mock implements CheckModelInstalled {}
 
 class FakeMessage extends Fake implements Message {}
 class FakeCalendarEvent extends Fake implements CalendarEvent {}
@@ -165,6 +166,34 @@ void main() {
       verify: (_) {
         verify(() => mockUpdateRainStatus.call(any(), true)).called(2);
         verify(() => mockSaveChatMessage.call(any())).called(2); // user and model final responses
+      },
+    );
+
+    blocTest<ChatCubit, ChatState>(
+      'sendMessage invites user to download model when SautiLM-Jua-Agri is missing',
+      build: () {
+        final mockCheck = MockCheckModelInstalled();
+        when(() => mockCheck.call()).thenAnswer((_) async => false);
+        final cubit = ChatCubit(
+          getChatMessages: mockGetChatMessages,
+          saveChatMessage: mockSaveChatMessage,
+          getGemmaResponseStream: mockGetGemmaResponseStream,
+          clearChat: mockClearChat,
+          addCalendarEvent: mockAddCalendarEvent,
+          updateRainStatus: mockUpdateRainStatus,
+          checkModelInstalled: mockCheck,
+        );
+        cubit.emit(ChatLoaded(messages: [], isStreaming: false, isModelMissing: true));
+        return cubit;
+      },
+      act: (cubit) => cubit.sendMessage('Comment traiter le manioc ?'),
+      expect: () => [
+        isA<ChatLoaded>()
+            .having((s) => s.isModelMissing, 'isModelMissing', isTrue)
+            .having((s) => s.messages.last.text, 'download prompt', equals(kJuameaMissingModelPrompt)),
+      ],
+      verify: (_) {
+        verifyNever(() => mockGetGemmaResponseStream.call(any(), any()));
       },
     );
   });

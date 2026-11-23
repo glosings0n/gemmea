@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory
 import io.flutter.FlutterInjector
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
-import java.io.File
 import java.io.FileInputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -14,13 +13,14 @@ import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 
 /**
- * Native INT8 TFLite vision runner for SautiLM-Nuru-Agri (224x224x3 uint8 -> 9-class probabilities).
- * Returns null cleanly when `assets/models/sautilm-nuru-agri.tflite` has not yet been installed.
+ * Native INT8 LiteRT/TFLite vision runner for SautiLM-Nuru-Agri (224x224x3 -> 9-class probabilities).
+ * Loads exclusively from the bundled APK asset `assets/models/sautilm-nuru-agri.tflite`
+ * and center-crops rectangular camera photos to square aspect ratio before resizing to 224x224
+ * so leaf veins and mosaic lesions are never distorted.
  */
 class NuruVisionInterpreter(private val context: Context) {
     companion object {
         private const val ASSET_KEY = "assets/models/sautilm-nuru-agri.tflite"
-        private const val SHARED_MODEL_PATH = "/storage/emulated/0/Download/Gemma/sautilm-nuru-agri.tflite"
         private const val INPUT_SIZE = 224
         private const val NUM_CLASSES = 9
     }
@@ -28,13 +28,6 @@ class NuruVisionInterpreter(private val context: Context) {
     private var interpreter: Interpreter? = null
 
     private fun loadModelBuffer(): ByteBuffer? {
-        val sharedFile = File(SHARED_MODEL_PATH)
-        if (sharedFile.exists() && sharedFile.length() > 1024) {
-            FileInputStream(sharedFile).use { fis ->
-                val channel = fis.channel
-                return channel.map(FileChannel.MapMode.READ_ONLY, 0, sharedFile.length())
-            }
-        }
         return try {
             val lookupKey = FlutterInjector.instance().flutterLoader().getLookupKeyForAsset(ASSET_KEY)
             try {
@@ -61,9 +54,19 @@ class NuruVisionInterpreter(private val context: Context) {
                 }
             }
         } catch (e: Exception) {
-            android.util.Log.e("NuruVisionInterpreter", "Failed to load $ASSET_KEY", e)
+            android.util.Log.e("JuameaNuru", "Failed to load $ASSET_KEY", e)
             null
         }
+    }
+
+    private fun centerSquareCrop(src: Bitmap): Bitmap {
+        val w = src.width
+        val h = src.height
+        if (w == h) return src
+        val side = minOf(w, h)
+        val x = (w - side) / 2
+        val y = (h - side) / 2
+        return Bitmap.createBitmap(src, x, y, side, side)
     }
 
     fun classify(imageBytes: ByteArray): List<Double>? {
@@ -73,7 +76,8 @@ class NuruVisionInterpreter(private val context: Context) {
         }
 
         val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size) ?: return null
-        val scaled = Bitmap.createScaledBitmap(bitmap, INPUT_SIZE, INPUT_SIZE, true)
+        val square = centerSquareCrop(bitmap)
+        val scaled = Bitmap.createScaledBitmap(square, INPUT_SIZE, INPUT_SIZE, true)
         val pixels = IntArray(INPUT_SIZE * INPUT_SIZE)
         scaled.getPixels(pixels, 0, INPUT_SIZE, 0, 0, INPUT_SIZE, INPUT_SIZE)
 
@@ -100,7 +104,7 @@ class NuruVisionInterpreter(private val context: Context) {
             }
         }
 
-        return if (outType == DataType.FLOAT32) {
+        val probs = if (outType == DataType.FLOAT32) {
             val output = Array(1) { FloatArray(NUM_CLASSES) }
             interp.run(inputBuffer, output)
             output[0].map { f -> f.toDouble().coerceIn(0.0, 1.0) }
@@ -109,5 +113,15 @@ class NuruVisionInterpreter(private val context: Context) {
             interp.run(inputBuffer, output)
             output[0].map { b -> (b.toInt() and 0xFF) / 255.0 }
         }
+
+        if (square !== bitmap) square.recycle()
+        if (scaled !== square && scaled !== bitmap) scaled.recycle()
+        bitmap.recycle()
+
+        android.util.Log.i(
+            "JuameaNuru",
+            "SautiLM-Nuru-Agri (${inType}/${outType}) probs=${probs.map { "%.3f".format(it) }}"
+        )
+        return probs
     }
 }

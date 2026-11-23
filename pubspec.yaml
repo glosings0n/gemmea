@@ -44,9 +44,6 @@ flutter:
     - assets/data/
     - assets/models/
     - assets/images/logo.png
-    - assets/images/cassava_mosaic.png
-    - assets/images/maize_rust.png
-    - assets/images/healthy_leaf.png
     - shorebird.yaml
   fonts:
     - family: Figtree

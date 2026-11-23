@@ -152,7 +152,9 @@ typedef CropSynthesisGenerator = Future<String> Function({
 class NuruTfliteDecoder {
   NuruTfliteDecoder._();
 
-  static const double defaultAbstentionThreshold = 0.55;
+  static const double defaultAbstentionThreshold = 0.50;
+  static const double nonPlantRejectThreshold = 0.45;
+  static const double minimumPlantClassProb = 0.30;
 
   static const List<String> labels = [
     'non_plant',
@@ -224,24 +226,56 @@ class NuruTfliteDecoder {
 
     var bestIdx = 0;
     var bestProb = probabilities.first;
+    var secondIdx = -1;
+    var secondProb = -1.0;
     for (var i = 1; i < probabilities.length; i++) {
-      if (probabilities[i] > bestProb) {
-        bestProb = probabilities[i];
+      final p = probabilities[i];
+      if (p > bestProb) {
+        secondProb = bestProb;
+        secondIdx = bestIdx;
+        bestProb = p;
         bestIdx = i;
+      } else if (p > secondProb) {
+        secondProb = p;
+        secondIdx = i;
       }
     }
 
+    final nonPlantProb = probabilities[0];
     final bestLabel = labels[bestIdx];
-    if (bestLabel == 'non_plant' || bestProb < threshold) {
+
+    // Reject as non-leaf ONLY when `non_plant` wins, `non_plant` probability is high (>= 45%),
+    // or the entire distribution is flat noise (< 30% on any class).
+    // Never falsely tell the farmer "Feuille non détectée" when total plant probability is high!
+    if (bestLabel == 'non_plant' ||
+        nonPlantProb >= nonPlantRejectThreshold ||
+        bestProb < minimumPlantClassProb) {
       return NuruVisionClassification(
         isPlantLeaf: false,
         cropLabel: 'non_plant',
-        diseaseHint: 'Objet non végétal ou confiance insuffisante (< ${(threshold * 100).round()}%)',
+        diseaseHint: 'Objet non végétal ou image trop floue pour identification',
         confidence: bestProb,
       );
     }
 
     final info = _meta[bestLabel]!;
+    if (bestProb < threshold) {
+      final runnerUp = (secondIdx > 0 && _meta.containsKey(labels[secondIdx]))
+          ? _meta[labels[secondIdx]]!.disease
+          : null;
+      final confPct = (bestProb * 100).round();
+      final extraHint = runnerUp != null
+          ? ' Confiance modérée ($confPct %) — hypothèse secondaire : $runnerUp. Reprenez une photo nette en lumière naturelle pour affiner.'
+          : ' Confiance modérée ($confPct %) — reprenez une photo nette en lumière naturelle pour confirmer.';
+      return NuruVisionClassification(
+        isPlantLeaf: true,
+        cropLabel: info.crop,
+        diseaseHint: '${info.disease} (à confirmer)',
+        visualObservations: '${info.obs}$extraHint',
+        confidence: bestProb,
+      );
+    }
+
     return NuruVisionClassification(
       isPlantLeaf: true,
       cropLabel: info.crop,

@@ -223,13 +223,19 @@ class _ChatPageState extends State<ChatPage> {
                       IconButton(
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
-                        onPressed: () => JuameaModelModal.show(context),
+                        onPressed: () async {
+                          final chatCubit = context.read<ChatCubit>();
+                          await JuameaModelModal.show(context);
+                          if (mounted) {
+                            chatCubit.refreshModelStatus();
+                          }
+                        },
                         icon: const HugeIcon(
                           icon: AppIcons.download,
                           color: AppColors.primaryForestGreen,
                           size: AppSize.iconMd,
                         ),
-                        tooltip: "Moteurs IA & Stockage Privé",
+                        tooltip: "Modèle IA",
                       ),
                       const SizedBox(width: 14),
                       IconButton(
@@ -362,6 +368,66 @@ class _ChatPageState extends State<ChatPage> {
                             ),
                           ),
                         ),
+
+                        // Direct download prompt banner when optional chat model is not installed yet
+                        if (state.isModelMissing)
+                          Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.fromLTRB(AppSize.p16, 4, AppSize.p16, 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryForestGreen.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: AppColors.primaryForestGreen.withValues(alpha: 0.25),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    "Modèle IA requis pour le chat hors ligne.",
+                                    style: TextStyle(
+                                      fontFamily: 'Figtree',
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textCharcoal,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    final chatCubit = context.read<ChatCubit>();
+                                    await JuameaModelModal.show(context);
+                                    if (mounted) {
+                                      chatCubit.refreshModelStatus();
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primaryForestGreen,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 8,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    "Télécharger",
+                                    style: TextStyle(
+                                      fontFamily: 'Figtree',
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
 
                         // Text Input area
                         _buildMessageInput(state.isStreaming),
@@ -606,6 +672,43 @@ class _ChatPageState extends State<ChatPage> {
                             ),
                           ),
                         ),
+                        if (message.text == kJuameaMissingModelPrompt) ...[
+                          const SizedBox(height: 12.0),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                final chatCubit = context.read<ChatCubit>();
+                                await JuameaModelModal.show(context);
+                                if (mounted) {
+                                  chatCubit.refreshModelStatus();
+                                }
+                              },
+                              icon: const HugeIcon(
+                                icon: AppIcons.download,
+                                size: 18.0,
+                                color: Colors.white,
+                              ),
+                              label: const Text(
+                                "Télécharger le modèle",
+                                style: TextStyle(
+                                  fontFamily: 'Figtree',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13.5,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryForestGreen,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                         if (isLastAndStreaming) ...[
                           const SizedBox(height: 8.0),
                           const ThreeDotBounce(
