@@ -13,9 +13,13 @@ class SQLiteHelper {
   static Database? _eacDatabase;
   static SqlRawQueryRunner? _testEacRunner;
   static String _cachedCountryCode = 'CD';
+  static String _cachedLanguageCode = 'fr';
 
   /// Active EAC/DRC country code synchronously readable across repositories.
   static String get currentCountryCode => _cachedCountryCode;
+
+  /// Active Juamea UI & AI response language code (`fr`, `en`, `sw`).
+  static String get currentLanguageCode => _cachedLanguageCode;
 
   SQLiteHelper._init();
 
@@ -492,6 +496,47 @@ class SQLiteHelper {
       );
     } catch (e) {
       dev.log('Country save note: $e', name: 'SQLITE_HELPER');
+    }
+  }
+
+  Future<String> getSelectedLanguageCode() async {
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      return _cachedLanguageCode;
+    }
+    try {
+      final db = await database;
+      final rows = await db.query(
+        'app_settings',
+        where: 'key = ?',
+        whereArgs: ['selected_app_language'],
+        limit: 1,
+      );
+      if (rows.isNotEmpty) {
+        final val = (rows.first['value'] ?? 'fr').toString().trim().toLowerCase();
+        if (val == 'fr' || val == 'en' || val == 'sw') {
+          _cachedLanguageCode = val;
+          return val;
+        }
+      }
+    } catch (_) {}
+    return _cachedLanguageCode;
+  }
+
+  Future<void> setSelectedLanguageCode(String code) async {
+    final normalized = code.trim().toLowerCase();
+    if (normalized != 'fr' && normalized != 'en' && normalized != 'sw') return;
+    _cachedLanguageCode = normalized;
+    if (Platform.environment.containsKey('FLUTTER_TEST')) return;
+    try {
+      final db = await database;
+      await _createSettingsTable(db);
+      await db.insert(
+        'app_settings',
+        {'key': 'selected_app_language', 'value': normalized},
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } catch (e) {
+      dev.log('Language save note: $e', name: 'SQLITE_HELPER');
     }
   }
 

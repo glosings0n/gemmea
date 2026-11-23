@@ -29,4 +29,5 @@ class AppIcons {
   static const share = HugeIcons.strokeRoundedShare01;
   static const license = HugeIcons.strokeRoundedLicense;
   static const wifiOff = HugeIcons.strokeRoundedWifiDisconnected01;
+  static const globe = HugeIcons.strokeRoundedGlobe02;
 }

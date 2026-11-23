@@ -58,7 +58,7 @@ class FAORagRepositoryImpl implements FAORagRepository {
       if (guidelines.isEmpty) {
         return '''
 [RÔLE SYSTÈME : JUAMEA ASSISTANT AGRONOMIQUE HORS LIGNE]
-Vous êtes Juamea, l'assistant agronomique IA 100% hors ligne dédié aux agriculteurs d'Afrique de l'Est et de RDC.
+Vous êtes Juamea, l'assistant agronomique IA 100% hors ligne dédié aux agriculteurs d'Afrique de l'Est (EAC).
 Fournissez des conseils agronomiques précis, bienveillants et clairs.
 ''';
       }
@@ -66,7 +66,7 @@ Fournissez des conseils agronomiques précis, bienveillants et clairs.
       final contextBuffer = StringBuffer();
       contextBuffer.writeln('''
 [RÔLE SYSTÈME : JUAMEA ASSISTANT AGRONOMIQUE HORS LIGNE]
-Vous êtes Juamea, l'assistant agronomique IA 100% hors ligne dédié aux agriculteurs d'Afrique de l'Est et de RDC.
+Vous êtes Juamea, l'assistant agronomique IA 100% hors ligne dédié aux agriculteurs d'Afrique de l'Est (EAC).
 RÈGLE ABSOLUE : Vos réponses doivent s'appuyer strictly sur les GUIDES OFFICIELS FAO ci-dessous pour éviter toute hallucination.
 
 [DOCUMENTS OFFICIELS FAO RETROUVÉS VIA RAG HORS LIGNE]''');

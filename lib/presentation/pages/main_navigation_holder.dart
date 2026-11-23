@@ -53,6 +53,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
   }
 
   Future<void> _pickAndScanImage(ImageSource source) async {
+    final strings = context.read<LocaleCubit>().state.strings;
     final picker = ImagePicker();
     XFile? image;
     try {
@@ -66,7 +67,7 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Impossible d'ouvrir l'image : $e"),
+          content: Text("${strings.imageOpenErrorPrefix} : $e"),
           backgroundColor: AppColors.errorRed,
         ),
       );
@@ -79,10 +80,11 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
   }
 
   void _showScanSourceSelector() {
+    final strings = context.read<LocaleCubit>().state.strings;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) {
+      builder: (sheetCtx) {
         return Material(
           color: AppColors.cardCleanWhite,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSize.r24)),
@@ -93,9 +95,9 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Scanner une feuille",
-                  style: TextStyle(
+                Text(
+                  strings.scanSheetTitle,
+                  style: const TextStyle(
                     fontFamily: 'Figtree',
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -103,9 +105,9 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                   ),
                 ),
                 const SizedBox(height: AppSize.p8),
-                const Text(
-                  "Analysez une photo réelle de votre culture hors ligne avec SautiLM-Nuru-Agri.",
-                  style: TextStyle(
+                Text(
+                  strings.scanSheetSubtitle,
+                  style: const TextStyle(
                     fontFamily: 'Figtree',
                     fontSize: 13,
                     color: AppColors.textGrey,
@@ -114,20 +116,20 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                 const SizedBox(height: AppSize.p20),
                 _buildSourceTile(
                   icon: AppIcons.scan,
-                  title: "Prendre une photo",
-                  subtitle: "Capturer une feuille en direct avec la caméra",
+                  title: strings.takePhotoTitle,
+                  subtitle: strings.takePhotoSubtitle,
                   onTap: () {
-                    Navigator.pop(context);
+                    Navigator.pop(sheetCtx);
                     _pickAndScanImage(ImageSource.camera);
                   },
                 ),
                 const Divider(height: 1, color: Color(0xFFEEEEEE)),
                 _buildSourceTile(
                   icon: AppIcons.gallery,
-                  title: "Choisir une photo",
-                  subtitle: "Importer une photo réelle depuis votre galerie",
+                  title: strings.choosePhotoTitle,
+                  subtitle: strings.choosePhotoSubtitle,
                   onTap: () {
-                    Navigator.pop(context);
+                    Navigator.pop(sheetCtx);
                     _pickAndScanImage(ImageSource.gallery);
                   },
                 ),
@@ -183,8 +185,10 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = context.watch<LocaleCubit>().state.strings;
     return BlocListener<ScanCubit, ScanState>(
       listener: (context, state) {
+        final s = context.read<LocaleCubit>().state.strings;
         if (state is ScanSuccess) {
           context.read<HomeCubit>().loadDashboard();
           ScaffoldMessenger.of(context).showSnackBar(
@@ -197,10 +201,10 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                     size: 20.0,
                   ),
                   const SizedBox(width: 8),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      "Analyse terminée ! Un nouveau diagnostic est disponible dans Accueil.",
-                      style: TextStyle(
+                      s.scanDoneSnack,
+                      style: const TextStyle(
                         fontFamily: 'Figtree',
                         fontWeight: FontWeight.bold,
                       ),
@@ -209,13 +213,13 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                 ],
               ),
               backgroundColor: AppColors.primaryForestGreen,
-              duration: Duration(seconds: 4),
+              duration: const Duration(seconds: 4),
             ),
           );
         } else if (state is ScanFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("Analyse interrompue : ${state.title}"),
+              content: Text("${s.scanInterruptedPrefix} : ${state.title}"),
               backgroundColor: AppColors.errorRed,
             ),
           );
@@ -277,9 +281,9 @@ class _MainNavigationHolderState extends State<MainNavigationHolder> {
                         ),
                         if (_currentIndex == 0) ...[
                           const SizedBox(height: 2),
-                          const Text(
-                            "Accueil",
-                            style: TextStyle(
+                          Text(
+                            strings.navHome,
+                            style: const TextStyle(
                               fontFamily: 'Figtree',
                               fontSize: 12,
                               fontWeight: FontWeight.bold,

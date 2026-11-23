@@ -2,13 +2,22 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_edge_ai/flutter_edge_ai.dart';
+import 'package:juamea/core/localization/localization.dart';
 import 'package:juamea/core/services/gemma_engine_manager.dart';
 import 'package:juamea/core/services/juamea_model_manager.dart';
+import 'package:juamea/data/datasources/sqlite_helper.dart';
 import 'package:juamea/domain/usecases/calendar_usecases.dart';
 import 'package:juamea/domain/usecases/chat_usecases.dart';
 
 const String kJuameaMissingModelPrompt =
     "Le modèle IA SautiLM-Jua-Agri n'est pas encore téléchargé sur cet appareil. Appuyez sur « Télécharger le modèle » pour activer le chat hors ligne.";
+
+bool isJuameaMissingModelMessage(String text) {
+  return text == kJuameaMissingModelPrompt ||
+      text == JuameaStrings.of(JuameaLanguage.fr).chatMissingModelPrompt ||
+      text == JuameaStrings.of(JuameaLanguage.en).chatMissingModelPrompt ||
+      text == JuameaStrings.of(JuameaLanguage.sw).chatMissingModelPrompt;
+}
 
 abstract class ChatState {}
 
@@ -82,6 +91,28 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
+  JuameaStringsData get _strings => JuameaStrings.of(
+        JuameaLanguageX.fromCode(SQLiteHelper.currentLanguageCode),
+      );
+
+  /// Updates the default welcome bubble immediately if the user switches app language
+  /// before sending messages.
+  void refreshLanguageStrings() {
+    final current = state;
+    if (current is! ChatLoaded || current.isStreaming) return;
+    if (current.messages.length == 1 && !current.messages.first.isUser) {
+      final firstText = current.messages.first.text;
+      final isWelcome = firstText == JuameaStrings.of(JuameaLanguage.fr).chatWelcome ||
+          firstText == JuameaStrings.of(JuameaLanguage.en).chatWelcome ||
+          firstText == JuameaStrings.of(JuameaLanguage.sw).chatWelcome;
+      if (isWelcome) {
+        emit(current.copyWith(
+          messages: [Message.text(text: _strings.chatWelcome, isUser: false)],
+        ));
+      }
+    }
+  }
+
   /// Refreshes local chat model availability (e.g. right after downloading or deleting weights).
   Future<void> refreshModelStatus() async {
     final current = state;
@@ -100,8 +131,7 @@ class ChatCubit extends Cubit<ChatState> {
       final missing = await _isModelMissingNow();
       if (messages.isEmpty) {
         final welcome = Message.text(
-          text:
-              "Jambo 👋🏾 ! Je suis Juamea, votre assistant agronome 100% hors ligne. Posez-moi vos questions sur le manioc, l'espacement du maïs, les pesticides biologiques à base de neem ou l'état de la pluie pour mettre à jour votre calendrier d'irrigation !",
+          text: _strings.chatWelcome,
           isUser: false,
         );
         emit(ChatLoaded(
@@ -127,11 +157,12 @@ class ChatCubit extends Cubit<ChatState> {
 
     final currentState = state;
     if (currentState is! ChatLoaded || currentState.isStreaming) return;
+    final strings = _strings;
 
     // If model is not downloaded yet, clearly invite the user to download it instead of failing silently
     if (await _isModelMissingNow()) {
       final userMessage = Message.text(text: text, isUser: true);
-      final inviteMessage = Message.text(text: kJuameaMissingModelPrompt, isUser: false);
+      final inviteMessage = Message.text(text: strings.chatMissingModelPrompt, isUser: false);
       final updated = List<Message>.from(currentState.messages)
         ..add(userMessage)
         ..add(inviteMessage);
@@ -157,7 +188,7 @@ class ChatCubit extends Cubit<ChatState> {
       // 1. Save user message to database
       await saveChatMessage(userMessage);
 
-      // 2. Core Function Calling: Check for autonomous calendar updates
+      // 2. Core Function Calling: Check for autonomous calendar updates (FR, EN & SW)
       String? functionCallingNotice;
       final lowercaseText = text.toLowerCase();
 
@@ -169,11 +200,13 @@ class ChatCubit extends Cubit<ChatState> {
           lowercaseText.contains("raining") ||
           lowercaseText.contains("pluie") ||
           lowercaseText.contains("pleut") ||
-          lowercaseText.contains("humide")) {
+          lowercaseText.contains("humide") ||
+          lowercaseText.contains("mvua") ||
+          lowercaseText.contains("unanyesha")) {
         dev.log("Triggering Function Calling: Pause irrigation for rain", name: 'CHAT_CUBIT');
         await updateRainStatus(tomorrowStr, true);
         await updateRainStatus(todayStr, true);
-        functionCallingNotice = "Calendrier ajusté : Arrosage mis en pause suite au signalement de pluie.";
+        functionCallingNotice = strings.chatRainAdjustedNotice;
       } else if (lowercaseText.contains("dry") ||
           lowercaseText.contains("hot") ||
           lowercaseText.contains("irrigate") ||
@@ -181,17 +214,20 @@ class ChatCubit extends Cubit<ChatState> {
           lowercaseText.contains("sec") ||
           lowercaseText.contains("chaud") ||
           lowercaseText.contains("arroser") ||
-          lowercaseText.contains("arrose")) {
+          lowercaseText.contains("arrose") ||
+          lowercaseText.contains("ukame") ||
+          lowercaseText.contains("kavu") ||
+          lowercaseText.contains("mwagilia")) {
         dev.log("Triggering Function Calling: Resume regular irrigation for dry weather", name: 'CHAT_CUBIT');
         await updateRainStatus(tomorrowStr, false);
         await updateRainStatus(todayStr, false);
-        functionCallingNotice = "Calendrier ajusté : Arrosage régulier programmé pour temps sec.";
+        functionCallingNotice = strings.chatDryAdjustedNotice;
       }
 
       // Add placeholder message for streaming model response
       final bool isAnalyzingPlant = GemmaEngineManager.isBusy;
       final String initialPlaceholder = isAnalyzingPlant
-          ? "Je vais vous répondre une fois l'analyse de votre feuille terminée..."
+          ? strings.chatBusyPlaceholder
           : "";
 
       final modelPlaceholder = Message.text(text: initialPlaceholder, isUser: false);
@@ -234,8 +270,7 @@ class ChatCubit extends Cubit<ChatState> {
           if (finalState is ChatLoaded) {
             String responseText = fullReply.toString().trim();
             if (responseText.isEmpty) {
-              responseText =
-                  "Je ne peux pas répondre pour l'instant, veuillez me rappeler ce dont on parlait ou ouvrir de nouveau l'application.";
+              responseText = _strings.chatEmptyFallback;
             }
             final finalModelMessage = Message.text(text: responseText, isUser: false);
 
@@ -272,7 +307,7 @@ class ChatCubit extends Cubit<ChatState> {
         streamMessages.removeLast();
       }
       if (isMissingModel) {
-        streamMessages.add(Message.text(text: kJuameaMissingModelPrompt, isUser: false));
+        streamMessages.add(Message.text(text: _strings.chatMissingModelPrompt, isUser: false));
         emit(currentState.copyWith(
           messages: streamMessages,
           isStreaming: false,
@@ -281,8 +316,7 @@ class ChatCubit extends Cubit<ChatState> {
         return;
       }
       final errorModelMessage = Message.text(
-        text:
-            "Je ne peux pas répondre pour l'instant, veuillez réessayer ou vérifier le modèle IA local.",
+        text: _strings.chatErrorFallback,
         isUser: false,
       );
       streamMessages.add(errorModelMessage);
@@ -300,8 +334,7 @@ class ChatCubit extends Cubit<ChatState> {
       await clearChat();
       final missing = await _isModelMissingNow();
       final welcome = Message.text(
-        text:
-            "Jambo 👋🏾 ! Je suis Juamea, votre assistant agronome 100% hors ligne. Posez-moi vos questions sur le manioc, l'espacement du maïs, les pesticides biologiques à base de neem ou l'état de la pluie pour mettre à jour votre calendrier d'irrigation !",
+        text: _strings.chatWelcome,
         isUser: false,
       );
       emit(ChatLoaded(

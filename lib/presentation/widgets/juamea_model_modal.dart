@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_edge_ai/flutter_edge_ai.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:juamea/core/core.dart';
+import 'package:juamea/presentation/bloc/bloc.dart';
 
 /// Store-compliant modal sheet letting Juamea users inspect, check Hugging Face SHA-256 updates,
 /// download/update, or delete the optional ~283 MB `SautiLM-Jua-Agri` offline chat model
-/// while highlighting that `SautiLM-Nuru-Agri` (1.07 Mo) + FAO/NARS SQLite (2 369 fiches)
-/// remain bundled and always available offline.
+/// while highlighting that `SautiLM-Nuru-Agri` (1.07 MB) + FAO/NARS SQLite (2,369 records)
+/// remain bundled and always available offline across East Africa.
 class JuameaModelModal extends StatefulWidget {
   const JuameaModelModal({super.key});
 
@@ -51,11 +53,11 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
     });
   }
 
-  Future<void> _checkUpdate() async {
+  Future<void> _checkUpdate(JuameaStringsData strings) async {
     if (_isChecking || _isDownloading) return;
     setState(() {
       _isChecking = true;
-      _statusMessage = 'Vérification SHA-256 Hugging Face (< 2 Ko)...';
+      _statusMessage = strings.modelCheckShaNotice;
     });
     final res = await JuameaModelManager.checkForModelUpdate();
     if (!mounted) return;
@@ -63,20 +65,20 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
     switch (res.status) {
       case JuameaModelUpdateStatus.upToDate:
         final hash = res.shortRemoteHash != null ? ' (${res.shortRemoteHash})' : '';
-        msg = 'SautiLM-Jua-Agri est déjà à jour$hash.';
+        msg = '${strings.modelUpToDateMsg}$hash.';
         break;
       case JuameaModelUpdateStatus.updateAvailable:
         final hash = res.shortRemoteHash != null ? ' [${res.shortRemoteHash}]' : '';
-        msg = 'Nouvelle version disponible sur Hugging Face (${res.remoteSizeFormatted})$hash.';
+        msg = '${strings.modelUpdateAvailableMsg} (${res.remoteSizeFormatted})$hash.';
         break;
       case JuameaModelUpdateStatus.notInstalled:
-        msg = 'Modèle chat non encore téléchargé (${res.remoteSizeFormatted}).';
+        msg = '${strings.modelNotInstalledMsg} (${res.remoteSizeFormatted}).';
         break;
       case JuameaModelUpdateStatus.offline:
-        msg = 'Hors ligne : connectez-vous brièvement pour vérifier Hugging Face.';
+        msg = strings.modelOfflineCheckMsg;
         break;
       case JuameaModelUpdateStatus.error:
-        msg = 'Erreur de vérification (${res.errorMessage ?? 'inconnue'}).';
+        msg = '${strings.modelCheckErrorPrefix} (${res.errorMessage ?? '?'}).';
         break;
     }
     setState(() {
@@ -86,14 +88,16 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
     });
   }
 
-  Future<void> _downloadOrUpdate({required bool force}) async {
+  Future<void> _downloadOrUpdate({
+    required bool force,
+    required JuameaStringsData strings,
+  }) async {
     if (_isDownloading) return;
     setState(() {
       _isDownloading = true;
       _progress = 0.0;
-      _statusMessage = force
-          ? 'Mise à jour de SautiLM-Jua-Agri depuis Hugging Face...'
-          : 'Téléchargement de SautiLM-Jua-Agri dans le coffre privé...';
+      _statusMessage =
+          force ? strings.modelUpdatingStatus : strings.modelDownloadingStatus;
     });
     try {
       final file = await JuameaModelManager.downloadOrUpdateModel(
@@ -114,35 +118,41 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
       setState(() {
         _isDownloading = false;
         _updateResult = null;
-        _statusMessage = 'SautiLM-Jua-Agri installé et vérifié dans le coffre privé !';
+        _statusMessage = strings.modelInstalledMsg;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _isDownloading = false;
-        _statusMessage = 'Téléchargement interrompu : vérifiez votre connexion Internet.';
+        _statusMessage = strings.modelInterruptedMsg;
       });
     }
   }
 
-  Future<void> _confirmDelete() async {
+  Future<void> _confirmDelete(JuameaStringsData strings) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Supprimer le modèle chat local ?',
-          style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.bold, fontSize: 18),
+        title: Text(
+          strings.modelDeleteConfirmTitle,
+          style: const TextStyle(
+            fontFamily: 'Figtree',
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
         content: Text(
-          'Cette action libère immédiatement ${_localStatus.sizeFormatted} en supprimant SautiLM-Jua-Agri du coffre privé.\n\n'
-          'Le scan foliaire SautiLM-Nuru-Agri (1,07 Mo) et les 2 369 fiches FAO/NARS restent 100 % fonctionnels hors ligne.',
+          '${strings.modelDeleteConfirmBodyPrefix} ${_localStatus.sizeFormatted} ${strings.modelDeleteConfirmBodySuffix}',
           style: const TextStyle(fontFamily: 'Figtree', fontSize: 13.5, height: 1.45),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogCtx).pop(false),
-            child: const Text('Annuler', style: TextStyle(fontFamily: 'Figtree', color: AppColors.textGrey)),
+            child: Text(
+              strings.cancelBtn,
+              style: const TextStyle(fontFamily: 'Figtree', color: AppColors.textGrey),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -151,7 +161,10 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
               elevation: 0,
             ),
             onPressed: () => Navigator.of(dialogCtx).pop(true),
-            child: const Text('Supprimer', style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.bold)),
+            child: Text(
+              strings.deleteBtn,
+              style: const TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -160,7 +173,7 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
 
     setState(() {
       _isDeleting = true;
-      _statusMessage = 'Libération du stockage local...';
+      _statusMessage = strings.modelFreeingSpaceMsg;
     });
     await JuameaModelManager.deleteLocalModel();
     await _refreshLocalStatus();
@@ -168,12 +181,13 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
     setState(() {
       _isDeleting = false;
       _updateResult = null;
-      _statusMessage = 'Modèle chat supprimé. Espace de stockage libéré.';
+      _statusMessage = strings.modelDeletedMsg;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final strings = context.watch<LocaleCubit>().state.strings;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     return SafeArea(
       child: Padding(
@@ -197,13 +211,15 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Moteurs IA & Stockage Privé',
-                    style: TextStyle(
-                      fontFamily: 'Figtree',
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textCharcoal,
+                  Expanded(
+                    child: Text(
+                      strings.modelModalTitle,
+                      style: const TextStyle(
+                        fontFamily: 'Figtree',
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textCharcoal,
+                      ),
                     ),
                   ),
                   IconButton(
@@ -215,10 +231,9 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
                 ],
               ),
               const SizedBox(height: 6),
-              const Text(
-                'Conforme Play Store & App Store : zéro permission de stockage externe. '
-                'Tous les poids téléchargés sont automatiquement effacés si vous désinstallez Juamea.',
-                style: TextStyle(
+              Text(
+                strings.modelModalStoreNote,
+                style: const TextStyle(
                   fontFamily: 'Figtree',
                   fontSize: 12.5,
                   color: AppColors.textGrey,
@@ -237,22 +252,22 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
                     color: AppColors.primaryForestGreen.withValues(alpha: 0.25),
                   ),
                 ),
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'SautiLM-Nuru-Agri (1,07 Mo) + SQLite FAO/NARS',
-                      style: TextStyle(
+                      strings.modelNuruTitle,
+                      style: const TextStyle(
                         fontFamily: 'Figtree',
                         fontSize: 13.5,
                         fontWeight: FontWeight.bold,
                         color: AppColors.primaryForestGreen,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Intégré dans l\'application : scan foliaire 9 classes + 2 369 fiches agronomiques 100 % hors ligne.',
-                      style: TextStyle(
+                      strings.modelNuruDesc,
+                      style: const TextStyle(
                         fontFamily: 'Figtree',
                         fontSize: 12,
                         color: AppColors.textCharcoal,
@@ -280,13 +295,15 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
-                                'SautiLM-Jua-Agri (Chat IA)',
-                                style: TextStyle(
-                                  fontFamily: 'Figtree',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textCharcoal,
+                              Expanded(
+                                child: Text(
+                                  strings.modelJuaTitle,
+                                  style: const TextStyle(
+                                    fontFamily: 'Figtree',
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textCharcoal,
+                                  ),
                                 ),
                               ),
                               Container(
@@ -298,7 +315,9 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Text(
-                                  _localStatus.exists ? _localStatus.sizeFormatted : 'Non installé',
+                                  _localStatus.exists
+                                      ? _localStatus.sizeFormatted
+                                      : strings.modelNotInstalledBadge,
                                   style: TextStyle(
                                     fontFamily: 'JetBrainsMono',
                                     fontSize: 11,
@@ -314,8 +333,8 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
                           const SizedBox(height: 6),
                           Text(
                             _localStatus.exists
-                                ? 'Coffre privé sécurisé${_localStatus.shortHash != null ? ' · SHA-256 ${_localStatus.shortHash}' : ''}'
-                                : 'Modèle optionnel (~283 Mo) pour les réponses conversationnelles avancées hors ligne.',
+                                ? '${strings.modelVaultPrefix}${_localStatus.shortHash != null ? ' · SHA-256 ${_localStatus.shortHash}' : ''}'
+                                : strings.modelOptionalDesc,
                             style: const TextStyle(
                               fontFamily: 'Figtree',
                               fontSize: 12,
@@ -364,7 +383,10 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(
-                                  onPressed: () => _downloadOrUpdate(force: false),
+                                  onPressed: () => _downloadOrUpdate(
+                                    force: false,
+                                    strings: strings,
+                                  ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.primaryForestGreen,
                                     foregroundColor: Colors.white,
@@ -373,9 +395,12 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
-                                  child: const Text(
-                                    'Télécharger le modèle',
-                                    style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.bold),
+                                  child: Text(
+                                    strings.chatDownloadBtnFull,
+                                    style: const TextStyle(
+                                      fontFamily: 'Figtree',
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               )
@@ -387,9 +412,12 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
                                       ? null
                                       : () {
                                           if (_updateResult?.hasUpdate == true) {
-                                            _downloadOrUpdate(force: true);
+                                            _downloadOrUpdate(
+                                              force: true,
+                                              strings: strings,
+                                            );
                                           } else {
-                                            _checkUpdate();
+                                            _checkUpdate(strings);
                                           }
                                         },
                                   style: OutlinedButton.styleFrom(
@@ -407,10 +435,11 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
                                         )
                                       : Text(
                                           _updateResult?.hasUpdate == true
-                                              ? 'Mettre à jour'
-                                              : (_updateResult?.status == JuameaModelUpdateStatus.upToDate
-                                                  ? 'Modèle à jour'
-                                                  : 'Vérifier mise à jour'),
+                                              ? strings.modelUpdateBtn
+                                              : (_updateResult?.status ==
+                                                      JuameaModelUpdateStatus.upToDate
+                                                  ? strings.modelUpToDateBtn
+                                                  : strings.modelCheckUpdateBtn),
                                           style: const TextStyle(
                                             fontFamily: 'Figtree',
                                             fontWeight: FontWeight.bold,
@@ -422,10 +451,12 @@ class _JuameaModelModalState extends State<JuameaModelModal> {
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
-                                  onPressed: _isDeleting ? null : _confirmDelete,
-                                  child: const Text(
-                                    'Supprimer le modèle',
-                                    style: TextStyle(
+                                  onPressed: _isDeleting
+                                      ? null
+                                      : () => _confirmDelete(strings),
+                                  child: Text(
+                                    strings.modelDeleteBtn,
+                                    style: const TextStyle(
                                       fontFamily: 'Figtree',
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,

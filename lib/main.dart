@@ -51,6 +51,9 @@ class JuameaApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider<LocaleCubit>(
+          create: (context) => LocaleCubit()..loadSavedLanguage(),
+        ),
         BlocProvider<InitializationCubit>(
           create: (context) => InitializationCubit(
             checkModelInstalled: CheckModelInstalled(chatRepo),

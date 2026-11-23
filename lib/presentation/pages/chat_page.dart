@@ -93,7 +93,7 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  Future<void> _showClearConfirmationDialog() async {
+  Future<void> _showClearConfirmationDialog(JuameaStringsData strings) async {
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) {
@@ -102,24 +102,26 @@ class _ChatPageState extends State<ChatPage> {
             borderRadius: BorderRadius.circular(AppSize.r20),
           ),
           backgroundColor: AppColors.cardCleanWhite,
-          title: const Row(
+          title: Row(
             children: [
-              HugeIcon(icon: AppIcons.alert, color: Colors.redAccent, size: 28),
-              SizedBox(width: 10),
-              Text(
-                "Supprimer la discussion ?",
-                style: TextStyle(
-                  fontFamily: 'Figtree',
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: AppColors.textCharcoal,
+              const HugeIcon(icon: AppIcons.alert, color: Colors.redAccent, size: 28),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  strings.chatClearTitle,
+                  style: const TextStyle(
+                    fontFamily: 'Figtree',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: AppColors.textCharcoal,
+                  ),
                 ),
               ),
             ],
           ),
-          content: const Text(
-            "Êtes-vous sûr de vouloir effacer tout l'historique de cette conversation ? Cette action est irréversible.",
-            style: TextStyle(
+          content: Text(
+            strings.chatClearBody,
+            style: const TextStyle(
               fontFamily: 'Figtree',
               fontSize: 14,
               color: AppColors.textGrey,
@@ -133,9 +135,9 @@ class _ChatPageState extends State<ChatPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text(
-                "Annuler",
-                style: TextStyle(
+              child: Text(
+                strings.cancelBtn,
+                style: const TextStyle(
                   fontFamily: 'Figtree',
                   fontWeight: FontWeight.bold,
                   color: AppColors.textGrey,
@@ -155,9 +157,9 @@ class _ChatPageState extends State<ChatPage> {
                   vertical: AppSize.p8,
                 ),
               ),
-              child: const Text(
-                "Supprimer",
-                style: TextStyle(
+              child: Text(
+                strings.deleteBtn,
+                style: const TextStyle(
                   fontFamily: 'Figtree',
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -177,6 +179,7 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = context.watch<LocaleCubit>().state.strings;
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -235,19 +238,19 @@ class _ChatPageState extends State<ChatPage> {
                           color: AppColors.primaryForestGreen,
                           size: AppSize.iconMd,
                         ),
-                        tooltip: "Modèle IA",
+                        tooltip: strings.chatModelTooltip,
                       ),
                       const SizedBox(width: 14),
                       IconButton(
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
-                        onPressed: _showClearConfirmationDialog,
+                        onPressed: () => _showClearConfirmationDialog(strings),
                         icon: const HugeIcon(
                           icon: AppIcons.delete,
                           color: AppColors.primaryForestGreen,
                           size: AppSize.iconMd,
                         ),
-                        tooltip: "Effacer les discussions",
+                        tooltip: strings.chatClearTooltip,
                       ),
                     ],
                   ),
@@ -301,7 +304,7 @@ class _ChatPageState extends State<ChatPage> {
                             ElevatedButton(
                               onPressed: () =>
                                   context.read<ChatCubit>().loadChatHistory(),
-                              child: const Text("Retry"),
+                              child: Text(strings.retryBtn),
                             ),
                           ],
                         ),
@@ -363,6 +366,7 @@ class _ChatPageState extends State<ChatPage> {
                                 return _buildMessageBubble(
                                   message,
                                   isLastAndStreaming,
+                                  strings,
                                 );
                               },
                             ),
@@ -384,10 +388,10 @@ class _ChatPageState extends State<ChatPage> {
                             ),
                             child: Row(
                               children: [
-                                const Expanded(
+                                Expanded(
                                   child: Text(
-                                    "Modèle IA requis pour le chat hors ligne.",
-                                    style: TextStyle(
+                                    strings.chatMissingBannerText,
+                                    style: const TextStyle(
                                       fontFamily: 'Figtree',
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.w600,
@@ -416,9 +420,9 @@ class _ChatPageState extends State<ChatPage> {
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                   ),
-                                  child: const Text(
-                                    "Télécharger",
-                                    style: TextStyle(
+                                  child: Text(
+                                    strings.chatDownloadBtnShort,
+                                    style: const TextStyle(
                                       fontFamily: 'Figtree',
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.bold,
@@ -430,7 +434,7 @@ class _ChatPageState extends State<ChatPage> {
                           ),
 
                         // Text Input area
-                        _buildMessageInput(state.isStreaming),
+                        _buildMessageInput(state.isStreaming, strings),
                       ],
                     );
                   }
@@ -444,7 +448,11 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  Widget _buildMessageBubble(Message message, bool isLastAndStreaming) {
+  Widget _buildMessageBubble(
+    Message message,
+    bool isLastAndStreaming,
+    JuameaStringsData strings,
+  ) {
     final isUser = message.isUser;
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -522,18 +530,18 @@ class _ChatPageState extends State<ChatPage> {
                                   AppSize.r12,
                                 ),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  HugeIcon(
+                                  const HugeIcon(
                                     icon: AppIcons.check,
                                     size: 12.0,
                                     color: AppColors.primaryForestGreen,
                                   ),
-                                  SizedBox(width: 4),
+                                  const SizedBox(width: 4),
                                   Text(
-                                    "Ancré FAO RAG",
-                                    style: TextStyle(
+                                    strings.faoBadgeLabel,
+                                    style: const TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.primaryForestGreen,
@@ -562,18 +570,18 @@ class _ChatPageState extends State<ChatPage> {
                                           width: 1.2,
                                         ),
                                       ),
-                                      child: const Row(
+                                      child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          HugeIcon(
+                                          const HugeIcon(
                                             icon: AppIcons.stop,
                                             size: 14.0,
                                             color: Colors.redAccent,
                                           ),
-                                          SizedBox(width: 4),
+                                          const SizedBox(width: 4),
                                           Text(
-                                            "STOP",
-                                            style: TextStyle(
+                                            strings.stopLabel,
+                                            style: const TextStyle(
                                               fontSize: 11,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.redAccent,
@@ -597,18 +605,18 @@ class _ChatPageState extends State<ChatPage> {
                                             .withValues(alpha: 0.10),
                                         borderRadius: BorderRadius.circular(20),
                                       ),
-                                      child: const Row(
+                                      child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          HugeIcon(
+                                          const HugeIcon(
                                             icon: AppIcons.play,
                                             size: 16.0,
                                             color: AppColors.primaryForestGreen,
                                           ),
-                                          SizedBox(width: 4),
+                                          const SizedBox(width: 4),
                                           Text(
-                                            "Écouter",
-                                            style: TextStyle(
+                                            strings.listenLabel,
+                                            style: const TextStyle(
                                               fontSize: 11,
                                               fontWeight: FontWeight.bold,
                                               color:
@@ -672,7 +680,7 @@ class _ChatPageState extends State<ChatPage> {
                             ),
                           ),
                         ),
-                        if (message.text == kJuameaMissingModelPrompt) ...[
+                        if (isJuameaMissingModelMessage(message.text)) ...[
                           const SizedBox(height: 12.0),
                           SizedBox(
                             width: double.infinity,
@@ -689,9 +697,9 @@ class _ChatPageState extends State<ChatPage> {
                                 size: 18.0,
                                 color: Colors.white,
                               ),
-                              label: const Text(
-                                "Télécharger le modèle",
-                                style: TextStyle(
+                              label: Text(
+                                strings.chatDownloadBtnFull,
+                                style: const TextStyle(
                                   fontFamily: 'Figtree',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13.5,
@@ -722,7 +730,7 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  Widget _buildMessageInput(bool isStreaming) {
+  Widget _buildMessageInput(bool isStreaming, JuameaStringsData strings) {
     return Container(
       color: AppColors.cardCleanWhite,
       padding: const EdgeInsets.all(AppSize.p12),
@@ -744,7 +752,9 @@ class _ChatPageState extends State<ChatPage> {
                     : AppColors.primaryForestGreen,
                 size: 22.0,
               ),
-              tooltip: _isListening ? "Écoute en cours..." : "Dictée vocale",
+              tooltip: _isListening
+                  ? strings.micListeningTooltip
+                  : strings.micVoiceTooltip,
             ),
             const SizedBox(width: AppSize.p8),
             Expanded(
@@ -758,8 +768,7 @@ class _ChatPageState extends State<ChatPage> {
                     ? TextCapitalization.sentences
                     : TextCapitalization.none,
                 decoration: InputDecoration(
-                  hintText:
-                      "Posez des questions sur le manioc, le neem, etc...",
+                  hintText: strings.chatInputHint,
                   hintStyle: const TextStyle(
                     color: AppColors.textGrey,
                     fontSize: 14,

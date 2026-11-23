@@ -173,7 +173,7 @@ class PDFReportService {
   static Future<Uint8List> generateFarmDiagnosticReport({
     required List<Map<String, dynamic>> diagnostics,
     required List<Map<String, dynamic>> calendarEvents,
-    String farmerLocation = 'Bukavu, Sud-Kivu, RDC',
+    String farmerLocation = "Afrique de l'Est (EAC)",
   }) async {
     try {
       dev.log("Generating PDF farm diagnostic report...", name: 'PDF_REPORT_SERVICE');
@@ -452,7 +452,7 @@ class PDFReportService {
   static Future<String> downloadReportToDocuments({
     required List<Map<String, dynamic>> diagnostics,
     required List<Map<String, dynamic>> calendarEvents,
-    String farmerLocation = 'Bukavu, Sud-Kivu, RDC',
+    String farmerLocation = "Afrique de l'Est (EAC)",
   }) async {
     try {
       dev.log("Generating PDF for download...", name: 'PDF_REPORT_SERVICE');
@@ -492,7 +492,7 @@ class PDFReportService {
   static Future<void> shareReport({
     required List<Map<String, dynamic>> diagnostics,
     required List<Map<String, dynamic>> calendarEvents,
-    String farmerLocation = 'Bukavu, Sud-Kivu, RDC',
+    String farmerLocation = "Afrique de l'Est (EAC)",
   }) async {
     try {
       dev.log("Sharing PDF report...", name: 'PDF_REPORT_SERVICE');
@@ -515,7 +515,7 @@ class PDFReportService {
   static Future<void> printOrShareReport({
     required List<Map<String, dynamic>> diagnostics,
     required List<Map<String, dynamic>> calendarEvents,
-    String farmerLocation = 'Bukavu, Sud-Kivu, RDC',
+    String farmerLocation = "Afrique de l'Est (EAC)",
   }) async {
     await shareReport(
       diagnostics: diagnostics,
@@ -526,7 +526,7 @@ class PDFReportService {
 
   static Future<Uint8List> generateSingleDiagnosticReport({
     required Map<String, dynamic> diagnostic,
-    String farmerLocation = 'Bukavu, Sud-Kivu, RDC',
+    String farmerLocation = "Afrique de l'Est (EAC)",
   }) async {
     try {
       dev.log("Generating single diagnostic PDF report...", name: 'PDF_REPORT_SERVICE');
@@ -730,7 +730,7 @@ class PDFReportService {
 
   static Future<String> downloadSingleReportToDocuments({
     required Map<String, dynamic> diagnostic,
-    String farmerLocation = 'Bukavu, Sud-Kivu, RDC',
+    String farmerLocation = "Afrique de l'Est (EAC)",
   }) async {
     try {
       final pdfBytes = await generateSingleDiagnosticReport(
@@ -765,7 +765,7 @@ class PDFReportService {
 
   static Future<void> shareSingleReport({
     required Map<String, dynamic> diagnostic,
-    String farmerLocation = 'Bukavu, Sud-Kivu, RDC',
+    String farmerLocation = "Afrique de l'Est (EAC)",
   }) async {
     try {
       final pdfBytes = await generateSingleDiagnosticReport(

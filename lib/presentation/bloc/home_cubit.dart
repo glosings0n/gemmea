@@ -1,5 +1,6 @@
 import 'dart:developer' as dev;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:juamea/core/localization/localization.dart';
 import 'package:juamea/data/datasources/sqlite_helper.dart';
 import 'package:juamea/domain/entities/calendar_event.dart';
 import 'package:juamea/domain/entities/diagnostic_result.dart';
@@ -69,30 +70,34 @@ class HomeCubit extends Cubit<HomeState> {
       final diagnostics = await getDiagnostics();
       final calendar = await getCalendarEvents();
       
+      final strings = JuameaStrings.of(
+        JuameaLanguageX.fromCode(SQLiteHelper.currentLanguageCode),
+      );
       final lastDiagnostic = diagnostics.isNotEmpty ? diagnostics.first : null;
       
       // Calculate water schedule status based on calendar events
-      String waterStatus = "Toutes les cultures sont irriguées";
+      String waterStatus = strings.waterAllIrrigated;
       final upcomingWatering = calendar.where((e) => !e.isRainy).toList();
       if (upcomingWatering.isNotEmpty) {
-        waterStatus = "Prochain : ${upcomingWatering.first.title} le ${upcomingWatering.first.eventDate}";
+        waterStatus =
+            "${strings.waterNextPrefix} : ${upcomingWatering.first.title} ${strings.waterOnDateWord} ${upcomingWatering.first.eventDate}";
       } else {
-        waterStatus = "Pluie prévue - Irrigation en pause";
+        waterStatus = strings.waterRainPausedStatus;
       }
 
       // Generate dynamic soil reminders
       final List<String> reminders = [];
       if (diagnostics.isNotEmpty && lastDiagnostic != null) {
         if (lastDiagnostic.disease.contains("Mosaïque") || lastDiagnostic.disease.contains("Mosaic")) {
-          reminders.add("Vérifiez les herbes sauvages et mouches blanches dans vos champs de manioc.");
+          reminders.add(strings.reminderCassavaMosaic);
         } else if (lastDiagnostic.disease.contains("Rouille") || lastDiagnostic.disease.contains("Rust")) {
-          reminders.add("Vaporisez une solution de neem sur les cultures de maïs.");
+          reminders.add(strings.reminderMaizeRust);
         }
       }
       if (calendar.any((e) => e.isRainy)) {
-        reminders.add("Pluie demain ! Gardez les seaux d'engrais à l'abri.");
+        reminders.add(strings.reminderRainTomorrow);
       } else {
-        reminders.add("Alerte sol sec. Surveillez le niveau d'humidité du maïs.");
+        reminders.add(strings.reminderDrySoil);
       }
 
       final countryCode = await SQLiteHelper.instance.getSelectedCountryCode();
@@ -155,25 +160,29 @@ class HomeCubit extends Cubit<HomeState> {
           return e;
         }).toList();
 
-        String waterStatus = "Toutes les cultures sont irriguées";
+        final strings = JuameaStrings.of(
+          JuameaLanguageX.fromCode(SQLiteHelper.currentLanguageCode),
+        );
+        String waterStatus = strings.waterAllIrrigated;
         final upcomingWatering = updatedCalendar.where((e) => !e.isRainy).toList();
         if (upcomingWatering.isNotEmpty) {
-          waterStatus = "Prochain : ${upcomingWatering.first.title} le ${upcomingWatering.first.eventDate}";
+          waterStatus =
+              "${strings.waterNextPrefix} : ${upcomingWatering.first.title} ${strings.waterOnDateWord} ${upcomingWatering.first.eventDate}";
         } else {
-          waterStatus = "Pluie prévue - Irrigation en pause";
+          waterStatus = strings.waterRainPausedStatus;
         }
 
         final List<String> reminders = List.from(currentState.soilReminders);
         if (updatedCalendar.any((e) => e.isRainy)) {
-          if (!reminders.contains("Pluie demain ! Gardez les seaux d'engrais à l'abri.")) {
-            reminders.add("Pluie demain ! Gardez les seaux d'engrais à l'abri.");
+          if (!reminders.contains(strings.reminderRainTomorrow)) {
+            reminders.add(strings.reminderRainTomorrow);
           }
-          reminders.remove("Alerte sol sec. Surveillez le niveau d'humidité du maïs.");
+          reminders.remove(strings.reminderDrySoil);
         } else {
-          if (!reminders.contains("Alerte sol sec. Surveillez le niveau d'humidité du maïs.")) {
-            reminders.add("Alerte sol sec. Surveillez le niveau d'humidité du maïs.");
+          if (!reminders.contains(strings.reminderDrySoil)) {
+            reminders.add(strings.reminderDrySoil);
           }
-          reminders.remove("Pluie demain ! Gardez les seaux d'engrais à l'abri.");
+          reminders.remove(strings.reminderRainTomorrow);
         }
 
         emit(HomeLoaded(

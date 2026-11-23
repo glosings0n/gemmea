@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:juamea/core/core.dart';
+import 'package:juamea/domain/entities/eac_country_profile.dart';
 import 'package:juamea/presentation/bloc/bloc.dart';
 
 class DiagnosticsHistoryPage extends StatefulWidget {
@@ -17,7 +18,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
   int? _expandedIndex;
   final Map<int, ExpansibleController> _controllers = {};
 
-  String _formatFrenchDate(String dateStr) {
+  String _formatDate(String dateStr, JuameaStringsData strings) {
     try {
       final dt = DateTime.parse(dateStr);
       final day = dt.day.toString().padLeft(2, '0');
@@ -25,7 +26,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
       final year = dt.year.toString();
       final hour = dt.hour.toString().padLeft(2, '0');
       final minute = dt.minute.toString().padLeft(2, '0');
-      return "$day/$month/$year à ${hour}h$minute";
+      return "$day/$month/$year ${strings.atTimeWord} $hour:$minute";
     } catch (_) {
       return dateStr;
     }
@@ -34,11 +35,14 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
   @override
   void initState() {
     super.initState();
-    // Mark all diagnostics as read when entering the history page
     context.read<HomeCubit>().markAllAsRead();
   }
 
-  Future<void> _confirmDelete(BuildContext context, dynamic log) async {
+  Future<void> _confirmDelete(
+    BuildContext context,
+    dynamic log,
+    JuameaStringsData strings,
+  ) async {
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) {
@@ -47,17 +51,17 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
             borderRadius: BorderRadius.circular(AppSize.r20),
           ),
           backgroundColor: AppColors.cardCleanWhite,
-          title: const Row(
+          title: Row(
             children: [
-              HugeIcon(
+              const HugeIcon(
                 icon: AppIcons.alert,
                 color: Colors.redAccent,
                 size: 28,
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Text(
-                "Supprimer ?",
-                style: TextStyle(
+                strings.historyDeleteDialogTitle,
+                style: const TextStyle(
                   fontFamily: 'Figtree',
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
@@ -67,7 +71,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
             ],
           ),
           content: Text(
-            "Êtes-vous sûr de vouloir supprimer ce diagnostic du ${_formatFrenchDate(log.timestamp.toString())} ? Cette action est irréversible.",
+            "${strings.historyDeleteDialogBodyPrefix} ${_formatDate(log.timestamp.toString(), strings)} ? ${strings.historyDeleteDialogBodySuffix}",
             style: const TextStyle(
               fontFamily: 'Figtree',
               fontSize: 14,
@@ -79,9 +83,9 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text(
-                "Annuler",
-                style: TextStyle(
+              child: Text(
+                strings.cancelBtn,
+                style: const TextStyle(
                   fontFamily: 'Figtree',
                   fontWeight: FontWeight.bold,
                   color: AppColors.textGrey,
@@ -98,9 +102,9 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: AppSize.p16, vertical: AppSize.p8),
               ),
-              child: const Text(
-                "Supprimer",
-                style: TextStyle(
+              child: Text(
+                strings.deleteBtn,
+                style: const TextStyle(
                   fontFamily: 'Figtree',
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -118,9 +122,9 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text(
-                "Diagnostic supprimé avec succès.",
-                style: TextStyle(fontFamily: 'Figtree'),
+              content: Text(
+                strings.historyDeletedSnack,
+                style: const TextStyle(fontFamily: 'Figtree'),
               ),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -132,7 +136,12 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
     }
   }
 
-  void _showSinglePdfOptionsBottomSheet(BuildContext context, dynamic log) {
+  void _showSinglePdfOptionsBottomSheet(
+    BuildContext context,
+    dynamic log,
+    String farmerLocation,
+    JuameaStringsData strings,
+  ) {
     final Map<String, dynamic> diagMap = log is Map<String, dynamic> ? log : log.toMap();
 
     showModalBottomSheet(
@@ -164,7 +173,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
               ),
               const SizedBox(height: 16),
               Text(
-                "Exporter Diagnostic PDF (${diagMap['crop_name'] ?? 'Plante'})",
+                "${strings.historyExportSingleTitlePrefix} (${diagMap['crop_name'] ?? ''})",
                 style: const TextStyle(
                   fontFamily: 'Figtree',
                   fontSize: 18,
@@ -173,9 +182,9 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
-                "Choisissez une option pour sauvegarder ou partager ce diagnostic.",
-                style: TextStyle(
+              Text(
+                strings.historyExportSingleSubtitle,
+                style: const TextStyle(
                   fontFamily: 'Figtree',
                   fontSize: 13,
                   color: AppColors.textGrey,
@@ -190,7 +199,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                   try {
                     final path = await PDFReportService.downloadSingleReportToDocuments(
                       diagnostic: diagMap,
-                      farmerLocation: 'Bukavu, Sud-Kivu, RDC',
+                      farmerLocation: farmerLocation,
                     );
                     if (context.mounted) {
                       final filename = path.split('/').last;
@@ -206,7 +215,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  "Diagnostic PDF enregistré dans vos Documents :\n$filename",
+                                  "${strings.historySingleSavedPrefix} :\n$filename",
                                   style: const TextStyle(fontFamily: 'Figtree', fontSize: 12),
                                 ),
                               ),
@@ -223,9 +232,9 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: const Text(
-                                    "Ouvrir",
-                                    style: TextStyle(
+                                  child: Text(
+                                    strings.pdfOpenBtn,
+                                    style: const TextStyle(
                                       fontFamily: 'Figtree',
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
@@ -247,7 +256,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text("Erreur lors du téléchargement du PDF: $e"),
+                          content: Text("${strings.pdfDownloadErrorPrefix}: $e"),
                           backgroundColor: AppColors.errorRed,
                         ),
                       );
@@ -267,35 +276,35 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                   child: Row(
                     children: [
                       Container(
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
+                        padding: const EdgeInsets.all(10),
+                        decoration: const BoxDecoration(
                           color: AppColors.primaryForestGreen,
                           shape: BoxShape.circle,
                         ),
-                        child: HugeIcon(
+                        child: const HugeIcon(
                           icon: AppIcons.download,
                           color: Colors.white,
                           size: 20,
                         ),
                       ),
-                      SizedBox(width: 14),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Télécharger le PDF",
-                              style: TextStyle(
+                              strings.pdfDownloadTitle,
+                              style: const TextStyle(
                                 fontFamily: 'Figtree',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
                                 color: AppColors.textCharcoal,
                               ),
                             ),
-                            SizedBox(height: 2),
+                            const SizedBox(height: 2),
                             Text(
-                              "Enregistre le document dans le dossier Documents",
-                              style: TextStyle(
+                              strings.pdfDownloadSubtitle,
+                              style: const TextStyle(
                                 fontFamily: 'Figtree',
                                 fontSize: 12,
                                 color: AppColors.textGrey,
@@ -317,13 +326,13 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                   try {
                     await PDFReportService.shareSingleReport(
                       diagnostic: diagMap,
-                      farmerLocation: 'Bukavu, Sud-Kivu, RDC',
+                      farmerLocation: farmerLocation,
                     );
                   } catch (e) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text("Erreur lors du partage du PDF: $e"),
+                          content: Text("${strings.pdfShareErrorPrefix}: $e"),
                           backgroundColor: AppColors.errorRed,
                         ),
                       );
@@ -343,35 +352,35 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                   child: Row(
                     children: [
                       Container(
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
+                        padding: const EdgeInsets.all(10),
+                        decoration: const BoxDecoration(
                           color: AppColors.primaryForestGreen,
                           shape: BoxShape.circle,
                         ),
-                        child: HugeIcon(
+                        child: const HugeIcon(
                           icon: AppIcons.share,
                           color: Colors.white,
                           size: 20,
                         ),
                       ),
-                      SizedBox(width: 14),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Partager ou Imprimer le PDF",
-                              style: TextStyle(
+                              strings.historyShareOrPrintTitle,
+                              style: const TextStyle(
                                 fontFamily: 'Figtree',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
                                 color: AppColors.textCharcoal,
                               ),
                             ),
-                            SizedBox(height: 2),
+                            const SizedBox(height: 2),
                             Text(
-                              "Envoyer via WhatsApp, Email ou imprimer directement",
-                              style: TextStyle(
+                              strings.historyShareOrPrintSubtitle,
+                              style: const TextStyle(
                                 fontFamily: 'Figtree',
                                 fontSize: 12,
                                 color: AppColors.textGrey,
@@ -394,6 +403,10 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final localeState = context.watch<LocaleCubit>().state;
+    final lang = localeState.language;
+    final strings = localeState.strings;
+
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
@@ -401,9 +414,9 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
           icon: const HugeIcon(icon: AppIcons.back, color: AppColors.primaryForestGreen, size: 22.0),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          "Historique des Diagnostics",
-          style: TextStyle(
+        title: Text(
+          strings.historyTitle,
+          style: const TextStyle(
             fontFamily: 'Figtree',
             fontWeight: FontWeight.bold,
             color: AppColors.primaryForestGreen,
@@ -437,13 +450,16 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                     const SizedBox(height: AppSize.p16),
                     ElevatedButton(
                       onPressed: () => context.read<HomeCubit>().loadDashboard(),
-                      child: const Text("Réessayer", style: TextStyle(fontFamily: 'Figtree')),
+                      child: Text(strings.retryBtn, style: const TextStyle(fontFamily: 'Figtree')),
                     ),
                   ],
                 ),
               ),
             );
           } else if (state is HomeLoaded) {
+            final activeLocation = EacCountryProfile.byCode(
+              state.selectedCountryCode,
+            ).reportLocation(lang);
             if (state.diagnosticsHistory.isEmpty) {
               return Center(
                 child: Padding(
@@ -460,9 +476,9 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                         child: const Text("🍃", style: TextStyle(fontSize: 48)),
                       ),
                       const SizedBox(height: AppSize.p24),
-                      const Text(
-                        "Aucun diagnostic de plante",
-                        style: TextStyle(
+                      Text(
+                        strings.historyEmptyTitle,
+                        style: const TextStyle(
                           fontFamily: 'Figtree',
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -470,10 +486,10 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                         ),
                       ),
                       const SizedBox(height: AppSize.p8),
-                      const Text(
-                        "Utilisez l'icône appareil photo pour scanner les feuilles de maïs ou de manioc. Vos diagnostics apparaîtront ici.",
+                      Text(
+                        strings.historyEmptyDesc,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontFamily: 'Figtree',
                           fontSize: 14,
                           color: AppColors.textGrey,
@@ -564,9 +580,9 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                   color: Colors.redAccent,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Text(
-                                  "NOUVEAU",
-                                  style: TextStyle(
+                                child: Text(
+                                  strings.historyNewBadge,
+                                  style: const TextStyle(
                                     fontFamily: 'Figtree',
                                     fontSize: 9,
                                     fontWeight: FontWeight.bold,
@@ -584,7 +600,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                               color: AppColors.textGrey,
                             ),
                             children: [
-                              TextSpan(text: "Culture : ${log.cropName} • "),
+                              TextSpan(text: "${strings.historyCropLabel} : ${log.cropName} • "),
                               TextSpan(
                                 text: "${(log.confidence * 100).toInt()}%",
                                 style: const TextStyle(
@@ -594,7 +610,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                   color: AppColors.primaryForestGreen,
                                 ),
                               ),
-                              const TextSpan(text: " de confiance"),
+                              TextSpan(text: " ${strings.confidenceSuffix}"),
                             ],
                           ),
                         ),
@@ -644,9 +660,9 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              const Text(
-                                                "Estimation d'Impact Économique & Perte Evitée",
-                                                style: TextStyle(
+                                              Text(
+                                                strings.historyImpactTitle,
+                                                style: const TextStyle(
                                                   fontFamily: 'Figtree',
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.bold,
@@ -655,7 +671,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                               ),
                                               const SizedBox(height: 2),
                                               Text(
-                                                "Risque de perte non traité : ~40% à 70% du rendement par hectare.\nGain estimé après application du traitement FAO : +120\$ à +350\$/ha.",
+                                                strings.historyImpactBody,
                                                 style: TextStyle(
                                                   fontFamily: 'Figtree',
                                                   fontSize: 11,
@@ -670,9 +686,9 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                   ),
                                   const SizedBox(height: AppSize.p12),
                                 ],
-                                const Text(
-                                  "Actions correctives recommandées (IITA) :",
-                                  style: TextStyle(
+                                Text(
+                                  strings.historyRemediesTitle,
+                                  style: const TextStyle(
                                     fontFamily: 'Figtree',
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.primaryForestGreen,
@@ -735,15 +751,20 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                    children: [
                                      TextButton.icon(
-                                       onPressed: () => _showSinglePdfOptionsBottomSheet(context, log),
+                                       onPressed: () => _showSinglePdfOptionsBottomSheet(
+                                         context,
+                                         log,
+                                         activeLocation,
+                                         strings,
+                                       ),
                                        icon: const HugeIcon(
                                          icon: AppIcons.pdf,
                                          color: AppColors.primaryForestGreen,
                                          size: 16,
                                        ),
-                                       label: const Text(
-                                         "Exporter PDF",
-                                         style: TextStyle(
+                                       label: Text(
+                                         strings.historyExportPdfBtn,
+                                         style: const TextStyle(
                                            fontFamily: 'Figtree',
                                            fontSize: 12,
                                            color: AppColors.primaryForestGreen,
@@ -757,7 +778,7 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                        ),
                                      ),
                                      Text(
-                                       _formatFrenchDate(log.timestamp.toString()),
+                                       _formatDate(log.timestamp.toString(), strings),
                                        style: const TextStyle(
                                          fontFamily: 'JetBrainsMono',
                                          fontSize: 11,
@@ -765,15 +786,15 @@ class _DiagnosticsHistoryPageState extends State<DiagnosticsHistoryPage> {
                                        ),
                                      ),
                                      TextButton.icon(
-                                       onPressed: () => _confirmDelete(context, log),
+                                       onPressed: () => _confirmDelete(context, log, strings),
                                        icon: const HugeIcon(
                                          icon: AppIcons.delete,
                                          color: Colors.redAccent,
                                          size: 16,
                                        ),
-                                       label: const Text(
-                                         "Supprimer",
-                                         style: TextStyle(
+                                       label: Text(
+                                         strings.deleteBtn,
+                                         style: const TextStyle(
                                            fontFamily: 'Figtree',
                                            fontSize: 12,
                                            color: Colors.redAccent,

@@ -15,7 +15,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  Widget _buildEacCountrySelector(BuildContext context, String activeCode) {
+  Widget _buildEacCountrySelector(
+    BuildContext context,
+    String activeCode,
+    JuameaLanguage lang,
+  ) {
     final activeProfile = EacCountryProfile.byCode(activeCode);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSize.p16),
@@ -46,7 +50,7 @@ class _HomePageState extends State<HomePage> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
-                      '${country.shortName} · ${country.narsInstitute}',
+                      '${country.shortLabel(lang)} · ${country.narsInstitute}',
                       style: TextStyle(
                         fontFamily: 'Figtree',
                         fontSize: 11,
@@ -63,7 +67,7 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 4),
           Text(
-            '${activeProfile.fullNameFr} (${activeProfile.narsInstitute}) : ${activeProfile.rainfallRegimeSummary}',
+            '${activeProfile.fullName(lang)} (${activeProfile.narsInstitute}) : ${activeProfile.rainfallSummary(lang)}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
@@ -97,6 +101,10 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final localeState = context.watch<LocaleCubit>().state;
+    final lang = localeState.language;
+    final strings = localeState.strings;
+
     return Scaffold(
       body: SafeArea(
         child: BlocBuilder<HomeCubit, HomeState>(
@@ -130,7 +138,7 @@ class _HomePageState extends State<HomePage> {
                       ElevatedButton(
                         onPressed: () =>
                             context.read<HomeCubit>().loadDashboard(),
-                        child: const Text("Reessayer"),
+                        child: Text(strings.retryBtn),
                       ),
                     ],
                   ),
@@ -139,6 +147,9 @@ class _HomePageState extends State<HomePage> {
             } else if (state is HomeLoaded) {
               final hasNew = state.diagnosticsHistory.any(
                 (d) => d.status == 'new',
+              );
+              final activeProfile = EacCountryProfile.byCode(
+                state.selectedCountryCode,
               );
 
               return Column(
@@ -167,9 +178,9 @@ class _HomePageState extends State<HomePage> {
                                   color: AppColors.primaryForestGreen,
                                 ),
                               ),
-                              const Text(
-                                "Jambo ! 👋🏾",
-                                style: TextStyle(
+                              Text(
+                                strings.homeGreeting,
+                                style: const TextStyle(
                                   fontFamily: 'Figtree',
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
@@ -177,9 +188,9 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                               const SizedBox(height: 2),
-                              const Text(
-                                "Votre ferme est entièrement protégée hors ligne.",
-                                style: TextStyle(
+                              Text(
+                                strings.homeSubtitle,
+                                style: const TextStyle(
                                   fontFamily: 'Figtree',
                                   fontSize: 12,
                                   color: AppColors.textGrey,
@@ -195,10 +206,53 @@ class _HomePageState extends State<HomePage> {
                             Material(
                               color: Colors.transparent,
                               child: InkWell(
+                                key: const Key('home_language_button'),
+                                onTap: () => LanguageSelectorModal.show(context),
+                                borderRadius: BorderRadius.circular(10),
+                                child: Tooltip(
+                                  message: strings.languageTooltip,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 7,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryForestGreen
+                                          .withValues(alpha: 0.08),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const HugeIcon(
+                                          icon: AppIcons.globe,
+                                          color: AppColors.primaryForestGreen,
+                                          size: 16,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          lang.shortLabel,
+                                          style: const TextStyle(
+                                            fontFamily: 'JetBrainsMono',
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.primaryForestGreen,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Material(
+                              color: Colors.transparent,
+                              child: InkWell(
                                 onTap: () => JuameaModelModal.show(context),
                                 borderRadius: BorderRadius.circular(10),
                                 child: Tooltip(
-                                  message: 'Moteurs IA & Stockage Privé',
+                                  message: strings.modelsTooltip,
                                   child: Container(
                                     padding: const EdgeInsets.all(7),
                                     decoration: BoxDecoration(
@@ -215,7 +269,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
                             Material(
                               color: Colors.transparent,
                               child: InkWell(
@@ -230,11 +284,13 @@ class _HomePageState extends State<HomePage> {
                                     context,
                                     diags,
                                     events,
+                                    activeProfile.reportLocation(lang),
+                                    strings,
                                   );
                                 },
                                 borderRadius: BorderRadius.circular(10),
                                 child: Tooltip(
-                                  message: 'Exporter le Rapport PDF',
+                                  message: strings.pdfTooltip,
                                   child: Container(
                                     padding: const EdgeInsets.all(7),
                                     decoration: BoxDecoration(
@@ -251,7 +307,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
                             Material(
                               color: Colors.transparent,
                               child: InkWell(
@@ -266,7 +322,7 @@ class _HomePageState extends State<HomePage> {
                                 },
                                 borderRadius: BorderRadius.circular(10),
                                 child: Tooltip(
-                                  message: 'Historique des diagnostics',
+                                  message: strings.historyTooltip,
                                   child: Container(
                                     padding: const EdgeInsets.all(7),
                                     decoration: BoxDecoration(
@@ -300,8 +356,12 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
 
-                  // EAC & DRC 6-Country Agronomic Selector Strip
-                  _buildEacCountrySelector(context, state.selectedCountryCode),
+                  // East Africa 6-Country Agronomic Selector Strip
+                  _buildEacCountrySelector(
+                    context,
+                    state.selectedCountryCode,
+                    lang,
+                  ),
 
                   // Fixed Non-scrollable Metrics Grid
                   Padding(
@@ -318,26 +378,26 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         // Grid Card 1: Last Diagnostic
                         _buildMetricCard(
-                          title: "Dernier Diagnostic",
+                          title: strings.lastDiagnosticTitle,
                           emoji: "🔍",
                           value: state.lastDiagnostic != null
                               ? state.lastDiagnostic!.disease
                                     .split('(')[0]
                                     .trim()
-                              : "Aucun scan effectué",
+                              : strings.noScanYet,
                           subtitle: state.lastDiagnostic != null
-                              ? "${(state.lastDiagnostic!.confidence * 100).toInt()}% de confiance"
-                              : "Appuyez sur scanneur",
+                              ? "${(state.lastDiagnostic!.confidence * 100).toInt()}% ${strings.confidenceSuffix}"
+                              : strings.tapScannerHint,
                           color: Colors.grey.withValues(alpha: 0.06),
                         ),
 
                         // Grid Card 2: Water Schedule
                         _buildMetricCard(
-                          title: "Programme d'Eau",
+                          title: strings.waterScheduleTitle,
                           emoji: "💧",
                           value: state.calendarEvents.any((e) => e.isRainy)
-                              ? "Pluie - Calendrier en pause"
-                              : "Irrigation active",
+                              ? strings.rainPausedTitle
+                              : strings.irrigationActiveTitle,
                           subtitle: state.waterScheduleStatus,
                           color: Colors.blue.withValues(alpha: 0.06),
                         ),
@@ -364,9 +424,9 @@ class _HomePageState extends State<HomePage> {
                           const SizedBox(height: AppSize.p8),
 
                           // Soil Reminders Card
-                          const Text(
-                            "Rappels du Sol",
-                            style: TextStyle(
+                          Text(
+                            strings.soilRemindersTitle,
+                            style: const TextStyle(
                               fontFamily: 'Figtree',
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -416,18 +476,20 @@ class _HomePageState extends State<HomePage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
-                                "Calendrier d'Irrigation",
-                                style: TextStyle(
-                                  fontFamily: 'Figtree',
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textCharcoal,
+                              Expanded(
+                                child: Text(
+                                  strings.irrigationCalendarTitle,
+                                  style: const TextStyle(
+                                    fontFamily: 'Figtree',
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textCharcoal,
+                                  ),
                                 ),
                               ),
-                              const Text(
-                                "Ajustement autonome actif",
-                                style: TextStyle(
+                              Text(
+                                strings.autonomousAdjustLabel,
+                                style: const TextStyle(
                                   fontFamily: 'Figtree',
                                   fontSize: 12,
                                   color: AppColors.secondaryMint,
@@ -469,7 +531,7 @@ class _HomePageState extends State<HomePage> {
                                             color: AppColors.textGrey,
                                           ),
                                           children: [
-                                            const TextSpan(text: "Date : "),
+                                            TextSpan(text: strings.dateLabel),
                                             TextSpan(
                                               text: _formatSlashDate(event.eventDate),
                                               style: const TextStyle(
@@ -487,9 +549,9 @@ class _HomePageState extends State<HomePage> {
                                   trailing: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Text(
-                                        "Pluie ",
-                                        style: TextStyle(
+                                      Text(
+                                        strings.rainSwitchLabel,
+                                        style: const TextStyle(
                                           fontFamily: 'Figtree',
                                           fontSize: 12,
                                         ),
@@ -591,6 +653,8 @@ class _HomePageState extends State<HomePage> {
     BuildContext context,
     List<Map<String, dynamic>> diags,
     List<Map<String, dynamic>> events,
+    String farmerLocation,
+    JuameaStringsData strings,
   ) {
     showModalBottomSheet(
       context: context,
@@ -617,9 +681,9 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                "Rapport de Productivité (PDF)",
-                style: TextStyle(
+              Text(
+                strings.pdfSheetTitle,
+                style: const TextStyle(
                   fontFamily: 'Figtree',
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -627,9 +691,9 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
-                "Choisissez une option pour exporter votre rapport agronomique.",
-                style: TextStyle(
+              Text(
+                strings.pdfSheetSubtitle,
+                style: const TextStyle(
                   fontFamily: 'Figtree',
                   fontSize: 13,
                   color: AppColors.textGrey,
@@ -646,7 +710,7 @@ class _HomePageState extends State<HomePage> {
                         await PDFReportService.downloadReportToDocuments(
                           diagnostics: diags,
                           calendarEvents: events,
-                          farmerLocation: 'Bukavu, Sud-Kivu, RDC',
+                          farmerLocation: farmerLocation,
                         );
                     if (context.mounted) {
                       final filename = path.split('/').last;
@@ -662,7 +726,7 @@ class _HomePageState extends State<HomePage> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  "Rapport PDF enregistré dans vos Documents :\n$filename",
+                                  "${strings.pdfSavedSnackPrefix} :\n$filename",
                                   style: const TextStyle(
                                     fontFamily: 'Figtree',
                                     fontSize: 12,
@@ -687,9 +751,9 @@ class _HomePageState extends State<HomePage> {
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: const Text(
-                                    "Ouvrir",
-                                    style: TextStyle(
+                                  child: Text(
+                                    strings.pdfOpenBtn,
+                                    style: const TextStyle(
                                       fontFamily: 'Figtree',
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
@@ -713,7 +777,7 @@ class _HomePageState extends State<HomePage> {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text("Erreur lors du téléchargement: $e"),
+                          content: Text("${strings.pdfDownloadErrorPrefix}: $e"),
                           backgroundColor: Colors.redAccent,
                         ),
                       );
@@ -752,20 +816,20 @@ class _HomePageState extends State<HomePage> {
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
-                              "Télécharger le PDF",
-                              style: TextStyle(
+                              strings.pdfDownloadTitle,
+                              style: const TextStyle(
                                 fontFamily: 'Figtree',
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textCharcoal,
                               ),
                             ),
-                            SizedBox(height: 2),
+                            const SizedBox(height: 2),
                             Text(
-                              "Enregistrer dans le dossier Documents du téléphone",
-                              style: TextStyle(
+                              strings.pdfDownloadSubtitle,
+                              style: const TextStyle(
                                 fontFamily: 'Figtree',
                                 fontSize: 12,
                                 color: AppColors.textGrey,
@@ -793,13 +857,13 @@ class _HomePageState extends State<HomePage> {
                     await PDFReportService.shareReport(
                       diagnostics: diags,
                       calendarEvents: events,
-                      farmerLocation: 'Bukavu, Sud-Kivu, RDC',
+                      farmerLocation: farmerLocation,
                     );
                   } catch (e) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text("Erreur lors du partage: $e"),
+                          content: Text("${strings.pdfShareErrorPrefix}: $e"),
                           backgroundColor: Colors.redAccent,
                         ),
                       );
@@ -838,20 +902,20 @@ class _HomePageState extends State<HomePage> {
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
-                              "Partager le PDF",
-                              style: TextStyle(
+                              strings.pdfShareTitle,
+                              style: const TextStyle(
                                 fontFamily: 'Figtree',
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textCharcoal,
                               ),
                             ),
-                            SizedBox(height: 2),
+                            const SizedBox(height: 2),
                             Text(
-                              "Envoyer via WhatsApp, Email, Drive ou Bluetooth",
-                              style: TextStyle(
+                              strings.pdfShareSubtitle,
+                              style: const TextStyle(
                                 fontFamily: 'Figtree',
                                 fontSize: 12,
                                 color: AppColors.textGrey,

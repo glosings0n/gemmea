@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:juamea/core/localization/localization.dart';
 import 'package:juamea/core/utils/text_sanitizer.dart';
 import 'package:juamea/data/datasources/sqlite_helper.dart';
 import '../../data/datasources/gemma_local_source.dart';
@@ -22,27 +23,37 @@ class ScanFailure extends ScanState {
   final String userMessage;
   final bool isNotALeaf;
 
-  ScanFailure(
-    this.error, {
+  factory ScanFailure(
+    String error, {
     String? title,
     String? userMessage,
     bool? isNotALeaf,
-  })  : title = title ??
-            ((error.contains("ne semble pas être une feuille") ||
-                    error.contains("NOT_A_LEAF") ||
-                    error.contains("clairement une feuille"))
-                ? "Feuille non détectée"
-                : "Une erreur est survenue"),
-        userMessage = userMessage ??
-            ((error.contains("ne semble pas être une feuille") ||
-                    error.contains("NOT_A_LEAF") ||
-                    error.contains("clairement une feuille"))
-                ? "L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture."
-                : "L'analyse IA n'a pas pu se terminer sur votre appareil.\n\nVous pouvez réessayer en prenant une photo bien éclairée, ou fermer puis rouvrir l'application.\n\nSi le problème persiste, votre téléphone dispose peut-être de ressources mémoire trop limitées pour l'analyse IA locale."),
-        isNotALeaf = isNotALeaf ??
-            (error.contains("ne semble pas être une feuille") ||
-                error.contains("NOT_A_LEAF") ||
-                error.contains("clairement une feuille"));
+  }) {
+    final strings = JuameaStrings.of(
+      JuameaLanguageX.fromCode(SQLiteHelper.currentLanguageCode),
+    );
+    final detectedNotLeaf = isNotALeaf ??
+        (error.contains("ne semble pas être une feuille") ||
+            error.contains("NOT_A_LEAF") ||
+            error.contains("clairement une feuille"));
+    return ScanFailure._(
+      error: error,
+      title: title ??
+          (detectedNotLeaf ? strings.scanNotLeafTitle : strings.scanErrorTitle),
+      userMessage: userMessage ??
+          (detectedNotLeaf
+              ? strings.scanNotLeafMessage
+              : strings.scanErrorMessage),
+      isNotALeaf: detectedNotLeaf,
+    );
+  }
+
+  ScanFailure._({
+    required this.error,
+    required this.title,
+    required this.userMessage,
+    required this.isNotALeaf,
+  });
 }
 
 class ScanCubit extends Cubit<ScanState> {
@@ -87,10 +98,13 @@ class ScanCubit extends Cubit<ScanState> {
 
       if (isNonLeaf) {
         dev.log("Non-leaf detected by Gemma VLM. Aborting DB insert and emitting ScanFailure with isNotALeaf=true.", name: 'SCAN_CUBIT');
+        final strings = JuameaStrings.of(
+          JuameaLanguageX.fromCode(SQLiteHelper.currentLanguageCode),
+        );
         emit(ScanFailure(
-          "L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture.",
-          title: "Feuille non détectée",
-          userMessage: "L'image capturée ne semble pas être une feuille de plante. Veuillez reprendre une photo en ciblant clairement une feuille de votre culture.",
+          strings.scanNotLeafMessage,
+          title: strings.scanNotLeafTitle,
+          userMessage: strings.scanNotLeafMessage,
           isNotALeaf: true,
         ));
         return;

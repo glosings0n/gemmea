@@ -13,6 +13,7 @@ class ScanResultModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = context.watch<LocaleCubit>().state.strings;
     return Container(
       padding: const EdgeInsets.all(AppSize.p24),
       decoration: const BoxDecoration(
@@ -26,17 +27,17 @@ class ScanResultModal extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text.rich(
+              Text.rich(
                 TextSpan(
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Figtree',
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
                     color: AppColors.primaryForestGreen,
                   ),
                   children: [
-                    TextSpan(text: "Analyse de Culture "),
-                    TextSpan(
+                    TextSpan(text: strings.scanModalTitlePrefix),
+                    const TextSpan(
                       text: "Juamea",
                       style: TextStyle(
                         fontFamily: 'Urbanist',
@@ -56,10 +57,10 @@ class ScanResultModal extends StatelessWidget {
                   final state = context.read<ScanCubit>().state;
                   if (state is ScanProcessing) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Analyse IA en cours en arrière-plan... Le résultat sera disponible dans votre Accueil."),
+                      SnackBar(
+                        content: Text(strings.scanBackgroundSnack),
                         backgroundColor: AppColors.primaryForestGreen,
-                        duration: Duration(seconds: 3),
+                        duration: const Duration(seconds: 3),
                       ),
                     );
                   }
@@ -88,27 +89,27 @@ class ScanResultModal extends StatelessWidget {
                   BlocBuilder<ScanCubit, ScanState>(
                     builder: (context, state) {
                       if (state is ScanProcessing) {
-                        return const Center(
+                        return Center(
                           child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 24.0),
+                            padding: const EdgeInsets.symmetric(vertical: 24.0),
                             child: Column(
                               children: [
-                                CircularProgressIndicator(color: AppColors.primaryForestGreen),
-                                SizedBox(height: 12),
+                                const CircularProgressIndicator(color: AppColors.primaryForestGreen),
+                                const SizedBox(height: 12),
                                 Text(
-                                  "SautiLM-Nuru-Agri analyse la feuille hors ligne...",
+                                  strings.scanProcessingMsg,
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontFamily: 'Figtree',
                                     color: AppColors.textGrey,
                                     fontSize: 13,
                                   ),
                                 ),
-                                SizedBox(height: 6),
+                                const SizedBox(height: 6),
                                 Text(
-                                  "Vous pouvez fermer cet écran pour continuer d'utiliser l'application.",
+                                  strings.scanCanCloseHint,
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontFamily: 'Figtree',
                                     color: AppColors.primaryForestGreen,
                                     fontSize: 11.5,
@@ -124,9 +125,9 @@ class ScanResultModal extends StatelessWidget {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              "Diagnostic et Remède Local :",
-                              style: TextStyle(
+                            Text(
+                              strings.scanResultHeader,
+                              style: const TextStyle(
                                 fontFamily: 'Figtree',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
@@ -261,7 +262,9 @@ class ScanResultModal extends StatelessWidget {
                                     color: titleColor,
                                   ),
                                   label: Text(
-                                    isNotLeaf ? "Reprendre la photo" : "Fermer & Réessayer",
+                                    isNotLeaf
+                                        ? strings.scanRetakeBtn
+                                        : strings.scanRetryBtn,
                                     style: TextStyle(
                                       fontFamily: 'Figtree',
                                       fontWeight: FontWeight.bold,

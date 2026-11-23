@@ -1,5 +1,6 @@
 import 'dart:developer' as dev;
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:juamea/core/localization/juamea_language.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class VoiceService {
@@ -10,12 +11,20 @@ class VoiceService {
   bool _isSpeechInitialized = false;
   bool _isListening = false;
   bool _isSpeaking = false;
+  JuameaLanguage _activeLanguage = JuameaLanguage.fr;
 
   bool get isListening => _isListening;
   bool get isSpeaking => _isSpeaking;
   Function()? onTtsComplete;
 
   VoiceService._init();
+
+  Future<void> setLanguage(JuameaLanguage language) async {
+    _activeLanguage = language;
+    try {
+      await _flutterTts.setLanguage(language.ttsLocale);
+    } catch (_) {}
+  }
 
   Future<bool> initVoice() async {
     try {
@@ -35,9 +44,9 @@ class VoiceService {
         );
       }
 
-      // Configure TTS defaults
-      dev.log("Configuring FlutterTts settings...", name: 'VOICE_SERVICE');
-      await _flutterTts.setLanguage("fr-FR");
+      // Configure TTS defaults for active app language (FR / EN / SW)
+      dev.log("Configuring FlutterTts settings (${_activeLanguage.ttsLocale})...", name: 'VOICE_SERVICE');
+      await _flutterTts.setLanguage(_activeLanguage.ttsLocale);
       await _flutterTts.setPitch(1.0);
       await _flutterTts.setSpeechRate(0.60); // Clear natural rate for farmers
 
@@ -86,18 +95,21 @@ class VoiceService {
       _isListening = true;
       dev.log("Starting STT listening session...", name: 'VOICE_SERVICE');
       
-      // Determine best French locale if available
-      String localeId = "fr_FR";
+      // Determine best STT locale for active language (fr / en / sw)
+      final prefix = _activeLanguage.sttLocalePrefix;
+      String localeId = _activeLanguage.ttsLocale.replaceAll('-', '_');
       try {
         final systemLocales = await _speech.locales();
-        final frLocale = systemLocales.firstWhere(
-          (l) => l.localeId.startsWith('fr'),
-          orElse: () => systemLocales.isNotEmpty ? systemLocales.first : stt.LocaleName("fr_FR", "French"),
+        final matchedLocale = systemLocales.firstWhere(
+          (l) => l.localeId.toLowerCase().startsWith(prefix),
+          orElse: () => systemLocales.isNotEmpty
+              ? systemLocales.first
+              : stt.LocaleName(localeId, _activeLanguage.nativeName),
         );
-        localeId = frLocale.localeId;
+        localeId = matchedLocale.localeId;
         dev.log("Selected STT locale: $localeId", name: 'VOICE_SERVICE');
       } catch (e) {
-        dev.log("Could not query locales, fallback to fr_FR", name: 'VOICE_SERVICE');
+        dev.log("Could not query locales, fallback to $localeId", name: 'VOICE_SERVICE');
       }
 
       await _speech.listen(
